@@ -6,17 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.atrox.app.R
-
-// ─── Font Families ────────────────────────────────────────────────────────────
-// Add fonts to res/font/ folder:
-//   plus_jakarta_sans_regular.ttf   → weight 400
-//   plus_jakarta_sans_medium.ttf    → weight 500
-//   plus_jakarta_sans_semibold.ttf  → weight 600
-//   plus_jakarta_sans_bold.ttf      → weight 700
-//   plus_jakarta_sans_extrabold.ttf → weight 800
-//   dm_mono_regular.ttf             → weight 400
-//   dm_mono_medium.ttf              → weight 500
+import com.example.atrox.R
 
 val PlusJakartaSans = FontFamily(
     Font(R.font.plus_jakarta_sans_regular,   FontWeight.Normal),
@@ -31,14 +21,8 @@ val DmMono = FontFamily(
     Font(R.font.dm_mono_medium,  FontWeight.Medium),
 )
 
-// ─── Typography Scale ─────────────────────────────────────────────────────────
-// Convention:
-//   PlusJakartaSans → all UI text (headings, body, buttons, labels)
-//   DmMono         → timers, numeric stats, category tags, mono labels
-
 val AtroxTypography = Typography(
 
-    // ── Display (splash / streak hero) ──
     displayLarge = TextStyle(
         fontFamily = PlusJakartaSans,
         fontWeight = FontWeight.ExtraBold,

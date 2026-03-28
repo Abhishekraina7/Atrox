@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.atrox.app"
+    namespace = "com.example.atrox"
     compileSdk = 35
 
     defaultConfig {
