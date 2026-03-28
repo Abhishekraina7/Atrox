@@ -1,4 +1,7 @@
 package com.example.atrox.ui.auth.splash
 
-class SplashEvents {
+sealed interface SplashEvent {
+    object NavigateToOnboarding : SplashEvent
+    object NavigateToLogin : SplashEvent
+    object NavigateToHome : SplashEvent
 }
