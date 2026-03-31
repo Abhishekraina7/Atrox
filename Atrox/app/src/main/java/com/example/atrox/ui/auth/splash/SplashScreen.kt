@@ -39,16 +39,20 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.atrox.app.ui.theme.DmMono
+import com.atrox.app.ui.theme.PlusJakartaSans
+import com.example.atrox.ui.theme.AtroxTheme
+import com.example.atrox.ui.theme.Background
+import com.example.atrox.ui.theme.IndigoAccent
+import com.example.atrox.ui.theme.IndigoSoft
+import com.example.atrox.ui.theme.TextPrimary
+import com.example.atrox.ui.theme.TextSecondar
 
 // Definition of the Obsidian Focus Theme Colors
-private val ColorBackground = Color(0xFF0A0A0A)
-private val ColorAccent = Color(0xFF6C63FF)
-private val ColorAccentSoft = Color(0xFF8B84FF)
-private val ColorTextPrimary = Color(0xFFF0F0F0)
-private val ColorTextSecondary = Color(0xFF8888A0)
 private val ColorLogoDarkDot = Color(0xFF3A2FD6)
 
 @Composable
@@ -69,7 +73,11 @@ fun SplashScreen(
             }
         }
     }
+    SplashScreenContent()
+}
 
+@Composable
+fun SplashScreenContent() {
     // State for the progress bar animation at the bottom
     var startProgressAnim by remember { mutableStateOf(false) }
     val progress by animateFloatAsState(
@@ -86,7 +94,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ColorBackground)
+            .background(Background)
     ) {
         // ZONE 3: BACKGROUND
         // Draws the subtle radial indigo glow right behind the center elements
@@ -97,7 +105,7 @@ fun SplashScreen(
             
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(ColorAccent.copy(alpha = 0.08f), Color.Transparent),
+                    colors = listOf(IndigoAccent.copy(alpha = 0.08f), Color.Transparent),
                     center = Offset(canvasWidth / 2, canvasHeight / 2),
                     radius = radius
                 ),
@@ -105,7 +113,6 @@ fun SplashScreen(
                 center = Offset(canvasWidth / 2, canvasHeight / 2)
             )
         }
-
         // ZONE 1: CENTER Layout
         Column(
             modifier = Modifier.align(Alignment.Center),
@@ -118,11 +125,11 @@ fun SplashScreen(
             // "Atrox" Wordmark
             Text(
                 text = "Atrox",
-                color = ColorTextPrimary,
+                color = TextPrimary,
                 fontSize = 42.sp,
-                fontWeight = FontWeight.ExtraBold, // Plus Jakarta Sans fallback (800)
+                fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-2).sp,
-                fontFamily = FontFamily.SansSerif // TODO: Include Plus Jakarta Sans
+                fontFamily = PlusJakartaSans 
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -130,10 +137,10 @@ fun SplashScreen(
             // Tagline below the wordmark
             Text(
                 text = "TRAIN YOUR FOCUS LIKE A MUSCLE",
-                color = ColorAccent,
+                color = IndigoAccent,
                 fontSize = 10.sp,
                 letterSpacing = 3.sp,
-                fontFamily = FontFamily.Monospace // TODO: Include DM Mono
+                fontFamily = DmMono // TODO: Include DM Mono
             )
         }
 
@@ -152,15 +159,15 @@ fun SplashScreen(
             ) {
                 Text(
                     text = "CALIBRATING ENVIRONMENT",
-                    color = ColorTextSecondary,
+                    color = TextSecondary,
                     fontSize = 9.sp,
-                    fontFamily = FontFamily.Monospace // TODO: Include DM Mono
+                    fontFamily = DmMono
                 )
                 Text(
                     text = "${(progress * 100).toInt()}%",
-                    color = ColorAccentSoft,
+                    color = IndigoSoft,
                     fontSize = 9.sp,
-                    fontFamily = FontFamily.Monospace // TODO: Include DM Mono
+                    fontFamily = DmMono
                 )
             }
             
@@ -183,7 +190,7 @@ fun SplashScreen(
                 
                 // Active Track (Indigo fill animating 0 -> 30%)
                 drawLine(
-                    color = ColorAccent,
+                    color = IndigoAccent,
                     start = Offset(0f, size.height / 2),
                     end = Offset(size.width * progress, size.height / 2),
                     strokeWidth = size.height,
@@ -215,7 +222,7 @@ fun LogoSection() {
         // Pulsing Indigo Ring
         Canvas(modifier = Modifier.fillMaxSize().scale(scale)) {
             drawCircle(
-                color = ColorAccent,
+                color = IndigoAccent,
                 radius = size.width / 2,
                 style = Stroke(width = 2.dp.toPx())
             )
@@ -226,7 +233,7 @@ fun LogoSection() {
             modifier = Modifier
                 .size(80.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(ColorAccent),
+                .background(IndigoAccent),
             contentAlignment = Alignment.Center
         ) {
             // Inner White circle
@@ -246,5 +253,13 @@ fun LogoSection() {
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    AtroxTheme {
+        SplashScreenContent()
     }
 }
