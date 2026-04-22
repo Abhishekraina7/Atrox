@@ -1,4 +1,4 @@
-package com.example.atrox
+package com.example.atrox.di
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
@@ -9,6 +9,6 @@ import dagger.hilt.android.HiltAndroidApp
  * will cause the app to crash immediately upon launch.
  */
 @HiltAndroidApp
-class AtroxApplication : Application(){
-    
+class AtroxHiltApplication : Application(){
+
 }

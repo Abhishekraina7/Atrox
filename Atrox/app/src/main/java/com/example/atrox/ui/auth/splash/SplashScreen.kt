@@ -37,7 +37,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,7 +49,7 @@ import com.example.atrox.ui.theme.Background
 import com.example.atrox.ui.theme.IndigoAccent
 import com.example.atrox.ui.theme.IndigoSoft
 import com.example.atrox.ui.theme.TextPrimary
-import com.example.atrox.ui.theme.TextSecondar
+import com.example.atrox.ui.theme.TextSecondary
 
 // Definition of the Obsidian Focus Theme Colors
 private val ColorLogoDarkDot = Color(0xFF3A2FD6)
