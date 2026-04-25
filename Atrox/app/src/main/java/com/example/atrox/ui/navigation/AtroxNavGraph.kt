@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.atrox.ui.auth.splash.SplashScreen
+import com.example.atrox.ui.auth.onboarding.OnboardingScreen1
 
 // ------------------------------------
 // Navigation Destinations
@@ -33,7 +34,6 @@ object HomeDestination : NavigationDestination {
     override val route = "home"
     override val titleRes = 0 
 }
-
 // ------------------------------------
 // Main Navigation Graph
 // ------------------------------------
@@ -68,12 +68,22 @@ fun AtroxNavHost(
                 }
             )
         }
-
         // --- Placeholders ---
         composable(route = OnboardingDestination.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Onboarding Screen Placeholder")
-            }
+            OnboardingScreen1(
+                onNavigateToNext = {
+                    // For now, let's navigate to Login, in future this goes to Onboarding 2
+                    navController.navigate(LoginDestination.route) {
+                        // Normally you don't pop onboarding immediately so they can swipe back,
+                        // but if you want one-way: popUpTo(OnboardingDestination.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(LoginDestination.route) {
+                        popUpTo(OnboardingDestination.route) { inclusive = true }
+                    }
+                }
+            )
         }
         
         composable(route = LoginDestination.route) {
@@ -81,7 +91,6 @@ fun AtroxNavHost(
                 Text("Login Screen Placeholder")
             }
         }
-        
         composable(route = HomeDestination.route) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Home Screen Placeholder")
