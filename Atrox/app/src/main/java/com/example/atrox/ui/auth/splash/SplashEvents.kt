@@ -4,4 +4,4 @@ sealed interface SplashEvent {
     object NavigateToOnboarding : SplashEvent
     object NavigateToLogin : SplashEvent
     object NavigateToHome : SplashEvent
-}
+}   

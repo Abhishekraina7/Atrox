@@ -27,7 +27,7 @@ class SplashViewModel @Inject constructor(
     private fun startCalibration() {
         viewModelScope.launch {
             // 1. Emulate some initial work and waiting (2 seconds limit)
-            delay(20000)
+            delay(2000)
             
             // 2. Here, you would read from your DataStore:
             // val isFirstLaunch = preferences.isFirstLaunch()

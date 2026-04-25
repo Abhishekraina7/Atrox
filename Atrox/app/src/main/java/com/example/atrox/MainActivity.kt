@@ -20,14 +20,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AtroxTheme {
-                // Initialize the Navigation Controller
-                val navController = rememberNavController()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    // Call our newly isolated Navigation UI
-                    AtroxNavHost(
-                        navController = navController,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    AtroxApp(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
