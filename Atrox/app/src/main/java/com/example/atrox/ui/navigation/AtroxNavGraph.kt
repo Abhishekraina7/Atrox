@@ -11,17 +11,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.atrox.ui.auth.splash.SplashScreen
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen1
+import com.example.atrox.ui.auth.onboarding.OnboardingScreen2
 
 // ------------------------------------
 // Navigation Destinations
 // ------------------------------------
 object SplashDestination : NavigationDestination {
     override val route = "splash"
-    override val titleRes = 0 // Represents an R.string.splash_title in the future
+    override val titleRes = 0 
 }
 
 object OnboardingDestination : NavigationDestination {
     override val route = "onboarding"
+    override val titleRes = 0 
+}
+
+object Onboarding2Destination : NavigationDestination {
+    override val route = "onboarding2"
     override val titleRes = 0 
 }
 
@@ -34,6 +40,7 @@ object HomeDestination : NavigationDestination {
     override val route = "home"
     override val titleRes = 0 
 }
+
 // ------------------------------------
 // Main Navigation Graph
 // ------------------------------------
@@ -68,15 +75,13 @@ fun AtroxNavHost(
                 }
             )
         }
-        // --- Placeholders ---
+        
+        // --- Onboarding 1 ---
         composable(route = OnboardingDestination.route) {
             OnboardingScreen1(
                 onNavigateToNext = {
-                    // For now, let's navigate to Login, in future this goes to Onboarding 2
-                    navController.navigate(LoginDestination.route) {
-                        // Normally you don't pop onboarding immediately so they can swipe back,
-                        // but if you want one-way: popUpTo(OnboardingDestination.route) { inclusive = true }
-                    }
+                    // Navigate to Onboarding 2
+                    navController.navigate(Onboarding2Destination.route)
                 },
                 onNavigateToLogin = {
                     navController.navigate(LoginDestination.route) {
@@ -86,11 +91,35 @@ fun AtroxNavHost(
             )
         }
         
+        // --- Onboarding 2 ---
+        composable(route = Onboarding2Destination.route) {
+            OnboardingScreen2(
+                onNavigateBack = {
+                    navController.popBackStack() // Goes back to Onboarding 1
+                },
+                onNavigateToNext = {
+                    // Navigate to future Onboarding 3 or Login/Home
+                    navController.navigate(LoginDestination.route) {
+                        // Pop up to Splash or remove everything from backstack
+                        popUpTo(SplashDestination.route) { inclusive = true }
+                    }
+                },
+                onNavigateToSkip = {
+                    // Navigate directly to Home
+                    navController.navigate(HomeDestination.route) {
+                        popUpTo(SplashDestination.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        
+        // --- Placeholders ---
         composable(route = LoginDestination.route) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Login Screen Placeholder")
             }
         }
+        
         composable(route = HomeDestination.route) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Home Screen Placeholder")
