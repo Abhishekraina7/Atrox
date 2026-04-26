@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -17,22 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-
-private val ColorBackground = Color(0xFF0F0F16)
-private val ColorAccent = Color(0xFF6C63FF)
-private val ColorSurface = Color(0xFF14141E)
-private val ColorSurfaceLight = Color(0xFF1C1C28)
-private val ColorSurfaceStroke = Color(0xFF2A2A3A)
-private val ColorTextPrimary = Color(0xFFFFFFFF)
-private val ColorTextSecondary = Color(0xFF8888A0)
+import com.example.atrox.ui.theme.atroxColors
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +47,7 @@ fun OnboardingScreen2(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ColorBackground)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
             .padding(top = 48.dp, bottom = 32.dp)
@@ -70,7 +59,7 @@ fun OnboardingScreen2(
             Icon(
                 imageVector = Icons.Rounded.ArrowBack,
                 contentDescription = "Back",
-                tint = ColorTextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .size(24.dp)
@@ -81,7 +70,7 @@ fun OnboardingScreen2(
         // --- 2. Title Section ---
         Text(
             text = "What do you want to achieve?",
-            color = ColorTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold,
             lineHeight = 36.sp,
@@ -90,7 +79,7 @@ fun OnboardingScreen2(
         )
         Text(
             text = "Select your primary focus goal to personalize your experience.",
-            color = ColorTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             lineHeight = 22.sp,
             modifier = Modifier.padding(bottom = 32.dp)
@@ -116,10 +105,10 @@ fun OnboardingScreen2(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (isSelected) ColorAccent.copy(alpha = 0.15f) else Color.Transparent)
+                        .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color.Transparent)
                         .border(
                             1.dp,
-                            if (isSelected) ColorAccent else ColorSurfaceStroke,
+                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             RoundedCornerShape(12.dp)
                         )
                         .clickable { viewModel.onGoalSelected(text) }
@@ -129,7 +118,7 @@ fun OnboardingScreen2(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = text,
-                        color = if (isSelected) ColorTextPrimary else ColorTextSecondary,
+                        color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                     )
@@ -140,7 +129,7 @@ fun OnboardingScreen2(
         // --- 4. Daily Focus Target Slider ---
         Text(
             text = "Daily focus target",
-            color = ColorTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -154,14 +143,14 @@ fun OnboardingScreen2(
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = "${targetHours.toInt()}",
-                    color = ColorAccent,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 48.sp
                 )
                 Text(
                     text = "h",
-                    color = ColorTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
@@ -172,12 +161,12 @@ fun OnboardingScreen2(
             Box(
                 modifier = Modifier
                     .padding(bottom = 12.dp)
-                    .background(ColorAccent.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = "RECOMMENDED",
-                    color = ColorAccent,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -191,9 +180,9 @@ fun OnboardingScreen2(
             valueRange = 1f..8f,
             steps = 6,
             colors = SliderDefaults.colors(
-                thumbColor = ColorAccent,
-                activeTrackColor = ColorAccent,
-                inactiveTrackColor = ColorSurfaceStroke,
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.outline,
                 activeTickColor = Color.Transparent,
                 inactiveTickColor = Color.Transparent
             ),
@@ -207,7 +196,7 @@ fun OnboardingScreen2(
             (1..8).forEach { h ->
                 Text(
                     text = "${h}h",
-                    color = ColorTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
             }
@@ -219,15 +208,15 @@ fun OnboardingScreen2(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, ColorAccent.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-                .background(ColorSurfaceLight, RoundedCornerShape(16.dp))
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                .background(MaterialTheme.atroxColors.cardElevated, RoundedCornerShape(16.dp))
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .background(ColorAccent, RoundedCornerShape(10.dp)),
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text("⚡", fontSize = 20.sp)
@@ -236,14 +225,14 @@ fun OnboardingScreen2(
             Column {
                 Text(
                     text = "Productivity Boost",
-                    color = ColorTextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = "Setting a daily target increases your consistency by 40% based on user data.",
-                    color = ColorTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     lineHeight = 16.sp
                 )
@@ -255,7 +244,7 @@ fun OnboardingScreen2(
         // --- 6. Action Buttons ---
         Button(
             onClick = { viewModel.onContinueClicked() },
-            colors = ButtonDefaults.buttonColors(containerColor = ColorAccent),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -270,7 +259,7 @@ fun OnboardingScreen2(
 
         Text(
             text = "I'll do this later",
-            color = ColorTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier
