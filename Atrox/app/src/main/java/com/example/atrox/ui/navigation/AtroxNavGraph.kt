@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import com.example.atrox.ui.auth.splash.SplashScreen
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen1
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen2
+import com.example.atrox.ui.auth.onboarding.OnboardingScreen3
 
 // ------------------------------------
 // Navigation Destinations
@@ -28,6 +29,11 @@ object OnboardingDestination : NavigationDestination {
 
 object Onboarding2Destination : NavigationDestination {
     override val route = "onboarding2"
+    override val titleRes = 0 
+}
+
+object Onboarding3Destination : NavigationDestination {
+    override val route = "onboarding3"
     override val titleRes = 0 
 }
 
@@ -95,17 +101,33 @@ fun AtroxNavHost(
         composable(route = Onboarding2Destination.route) {
             OnboardingScreen2(
                 onNavigateBack = {
-                    navController.popBackStack() // Goes back to Onboarding 1
+                    navController.popBackStack() 
                 },
                 onNavigateToNext = {
-                    // Navigate to future Onboarding 3 or Login/Home
-                    navController.navigate(LoginDestination.route) {
-                        // Pop up to Splash or remove everything from backstack
+                    // Navigate to Onboarding 3
+                    navController.navigate(Onboarding3Destination.route)
+                },
+                onNavigateToSkip = {
+                    // Navigate directly to Home
+                    navController.navigate(HomeDestination.route) {
+                        popUpTo(SplashDestination.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- Onboarding 3 ---
+        composable(route = Onboarding3Destination.route) {
+            OnboardingScreen3(
+                onNavigateBack = {
+                    navController.popBackStack() 
+                },
+                onNavigateToDashboard = {
+                    navController.navigate(HomeDestination.route) {
                         popUpTo(SplashDestination.route) { inclusive = true }
                     }
                 },
                 onNavigateToSkip = {
-                    // Navigate directly to Home
                     navController.navigate(HomeDestination.route) {
                         popUpTo(SplashDestination.route) { inclusive = true }
                     }
