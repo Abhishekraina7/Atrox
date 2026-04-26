@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.example.atrox"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.atrox.app"
@@ -47,6 +47,10 @@ android {
         compose = true
         buildConfig = true
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
