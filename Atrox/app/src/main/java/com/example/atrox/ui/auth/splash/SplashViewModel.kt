@@ -38,8 +38,7 @@ class SplashViewModel @Inject constructor(
             // if (isFirstLaunch) _events.emit(SplashEvent.NavigateToOnboarding)
             // else if (!isLoggedIn) _events.emit(SplashEvent.NavigateToLogin)
             // else _events.emit(SplashEvent.NavigateToHome)
-            
-            _events.emit(SplashEvent.NavigateToOnboarding)
+            _events.emit(SplashEvent.NavigateToLogin)
         }
     }
 }

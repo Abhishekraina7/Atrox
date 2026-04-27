@@ -15,6 +15,7 @@ import com.example.atrox.ui.auth.onboarding.OnboardingScreen1
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen2
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen3
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen4
+import com.example.atrox.ui.auth.login.LoginScreen
 
 // ------------------------------------
 // Navigation Destinations
@@ -159,11 +160,21 @@ fun AtroxNavHost(
             )
         }
         
-        // --- Placeholders ---
+        // --- Login Screen ---
         composable(route = LoginDestination.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Login Screen Placeholder")
-            }
+            LoginScreen(
+                onNavigateToOnboarding = {
+                    navController.navigate(OnboardingDestination.route) {
+                        popUpTo(LoginDestination.route) { inclusive = true }
+                    }
+                },
+                onNavigateToRegister = {
+                    // Handle register navigation
+                },
+                onNavigateToForgotPassword = {
+                    // Handle password reset navigation
+                }
+            )
         }
         
         composable(route = HomeDestination.route) {
