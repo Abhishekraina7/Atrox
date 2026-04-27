@@ -50,7 +50,7 @@ class Onboarding3ViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onContinueClicked() {
-        viewModelScope.launch { _events.emit(Onboarding3Event.NavigateToDashboard) }
+        viewModelScope.launch { _events.emit(Onboarding3Event.NavigateToNext) }
     }
 
     fun onSkipClicked() {

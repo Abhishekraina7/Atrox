@@ -32,7 +32,7 @@ import com.example.atrox.ui.theme.atroxColors
 fun OnboardingScreen3(
     viewModel: Onboarding3ViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToDashboard: () -> Unit,
+    onNavigateToNext: () -> Unit,
     onNavigateToSkip: () -> Unit
 ) {
     val sprintDuration by viewModel.sprintDuration.collectAsState()
@@ -43,7 +43,7 @@ fun OnboardingScreen3(
         viewModel.events.collect { event ->
             when (event) {
                 is Onboarding3Event.NavigateBack -> onNavigateBack()
-                is Onboarding3Event.NavigateToDashboard -> onNavigateToDashboard()
+                is Onboarding3Event.NavigateToNext -> onNavigateToNext()
                 is Onboarding3Event.NavigateToSkip -> onNavigateToSkip()
             }
         }
@@ -196,7 +196,7 @@ fun OnboardingScreen3(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text(text = "Continue to Dashboard", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = "Continue", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(imageVector = Icons.Rounded.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
