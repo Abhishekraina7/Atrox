@@ -1,4 +1,4 @@
-package com.example.atrox.navigation
+package com.example.atrox.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,10 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.atrox.navigation.NavigationDestination
 import com.example.atrox.ui.auth.splash.SplashScreen
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen1
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen2
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen3
+import com.example.atrox.ui.auth.onboarding.OnboardingScreen4
 
 // ------------------------------------
 // Navigation Destinations
@@ -34,6 +36,11 @@ object Onboarding2Destination : NavigationDestination {
 
 object Onboarding3Destination : NavigationDestination {
     override val route = "onboarding3"
+    override val titleRes = 0 
+}
+
+object Onboarding4Destination : NavigationDestination {
+    override val route = "onboarding4"
     override val titleRes = 0 
 }
 
@@ -119,6 +126,23 @@ fun AtroxNavHost(
         // --- Onboarding 3 ---
         composable(route = Onboarding3Destination.route) {
             OnboardingScreen3(
+                onNavigateBack = {
+                    navController.popBackStack() 
+                },
+                onNavigateToNext = {
+                    navController.navigate(Onboarding4Destination.route)
+                },
+                onNavigateToSkip = {
+                    navController.navigate(HomeDestination.route) {
+                        popUpTo(SplashDestination.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- Onboarding 4 ---
+        composable(route = Onboarding4Destination.route) {
+            OnboardingScreen4(
                 onNavigateBack = {
                     navController.popBackStack() 
                 },
