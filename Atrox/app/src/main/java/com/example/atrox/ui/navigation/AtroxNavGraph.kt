@@ -168,9 +168,6 @@ fun AtroxNavHost(
                         popUpTo(LoginDestination.route) { inclusive = true }
                     }
                 },
-                onNavigateToRegister = {
-                    // Handle register navigation
-                },
                 onNavigateToForgotPassword = {
                     // Handle password reset navigation
                 }
