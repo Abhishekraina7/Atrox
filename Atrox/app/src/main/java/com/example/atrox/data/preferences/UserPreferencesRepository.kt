@@ -1,0 +1,39 @@
+package com.example.atrox.data.preferences
+
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import java.io.IOException
+import javax.inject.Inject
+
+class UserPreferencesRepository @Inject constructor(
+    private val dataStore: DataStore<Preferences>
+) {
+
+    private object PreferencesKeys {
+        val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+    }
+
+    val isLoggedIn: Flow<Boolean> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[PreferencesKeys.IS_LOGGED_IN] ?: false
+        }
+
+    suspend fun setLoggedIn(isLoggedIn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_LOGGED_IN] = isLoggedIn
+        }
+    }
+}
