@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,19 +7,30 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    id("com.google.gms.google-services")
 }
+
+//load your secret from local.properties file
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+val webClientId = localProperties.getProperty("WEB_CLIENT_ID") ?: ""
 
 android {
     namespace = "com.example.atrox"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.atrox.app"
+        applicationId = "com.company.atrox"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        //build a config field which generates a BuildConfig.java class which can be used to access the web client id
+        buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
     }
 
     buildTypes {
@@ -29,7 +42,7 @@ android {
             )
         }
         debug {
-            applicationIdSuffix = ".debug"
+//            applicationIdSuffix = ".debug"
             isDebuggable = true
         }
     }
@@ -101,6 +114,17 @@ dependencies {
 
     // --- Coil (Image Loading) ---
     implementation(libs.coil.compose)
+
+    //--- firebase ---
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.firebase.auth)
+    
+    // --- Google Sign In (Credential Manager) ---
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.play.services.auth)
 
     // --- Testing ---
     testImplementation(libs.junit)
