@@ -38,20 +38,22 @@ import kotlinx.coroutines.launch
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     onNavigateToOnboarding: () -> Unit,
-    onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
 ) {
+    val username by viewModel.username.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
-
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isRegisterMode by viewModel.isRegisterMode.collectAsState()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val credentialManager = remember { CredentialManager.create(context) }
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is LoginEvent.NavigateToOnboarding -> onNavigateToOnboarding()
-                is LoginEvent.NavigateToRegister -> onNavigateToRegister()
                 is LoginEvent.NavigateToForgotPassword -> onNavigateToForgotPassword()
             }
         }
@@ -97,7 +99,7 @@ fun LoginScreen(
 
         // --- 2. Title Section ---
         Text(
-            text = "Welcome",
+            text = if (isRegisterMode) "Create Account" else "Welcome",
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -107,16 +109,87 @@ fun LoginScreen(
                 .padding(bottom = 8.dp)
         )
         Text(
-            text = "Sign in to continue to your workspace.",
+            text = if (isRegisterMode) "Sign up to start your journey." else "Sign in to continue to your workspace.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp)
+                .padding(bottom = 24.dp)
         )
 
-        // --- 3. Email Input ---
+        // --- 2.5. Segmented Control ---
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (!isRegisterMode) MaterialTheme.colorScheme.surface else Color.Transparent)
+                    .clickable { if (isRegisterMode) viewModel.toggleRegisterMode() }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Sign In",
+                    color = if (!isRegisterMode) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (!isRegisterMode) FontWeight.Bold else FontWeight.Medium,
+                    fontSize = 14.sp
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isRegisterMode) MaterialTheme.colorScheme.surface else Color.Transparent)
+                    .clickable { if (!isRegisterMode) viewModel.toggleRegisterMode() }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Sign Up",
+                    color = if (isRegisterMode) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (isRegisterMode) FontWeight.Bold else FontWeight.Medium,
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        // --- 3. Optional Username Input ---
+        if (isRegisterMode) {
+            Text(
+                text = "USERNAME",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = username,
+                onValueChange = { viewModel.onUsernameChanged(it) },
+                placeholder = { Text("your_username", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                ),
+                singleLine = true
+            )
+        }
+
+        // --- 4. Email Input ---
         Text(
             text = "EMAIL ADDRESS",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -173,7 +246,7 @@ fun LoginScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp),
+                .padding(bottom = 16.dp), // reduced padding slightly to make room for error message
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
@@ -185,6 +258,16 @@ fun LoginScreen(
             singleLine = true
         )
 
+        // Error Message
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
         // --- 5. Sign in Button ---
         Button(
             onClick = { viewModel.onSignInClicked() },
@@ -192,9 +275,18 @@ fun LoginScreen(
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(56.dp),
+            enabled = !isLoading
         ) {
-            Text(text = "Sign in", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(text = if (isRegisterMode) "Create Account" else "Sign in", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -273,26 +365,26 @@ fun LoginScreen(
         Spacer(modifier = Modifier.weight(1f, fill = false))
         Spacer(modifier = Modifier.height(40.dp))
 
-        // --- 8. Create Account Link ---
-//        Box(
-//            modifier = Modifier.fillMaxWidth(),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                text = buildAnnotatedString {
-//                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-//                        append("Don't have an account? ")
-//                    }
-//                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)) {
-//                        append("Create one now")
-//                    }
-//                },
-//                fontSize = 14.sp,
-//                modifier = Modifier
-//                    .clickable { viewModel.onCreateAccountClicked() }
-//                    .padding(8.dp)
-//            )
-//        }
+        // --- 8. Bottom Link ---
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = androidx.compose.ui.text.buildAnnotatedString {
+                    withStyle(style = androidx.compose.ui.text.SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                        append(if (isRegisterMode) "Already have an account? " else "Don't have an account? ")
+                    }
+                    withStyle(style = androidx.compose.ui.text.SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)) {
+                        append(if (isRegisterMode) "Sign in" else "Create one now")
+                    }
+                },
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .clickable { viewModel.toggleRegisterMode() }
+                    .padding(8.dp)
+            )
+        }
     }
 }
 
