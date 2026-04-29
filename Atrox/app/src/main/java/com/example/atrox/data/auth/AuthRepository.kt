@@ -6,6 +6,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+//Login using Google via Firebase OAuth (Google as service provider)
 class AuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) {
@@ -14,6 +15,23 @@ class AuthRepository @Inject constructor(
         return try {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val authResult = firebaseAuth.signInWithCredential(credential).await()
+            Result.success(authResult)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun signInWithEmailAndPassword(email: String, password: String): Result<AuthResult> {
+        return try {
+            val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+            Result.success(authResult)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun createUserWithEmailAndPassword(email: String, password: String): Result<AuthResult> {
+        return try {
+            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             Result.success(authResult)
         } catch (e: Exception) {
             Result.failure(e)
