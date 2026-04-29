@@ -16,9 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,6 +24,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
+import com.example.atrox.BuildConfig
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +44,9 @@ fun LoginScreen(
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = remember { CredentialManager.create(context) }
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -224,7 +232,34 @@ fun LoginScreen(
             SocialButton(
                 text = "Google",
                 iconText = "G",
-                onClick = { viewModel.onGoogleSignInClicked() },
+                onClick = { 
+                    coroutineScope.launch {
+                        try {
+                            // Uses the WEB_CLIENT_ID from BuildConfig which is pulled from local.properties
+                            val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+                                .setFilterByAuthorizedAccounts(false)
+                                .setServerClientId(BuildConfig.WEB_CLIENT_ID)
+                                .setAutoSelectEnabled(false)
+                                .build()
+                            
+                            val request: GetCredentialRequest = GetCredentialRequest.Builder()
+                                .addCredentialOption(googleIdOption)
+                                .build()
+                            
+                            val result = credentialManager.getCredential(
+                                request = request,
+                                context = context
+                            )
+                            val credential = result.credential
+                            if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                viewModel.onGoogleTokenReceived(googleIdTokenCredential.idToken)
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                },
                 modifier = Modifier.weight(1f)
             )
             SocialButton(
