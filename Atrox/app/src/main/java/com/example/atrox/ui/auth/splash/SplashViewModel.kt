@@ -9,10 +9,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.example.atrox.data.preferences.UserPreferencesRepository
+import kotlinx.coroutines.flow.first
+
 @HiltViewModel
 class SplashViewModel @Inject constructor(
-    // Normally you would inject your UserPreferences DataStore repository here
-    // private val preferences: UserPreferencesRepository
+    private val preferences: UserPreferencesRepository
 ) : ViewModel() {
 
     // MutableSharedFlow is used over StateFlow because navigation is a "one-shot" event.
@@ -29,16 +31,15 @@ class SplashViewModel @Inject constructor(
             // 1. Emulate some initial work and waiting (2 seconds limit)
             delay(2000)
             
-            // 2. Here, you would read from your DataStore:
-            // val isFirstLaunch = preferences.isFirstLaunch()
-            // val isLoggedIn = preferences.isLoggedIn()
+            // 2. Read from DataStore:
+            val isLoggedIn = preferences.isLoggedIn.first()
             
-            // 3. For now, we'll route to Onboarding as a default
-            // In the future:
-            // if (isFirstLaunch) _events.emit(SplashEvent.NavigateToOnboarding)
-            // else if (!isLoggedIn) _events.emit(SplashEvent.NavigateToLogin)
-            // else _events.emit(SplashEvent.NavigateToHome)
-            _events.emit(SplashEvent.NavigateToLogin)
+            // 3. Route accordingly
+            if (isLoggedIn) {
+                _events.emit(SplashEvent.NavigateToOnboarding)
+            } else {
+                _events.emit(SplashEvent.NavigateToLogin)
+            }
         }
     }
 }
