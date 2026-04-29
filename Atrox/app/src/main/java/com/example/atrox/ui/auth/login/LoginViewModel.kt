@@ -10,10 +10,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.example.atrox.data.auth.AuthRepository
+import com.example.atrox.data.preferences.UserPreferencesRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _events = MutableSharedFlow<LoginEvent>()
     val events: SharedFlow<LoginEvent> = _events.asSharedFlow()
@@ -39,10 +44,23 @@ class LoginViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun onGoogleSignInClicked() {
+    fun onGoogleTokenReceived(idToken: String) {
         viewModelScope.launch {
-            _events.emit(LoginEvent.NavigateToOnboarding)
+            val result = authRepository.signInWithGoogleCredential(idToken)
+            result.onSuccess {
+                // Save session local state
+                userPreferencesRepository.setLoggedIn(true)
+                _events.emit(LoginEvent.NavigateToOnboarding)
+            }.onFailure { exception ->
+                // Handle error (e.g., emit an error state/event)
+                exception.printStackTrace()
+            }
         }
+    }
+
+    fun onGoogleSignInClicked() {
+        // This acts as a trigger fallback or UI state toggle if needed, 
+        // but actual login flow is initiated from Compose UI since it requires Context.
     }
 
     fun onAppleSignInClicked() {
