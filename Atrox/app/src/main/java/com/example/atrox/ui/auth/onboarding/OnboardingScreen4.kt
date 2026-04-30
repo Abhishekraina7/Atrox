@@ -1,5 +1,6 @@
 package com.example.atrox.ui.auth.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,12 +21,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.atrox.ui.theme.atroxColors
+import com.example.atrox.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,13 +95,12 @@ fun OnboardingScreen4(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-                // Uncomment to use an image
-                // Image(
-                //     painter = painterResource(id = R.drawable.img_regulator_office),
-                //     contentDescription = null,
-                //     contentScale = ContentScale.Crop,
-                //     modifier = Modifier.fillMaxSize()
-                // )
+                 Image(
+                     painter = painterResource(id = R.drawable.img_onboarding_4),
+                     contentDescription = null,
+                     contentScale = ContentScale.Crop,
+                     modifier = Modifier.fillMaxSize()
+                 )
             }
 
             // Gradient Overlay

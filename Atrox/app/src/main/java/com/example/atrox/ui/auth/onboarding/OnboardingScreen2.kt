@@ -43,14 +43,13 @@ fun OnboardingScreen2(
             }
         }
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(top = 48.dp, bottom = 32.dp)
+            .padding(top = 20.dp, bottom = 32.dp)
     ) {
         // --- 1. Top Bar (Back Button + Progress) ---
         Box(
