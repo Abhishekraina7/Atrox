@@ -16,6 +16,7 @@ import com.example.atrox.ui.auth.onboarding.OnboardingScreen2
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen3
 import com.example.atrox.ui.auth.onboarding.OnboardingScreen4
 import com.example.atrox.ui.auth.login.LoginScreen
+import com.example.atrox.ui.main.MainScreen
 
 // ------------------------------------
 // Navigation Destinations
@@ -68,7 +69,6 @@ fun AtroxNavHost(
         startDestination = SplashDestination.route, // Sets the Splash Screen as Entry point
         modifier = modifier
     ) {
-        
         // --- Splash Screen ---
         composable(route = SplashDestination.route) {
             SplashScreen(
@@ -175,9 +175,7 @@ fun AtroxNavHost(
         }
         
         composable(route = HomeDestination.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Home Screen Placeholder")
-            }
+            MainScreen(rootNavController = navController)
         }
     }
 }
