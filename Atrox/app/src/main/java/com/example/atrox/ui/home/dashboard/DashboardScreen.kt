@@ -15,6 +15,8 @@ import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.AddTask
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -102,88 +104,56 @@ fun DashboardScreen(
                 .padding(horizontal = 24.dp)
                 .padding(top = 16.dp, bottom = 32.dp)
         ) {
-        // --- 2. Current Sprint Card ---
+        // --- 2. Empty State Sprint Card ---
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(ColorCard, RoundedCornerShape(16.dp))
-                .padding(20.dp)
-                .padding(bottom = 24.dp)
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column {
-                    Text(
-                        text = "CURRENT SPRINT",
-                        color = ColorAccent,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Website Audit",
-                        color = ColorTextPrimary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Sprint 2 of 4",
-                        color = ColorTextSecondary,
-                        fontSize = 14.sp
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(ColorCardLighter, RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(imageVector = Icons.Rounded.BarChart, contentDescription = null, tint = ColorTextPrimary)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Progress Bar
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "PROGRESS", color = ColorTextSecondary, fontSize = 10.sp, letterSpacing = 1.sp)
-                Text(text = "50%", color = ColorTextSecondary, fontSize = 10.sp)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .background(ColorCardLighter, RoundedCornerShape(50))
+                    .size(64.dp)
+                    .background(ColorBackground, CircleShape),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .height(6.dp)
-                        .background(ColorAccent, RoundedCornerShape(50))
+                Icon(
+                    imageVector = Icons.Rounded.AddTask,
+                    contentDescription = null,
+                    tint = ColorAccent,
+                    modifier = Modifier.size(32.dp)
                 )
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Start Focus Button
+            
+            Text(
+                text = "Add a task to start",
+                color = ColorTextPrimary,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "You don't have any tasks in your current\nfocus session.",
+                color = ColorTextSecondary,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
             Button(
                 onClick = { /* TODO */ },
                 colors = ButtonDefaults.buttonColors(containerColor = ColorAccent),
                 shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth().height(56.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
             ) {
-                Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.White)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Start Focus", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("+ Add Task", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
 
