@@ -6,7 +6,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-//Login using Google via Firebase OAuth (Google as service provider)
+//Login using Google via Firebase OAuth and email-password
 class AuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) {

@@ -1,5 +1,6 @@
 package com.example.atrox.ui.auth.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -29,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.ui.theme.atroxColors
+import com.example.atrox.R
 
 @Composable
 fun OnboardingScreen1(
@@ -62,12 +66,12 @@ fun OnboardingScreen1(
                 .clip(RoundedCornerShape(8.dp))
         ) {
             // TODO: Crop your graphic, save as 'img_onboarding_1.png' in res/drawable, and uncomment!
-            // Image(
-            //     painter = painterResource(id = R.drawable.img_onboarding_1),
-            //     contentDescription = "Onboarding Graphic",
-            //     contentScale = ContentScale.Crop,
-            //     modifier = Modifier.fillMaxSize()
-            // )
+             Image(
+                 painter = painterResource(id = R.drawable.img_onboarding_1),
+                 contentDescription = "Onboarding Graphic",
+                 contentScale = ContentScale.Crop,
+                 modifier = Modifier.fillMaxSize()
+             )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
