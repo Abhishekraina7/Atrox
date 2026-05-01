@@ -1,18 +1,11 @@
 package com.example.atrox.ui.main.dashboard
 
 import androidx.lifecycle.ViewModel
+import com.example.atrox.data.tasks.TaskItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
-
-data class TaskItem(
-    val id: String,
-    val title: String,
-    val category: String,
-    val durationMin: Int,
-    val isCompleted: Boolean
-)
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor() : ViewModel() {
