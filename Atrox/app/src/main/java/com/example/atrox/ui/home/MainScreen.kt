@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.atrox.ui.home.tasks.TaskScreen
 import com.example.atrox.ui.main.dashboard.DashboardScreen
 
 private val ColorBackground = Color(0xFF0A0A0F)
@@ -58,7 +59,9 @@ fun MainScreen(
             composable(BottomNavItem.Dashboard.route) {
                 DashboardScreen()
             }
-            composable(BottomNavItem.Tasks.route) { PlaceholderScreen("Tasks") }
+            composable(BottomNavItem.Tasks.route) {
+                TaskScreen()
+            }
             composable(BottomNavItem.Focus.route) { PlaceholderScreen("Focus") }
             composable(BottomNavItem.Notes.route) { PlaceholderScreen("Notes") }
             composable(BottomNavItem.Profile.route) { PlaceholderScreen("Profile") }
