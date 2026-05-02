@@ -1,4 +1,4 @@
-package com.example.atrox.ui.auth.splash
+package com.example.atrox.ui.splash
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode

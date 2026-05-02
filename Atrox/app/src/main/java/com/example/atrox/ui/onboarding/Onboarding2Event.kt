@@ -1,4 +1,4 @@
-package com.example.atrox.ui.auth.onboarding
+package com.example.atrox.ui.onboarding
 
 sealed interface Onboarding2Event {
     object NavigateBack : Onboarding2Event

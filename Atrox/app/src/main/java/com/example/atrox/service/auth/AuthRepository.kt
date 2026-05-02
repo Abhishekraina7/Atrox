@@ -1,4 +1,4 @@
-package com.example.atrox.data.auth
+package com.example.atrox.service.auth
 
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth

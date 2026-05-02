@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.example.atrox.data.auth.AuthRepository
+import com.example.atrox.service.auth.AuthRepository
 import com.example.atrox.data.preferences.UserPreferencesRepository
-import com.example.atrox.data.auth.UserRepository
+import com.example.atrox.service.auth.UserRepository
 import javax.inject.Inject
 
 @HiltViewModel

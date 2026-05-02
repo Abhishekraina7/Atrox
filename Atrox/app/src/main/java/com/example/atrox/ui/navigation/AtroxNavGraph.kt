@@ -1,20 +1,16 @@
 package com.example.atrox.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.atrox.navigation.NavigationDestination
-import com.example.atrox.ui.auth.splash.SplashScreen
-import com.example.atrox.ui.auth.onboarding.OnboardingScreen1
-import com.example.atrox.ui.auth.onboarding.OnboardingScreen2
-import com.example.atrox.ui.auth.onboarding.OnboardingScreen3
-import com.example.atrox.ui.auth.onboarding.OnboardingScreen4
+import com.example.atrox.ui.splash.SplashScreen
+import com.example.atrox.ui.onboarding.OnboardingScreen1
+import com.example.atrox.ui.onboarding.OnboardingScreen2
+import com.example.atrox.ui.onboarding.OnboardingScreen3
+import com.example.atrox.ui.onboarding.OnboardingScreen4
 import com.example.atrox.ui.auth.login.LoginScreen
 import com.example.atrox.ui.main.MainScreen
 

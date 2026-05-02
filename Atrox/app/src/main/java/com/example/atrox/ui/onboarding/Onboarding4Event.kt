@@ -1,4 +1,4 @@
-package com.example.atrox.ui.auth.onboarding
+package com.example.atrox.ui.onboarding
 
 sealed class Onboarding4Event {
     object NavigateBack : Onboarding4Event()
