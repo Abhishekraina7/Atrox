@@ -37,7 +37,8 @@ import com.example.atrox.ui.theme.atroxColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = hiltViewModel()
+    viewModel: DashboardViewModel = hiltViewModel(),
+    onStartFocus: (taskId: String) -> Unit = {}
 ) {
     val isPhoneBlockActive by viewModel.isPhoneBlockActive.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
@@ -102,7 +103,7 @@ fun DashboardScreen(
         ) {
             // --- 2. Sprint Card (Dynamic) ---
             if (nextPendingTask != null) {
-                CurrentSprintCard(task = nextPendingTask!!)
+                CurrentSprintCard(task = nextPendingTask!!, onStartFocus = onStartFocus)
             } else {
                 EmptySprintCard()
             }
@@ -256,7 +257,10 @@ fun TaskItemRow(task: TaskItem, onToggle: () -> Unit) {
 // Current Sprint Card
 // ----------------------------
 @Composable
-fun CurrentSprintCard(task: com.example.atrox.data.tasks.TaskItem) {
+fun CurrentSprintCard(
+    task: com.example.atrox.data.tasks.TaskItem,
+    onStartFocus: (taskId: String) -> Unit = {}
+) {
     val atroxColors = MaterialTheme.atroxColors
     Column(
         modifier = Modifier
@@ -311,7 +315,7 @@ fun CurrentSprintCard(task: com.example.atrox.data.tasks.TaskItem) {
         
         // Start Focus Button
         Button(
-            onClick = { /* TODO: Navigate to Focus Timer */ },
+            onClick = { onStartFocus(task.id) },
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth().height(56.dp)

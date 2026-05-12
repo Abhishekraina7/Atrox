@@ -26,7 +26,8 @@ import com.example.atrox.ui.theme.atroxColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreen(
-    viewModel: TaskViewModel = hiltViewModel()
+    viewModel: TaskViewModel = hiltViewModel(),
+    onStartFocus: (taskId: String) -> Unit = {}
 ) {
     val tasks by viewModel.tasks.collectAsState()
     
@@ -98,8 +99,8 @@ fun TaskScreen(
             task = task,
             onDismiss = { selectedTask = null },
             onStartFocus = {
-                // TODO: Start Sprint Timer Navigation
                 selectedTask = null
+                onStartFocus(task.id)
             },
             onDiscard = {
                 viewModel.removeTask(task.id)

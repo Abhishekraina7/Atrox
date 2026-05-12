@@ -19,10 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.atrox.ui.home.focus.FocusScreen
 import com.example.atrox.ui.home.tasks.TaskScreen
 import com.example.atrox.ui.main.dashboard.DashboardScreen
 
@@ -30,6 +33,10 @@ private val ColorBackground = Color(0xFF0A0A0F)
 private val ColorSurface = Color(0xFF14141E)
 private val ColorAccent = Color(0xFF6C63FF)
 private val ColorTextSecondary = Color(0xFF8888A0)
+
+// Focus session route with a required taskId argument
+const val FOCUS_ROUTE = "focus_session/{taskId}"
+fun focusRoute(taskId: String) = "focus_session/$taskId"
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Dashboard : BottomNavItem("dashboard", Icons.Rounded.Home, "HOME")
@@ -39,15 +46,30 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: 
     object Profile : BottomNavItem("profile", Icons.Rounded.Person, "PROFILE")
 }
 
+private val bottomNavRoutes = setOf(
+    BottomNavItem.Dashboard.route,
+    BottomNavItem.Tasks.route,
+    BottomNavItem.Focus.route,
+    BottomNavItem.Notes.route,
+    BottomNavItem.Profile.route
+)
+
 @Composable
 fun MainScreen(
     rootNavController: NavHostController
 ) {
     val bottomNavController = rememberNavController()
-    
+    val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Hide the bottom bar when on the FocusScreen
+    val showBottomBar = currentRoute in bottomNavRoutes
+
     Scaffold(
         bottomBar = {
-            BottomNavBar(navController = bottomNavController)
+            if (showBottomBar) {
+                BottomNavBar(navController = bottomNavController)
+            }
         },
         containerColor = ColorBackground
     ) { innerPadding ->
@@ -57,14 +79,32 @@ fun MainScreen(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavItem.Dashboard.route) {
-                DashboardScreen()
+                DashboardScreen(
+                    onStartFocus = { taskId ->
+                        bottomNavController.navigate(focusRoute(taskId))
+                    }
+                )
             }
             composable(BottomNavItem.Tasks.route) {
-                TaskScreen()
+                TaskScreen(
+                    onStartFocus = { taskId ->
+                        bottomNavController.navigate(focusRoute(taskId))
+                    }
+                )
             }
             composable(BottomNavItem.Focus.route) { PlaceholderScreen("Focus") }
             composable(BottomNavItem.Notes.route) { PlaceholderScreen("Notes") }
             composable(BottomNavItem.Profile.route) { PlaceholderScreen("Profile") }
+
+            // Full-screen Focus Session (hides bottom bar)
+            composable(
+                route = FOCUS_ROUTE,
+                arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+            ) {
+                FocusScreen(
+                    onNavigateBack = { bottomNavController.popBackStack() }
+                )
+            }
         }
     }
 }
@@ -78,10 +118,10 @@ fun BottomNavBar(navController: NavHostController) {
         BottomNavItem.Notes,
         BottomNavItem.Profile
     )
-    
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    
+
     NavigationBar(
         containerColor = ColorSurface,
         contentColor = ColorTextSecondary
@@ -96,7 +136,7 @@ fun BottomNavBar(navController: NavHostController) {
                         navController.graph.startDestinationRoute?.let { route ->
                             popUpTo(route) { saveState = true }
                         }
-                        launchSingleTop = true //there will be only one screen in backstack to avoid infinite back loops
+                        launchSingleTop = true
                         restoreState = true
                     }
                 },
