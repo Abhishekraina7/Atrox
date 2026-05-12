@@ -9,11 +9,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.AddTask
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,7 +41,7 @@ fun DashboardScreen(
 ) {
     val isPhoneBlockActive by viewModel.isPhoneBlockActive.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
-    
+    val nextPendingTask by viewModel.nextPendingTask.collectAsState()
     val atroxColors = MaterialTheme.atroxColors
     
     Scaffold(
@@ -98,57 +100,11 @@ fun DashboardScreen(
                 .padding(horizontal = 24.dp)
                 .padding(top = 16.dp, bottom = 32.dp)
         ) {
-            // --- 2. Empty State Sprint Card ---
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(atroxColors.cardDefault, RoundedCornerShape(16.dp))
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .background(MaterialTheme.colorScheme.background, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.AddTask,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "Add a task to start",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "You don't have any tasks in your current\nfocus session.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 20.sp
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Button(
-                    onClick = { /* TODO */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                ) {
-                    Text("+ Add Task", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
+            // --- 2. Sprint Card (Dynamic) ---
+            if (nextPendingTask != null) {
+                CurrentSprintCard(task = nextPendingTask!!)
+            } else {
+                EmptySprintCard()
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -293,5 +249,129 @@ fun TaskItemRow(task: TaskItem, onToggle: () -> Unit) {
         }
 
         Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+// ----------------------------
+// Current Sprint Card
+// ----------------------------
+@Composable
+fun CurrentSprintCard(task: com.example.atrox.data.tasks.TaskItem) {
+    val atroxColors = MaterialTheme.atroxColors
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(atroxColors.cardDefault, RoundedCornerShape(16.dp))
+            .padding(20.dp)
+    ) {
+        // Header Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column {
+                Text(
+                    text = "CURRENT SPRINT",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = task.title,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${task.durationMin} min focus",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(atroxColors.cardElevated, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.BarChart,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // Start Focus Button
+        Button(
+            onClick = { /* TODO: Navigate to Focus Timer */ },
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp)
+        ) {
+            Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Start Focus", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ----------------------------
+// Empty Sprint Card
+// ----------------------------
+@Composable
+fun EmptySprintCard() {
+    val atroxColors = MaterialTheme.atroxColors
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(atroxColors.cardDefault, RoundedCornerShape(16.dp))
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(MaterialTheme.colorScheme.background, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.AddTask,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Add a task to start",
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "You don't have any tasks in your current\nfocus session.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center,
+            lineHeight = 20.sp
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = { /* TODO: Navigate to Tasks tab */ },
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp)
+        ) {
+            Text("+ Add Task", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }

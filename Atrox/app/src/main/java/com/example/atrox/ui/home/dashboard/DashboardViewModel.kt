@@ -1,18 +1,26 @@
 package com.example.atrox.ui.main.dashboard
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.atrox.data.tasks.TaskItem
+import com.example.atrox.data.tasks.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class DashboardViewModel @Inject constructor() : ViewModel() {
+class DashboardViewModel @Inject constructor(
+    taskRepository: TaskRepository
+) : ViewModel() {
 
     private val _isPhoneBlockActive = MutableStateFlow(true)
     val isPhoneBlockActive = _isPhoneBlockActive.asStateFlow()
 
+    // Today's task rows (still in-memory for the dashboard list section)
     private val _tasks = MutableStateFlow(
         listOf(
             TaskItem("1", "Email Campaign Review", "WORK", 25, false),
@@ -21,6 +29,15 @@ class DashboardViewModel @Inject constructor() : ViewModel() {
         )
     )
     val tasks = _tasks.asStateFlow()
+
+    // Picks the first pending (not completed) task from the persistent TaskRepository
+    val nextPendingTask: kotlinx.coroutines.flow.StateFlow<TaskItem?> = taskRepository.tasks
+        .map { list -> list.firstOrNull { !it.isCompleted } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
     fun togglePhoneBlock() {
         _isPhoneBlockActive.value = !_isPhoneBlockActive.value
