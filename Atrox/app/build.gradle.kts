@@ -114,6 +114,10 @@ dependencies {
     // --- Coroutines ---
     implementation(libs.kotlinx.coroutines.android)
 
+    // --- WorkManager ---
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.work.runtime.ktx)
+
     // --- Coil (Image Loading) ---
     implementation(libs.coil.compose)
 
