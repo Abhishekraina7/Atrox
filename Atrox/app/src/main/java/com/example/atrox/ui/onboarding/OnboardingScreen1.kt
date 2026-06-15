@@ -63,7 +63,6 @@ fun OnboardingScreen1(
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp))
         ) {
-            // TODO: Crop your graphic, save as 'img_onboarding_1.png' in res/drawable, and uncomment!
              Image(
                  painter = painterResource(id = R.drawable.img_onboarding_1),
                  contentDescription = "Onboarding Graphic",

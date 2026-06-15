@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.atrox.data.tasks.TaskItem
 import com.example.atrox.data.tasks.TaskRepository
+import com.example.atrox.service.regulator.RegulatorRepository
+import com.example.atrox.service.regulator.RegulatorManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,12 +23,17 @@ data class FocusUiState(
     val totalSeconds: Int = 0,
     val remainingSeconds: Int = 0,
     val timerState: TimerState = TimerState.IDLE,
-    val progressFraction: Float = 1f
+    val progressFraction: Float = 1f,
+    val guardianPhone: String? = null,
+    val isCancelRequestSent: Boolean = false,
+    val isApproved: Boolean = false
 )
 
 @HiltViewModel
 class FocusViewModel @Inject constructor(
     private val repository: TaskRepository,
+    private val regulatorRepository: RegulatorRepository,
+    private val regulatorManager: RegulatorManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -39,6 +46,7 @@ class FocusViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            val phone = regulatorRepository.guardianPhone.first()
             val task = repository.tasks.first().firstOrNull { it.id == taskId }
             if (task != null) {
                 val totalSeconds = task.durationMin * 60
@@ -47,8 +55,15 @@ class FocusViewModel @Inject constructor(
                     totalSeconds = totalSeconds,
                     remainingSeconds = totalSeconds,
                     timerState = TimerState.IDLE,
-                    progressFraction = 1f
+                    progressFraction = 1f,
+                    guardianPhone = phone
                 )
+            }
+        }
+        viewModelScope.launch {
+            regulatorManager.approvalEvents.collect {
+                _uiState.value = _uiState.value.copy(isApproved = true)
+                pauseTimer()
             }
         }
     }
@@ -56,7 +71,6 @@ class FocusViewModel @Inject constructor(
     fun startTimer() {
         if (_uiState.value.timerState == TimerState.RUNNING) return
         _uiState.value = _uiState.value.copy(timerState = TimerState.RUNNING)
-
         timerJob = viewModelScope.launch {
             while (_uiState.value.remainingSeconds > 0) {
                 delay(1000L)
@@ -84,6 +98,10 @@ class FocusViewModel @Inject constructor(
             progressFraction = 1f,
             timerState = TimerState.IDLE
         )
+    }
+
+    fun markRequestSent() {
+        _uiState.value = _uiState.value.copy(isCancelRequestSent = true)
     }
 
     override fun onCleared() {

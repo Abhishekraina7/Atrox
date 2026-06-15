@@ -27,6 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.R
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +43,52 @@ fun OnboardingScreen4(
     onNavigateToSkip: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val context = LocalContext.current
+    
+    val contactPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickContact(),
+        onResult = { uri ->
+            if (uri != null) {
+                // Extract phone number from the returned URI
+                var phoneNumber = ""
+                val cursor = context.contentResolver.query(uri, null, null, null, null)
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val hasPhoneIndex = it.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+                        val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
+                        
+                        if (hasPhoneIndex >= 0 && idIndex >= 0) {
+                            val hasPhone = it.getInt(hasPhoneIndex) > 0
+                            val id = it.getString(idIndex)
+                            
+                            if (hasPhone) {
+                                val phonesCursor = context.contentResolver.query(
+                                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                                    null,
+                                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                                    arrayOf(id),
+                                    null
+                                )
+                                phonesCursor?.use { pCursor ->
+                                    if (pCursor.moveToFirst()) {
+                                        val numberIndex = pCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                                        if (numberIndex >= 0) {
+                                            phoneNumber = pCursor.getString(numberIndex)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Strip non-digits and update ViewModel
+                val cleanedNumber = phoneNumber.replace(Regex("[^0-9+]"), "")
+                if (cleanedNumber.isNotEmpty()) {
+                    viewModel.onSearchQueryChanged(cleanedNumber)
+                }
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -159,9 +211,9 @@ fun OnboardingScreen4(
             modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
         )
 
-        // --- 5. Search field ---
+        // --- 5. Phone field ---
         Text(
-            text = "SEARCH USER",
+            text = "GUARDIAN PHONE",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -172,7 +224,8 @@ fun OnboardingScreen4(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { viewModel.onSearchQueryChanged(it) },
-            placeholder = { Text("Phone number or @username", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+            placeholder = { Text("Guardian's Phone Number", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Rounded.Search,
@@ -198,7 +251,7 @@ fun OnboardingScreen4(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            FilterChip("Contacts")
+            FilterChip("Contacts", onClick = { contactPickerLauncher.launch(null) })
             FilterChip("Recent")
             FilterChip("Invite Link")
         }
@@ -206,10 +259,14 @@ fun OnboardingScreen4(
         Spacer(modifier = Modifier.weight(1f, fill = false))
         Spacer(modifier = Modifier.height(40.dp))
 
-        // --- 7. Action Buttons ---
+        val isPhoneValid = searchQuery.replace(Regex("[^0-9]"), "").length >= 10
         Button(
             onClick = { viewModel.onContinueClicked() },
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            enabled = isPhoneValid,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()

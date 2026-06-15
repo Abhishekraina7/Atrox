@@ -29,6 +29,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.example.atrox.service.worker.SendSmsWorker
+import android.content.Intent
+import android.provider.Settings
 
 // Theme Colors
 private val ColorBackground = Color(0xFF0A0A0F)
@@ -45,11 +56,19 @@ fun FocusScreen(
     viewModel: FocusViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
+    val context = LocalContext.current
     // Auto-start when screen opens
     LaunchedEffect(uiState.task) {
         if (uiState.task != null && uiState.timerState == TimerState.IDLE) {
             viewModel.startTimer()
+        }
+    }
+
+    // Auto-navigate back when approved
+    LaunchedEffect(uiState.isApproved) {
+        if (uiState.isApproved) {
+            Toast.makeText(context, "Sprint canceled by Guardian", Toast.LENGTH_SHORT).show()
+            onNavigateBack()
         }
     }
 
@@ -58,6 +77,28 @@ fun FocusScreen(
         animationSpec = tween(durationMillis = 800),
         label = "timer_arc"
     )
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            uiState.guardianPhone?.let { phone ->
+                val data = workDataOf(
+                    SendSmsWorker.KEY_PHONE_NUMBER to phone,
+                    SendSmsWorker.KEY_MESSAGE to "Marcus is requesting to cancel their current focus sprint. Reply APPROVE to allow."
+                )
+                val request = OneTimeWorkRequestBuilder<SendSmsWorker>()
+                    .setInputData(data)
+                    .build()
+                WorkManager.getInstance(context).enqueue(request)
+                viewModel.markRequestSent()
+            } ?: run {
+                Toast.makeText(context, "No Guardian Phone found", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "SMS Permission is required to send the request.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -293,16 +334,35 @@ fun FocusScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = { /* TODO: Trigger Regulator flow */ },
-                colors = ButtonDefaults.buttonColors(containerColor = ColorAccent),
+                onClick = { 
+                    if (!uiState.isCancelRequestSent) {
+                        // First check for Notification Access
+                        val enabledListeners = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+                        if (enabledListeners == null || !enabledListeners.contains(context.packageName)) {
+                            Toast.makeText(context, "Please grant Notification Access to Atrox first.", Toast.LENGTH_LONG).show()
+                            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                            context.startActivity(intent)
+                        } else {
+                            // If granted, proceed to ask for SMS permission to send the request
+                            permissionLauncher.launch(Manifest.permission.SEND_SMS)
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (uiState.isCancelRequestSent) ColorCardLighter else ColorAccent
+                ),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
             ) {
-                Icon(imageVector = Icons.Rounded.Send, contentDescription = null, tint = Color.White)
-                Spacer(modifier = Modifier.width(10.dp))
-                Text("Send Request", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                if (uiState.isCancelRequestSent) {
+                    Text("Waiting for approval...", color = ColorTextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                } else {
+                    Icon(imageVector = Icons.Rounded.Send, contentDescription = null, tint = Color.White)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Send Request", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

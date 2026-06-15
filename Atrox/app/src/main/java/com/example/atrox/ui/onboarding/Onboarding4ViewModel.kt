@@ -12,8 +12,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.example.atrox.service.regulator.RegulatorRepository
+
 @HiltViewModel
-class Onboarding4ViewModel @Inject constructor() : ViewModel() {
+class Onboarding4ViewModel @Inject constructor(
+    private val regulatorRepository: RegulatorRepository
+) : ViewModel() {
 
     private val _events = MutableSharedFlow<Onboarding4Event>()
     val events: SharedFlow<Onboarding4Event> = _events.asSharedFlow()
@@ -34,7 +38,13 @@ class Onboarding4ViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onContinueClicked() {
-        emitEvent(Onboarding4Event.NavigateToDashboard)
+        viewModelScope.launch {
+            val phone = _searchQuery.value.trim()
+            if (phone.isNotBlank()) {
+                regulatorRepository.saveGuardianPhone(phone)
+            }
+            _events.emit(Onboarding4Event.NavigateToDashboard)
+        }
     }
 
     private fun emitEvent(event: Onboarding4Event) {
