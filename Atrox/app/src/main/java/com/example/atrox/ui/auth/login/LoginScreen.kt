@@ -51,6 +51,7 @@ fun LoginScreen(
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isGoogleLoading by viewModel.isGoogleLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isRegisterMode by viewModel.isRegisterMode.collectAsState()
     val context = LocalContext.current
@@ -345,24 +346,45 @@ fun LoginScreen(
                 SocialButton(
                     text = "Google",
                     iconText = "G",
+                    isLoading = isGoogleLoading,
                     onClick = {
                         coroutineScope.launch {
                             try {
+                                viewModel.setGoogleLoading(true)
+
                                 // Uses the WEB_CLIENT_ID from BuildConfig which is pulled from local.properties
-                                val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
-                                    .setFilterByAuthorizedAccounts(false)
+                                val fastGoogleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+                                    .setFilterByAuthorizedAccounts(true)
                                     .setServerClientId(BuildConfig.WEB_CLIENT_ID)
-                                    .setAutoSelectEnabled(false)
+                                    .setAutoSelectEnabled(true)
                                     .build()
 
-                                val request: GetCredentialRequest = GetCredentialRequest.Builder()
-                                    .addCredentialOption(googleIdOption)
+                                val fastRequest: GetCredentialRequest = GetCredentialRequest.Builder()
+                                    .addCredentialOption(fastGoogleIdOption)
                                     .build()
 
-                                val result = credentialManager.getCredential(
-                                    request = request,
-                                    context = context
-                                )
+                                val result = try {
+                                    credentialManager.getCredential(
+                                        request = fastRequest,
+                                        context = context
+                                    )
+                                } catch (e: Exception) {
+                                    val fallbackGoogleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+                                        .setFilterByAuthorizedAccounts(false)
+                                        .setServerClientId(BuildConfig.WEB_CLIENT_ID)
+                                        .setAutoSelectEnabled(false)
+                                        .build()
+
+                                    val fallbackRequest: GetCredentialRequest = GetCredentialRequest.Builder()
+                                        .addCredentialOption(fallbackGoogleIdOption)
+                                        .build()
+
+                                    credentialManager.getCredential(
+                                        request = fallbackRequest,
+                                        context = context
+                                    )
+                                }
+
                                 val credential = result.credential
                                 if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                                     val googleIdTokenCredential =
@@ -371,6 +393,9 @@ fun LoginScreen(
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
+                                viewModel.showTemporaryError("Google Sign-In failed or was cancelled.")
+                            } finally {
+                                viewModel.setGoogleLoading(false)
                             }
                         }
                     },
@@ -413,7 +438,6 @@ fun LoginScreen(
                 )
             }
         }
-
         ErrorPopCard(
             message = errorMessage,
             onDismiss = { viewModel.clearError() }
@@ -422,25 +446,33 @@ fun LoginScreen(
 }
 
 @Composable
-    fun SocialButton(
-        text: String,
-        iconText: String,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier
+fun SocialButton(
+    text: String,
+    iconText: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false
+) {
+    Box(
+        modifier = modifier
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                RoundedCornerShape(12.dp)
+            )
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.Transparent)
+            .clickable(enabled = !isLoading) { onClick() }
+            .padding(vertical = 14.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = modifier
-                .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                    RoundedCornerShape(12.dp)
-                )
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.Transparent)
-                .clickable { onClick() }
-                .padding(vertical = 14.dp),
-            contentAlignment = Alignment.Center
-        ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = MaterialTheme.colorScheme.onBackground,
+                strokeWidth = 2.dp
+            )
+        } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = iconText,
@@ -458,6 +490,7 @@ fun LoginScreen(
             }
         }
     }
+}
 
 @Composable
 fun ErrorPopCard(

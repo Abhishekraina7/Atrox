@@ -43,6 +43,13 @@ class LoginViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isGoogleLoading = MutableStateFlow(false)
+    val isGoogleLoading: StateFlow<Boolean> = _isGoogleLoading.asStateFlow()
+
+    fun setGoogleLoading(loading: Boolean) {
+        _isGoogleLoading.value = loading
+    }
+
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
@@ -171,7 +178,7 @@ class LoginViewModel @Inject constructor(
     fun showTemporaryError(message: String){
         _errorMessage.value = message
         viewModelScope.launch {
-            kotlinx.coroutines.delay(4000L)
+            kotlinx.coroutines.delay(3000L)
             if(_errorMessage.value == message){
                 _errorMessage.value = null
             }
