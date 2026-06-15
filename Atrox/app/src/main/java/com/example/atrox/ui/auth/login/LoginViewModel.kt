@@ -1,5 +1,6 @@
 package com.example.atrox.ui.auth.login
 
+import android.net.Network
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,13 +14,15 @@ import kotlinx.coroutines.launch
 import com.example.atrox.service.auth.AuthRepository
 import com.example.atrox.data.preferences.UserPreferencesRepository
 import com.example.atrox.service.auth.UserRepository
+import com.example.atrox.service.internet_check.Internet_Check_Service
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val networkHelper: Internet_Check_Service
 ) : ViewModel() {
 
     private val _events = MutableSharedFlow<LoginEvent>()
@@ -61,11 +64,14 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onSignInClicked() {
+        if(!networkHelper.isNetworkConnected()){
+            showTemporaryError("No Internet Connection. Please check your settings.")
+            return
+        }
         if (_email.value.isBlank() || _password.value.isBlank() || (_isRegisterMode.value && _username.value.isBlank())) {
             _errorMessage.value = "Please fill in all fields"
             return
         }
-
         _isLoading.value = true
         _errorMessage.value = null
         
@@ -135,6 +141,10 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onAppleSignInClicked() {
+        if(!networkHelper.isNetworkConnected()){
+            showTemporaryError("No Internet Connection. Please check your settings.")
+            return
+        }
         viewModelScope.launch {
             _events.emit(LoginEvent.NavigateToOnboarding)
         }
@@ -147,6 +157,24 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onCreateAccountClicked() {
+        if(!networkHelper.isNetworkConnected()){
+            showTemporaryError("No Internet Connection. Please check your settings.")
+            return
+        }
         _isRegisterMode.value = true
+    }
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
+    fun showTemporaryError(message: String){
+        _errorMessage.value = message
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(4000L)
+            if(_errorMessage.value == message){
+                _errorMessage.value = null
+            }
+        }
     }
 }
