@@ -8,10 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.example.atrox.data.preferences.UserPreferencesRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class Onboarding2ViewModel @Inject constructor() : ViewModel() {
+class Onboarding2ViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _events = MutableSharedFlow<Onboarding2Event>()
     val events = _events.asSharedFlow()
@@ -35,7 +38,11 @@ class Onboarding2ViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onContinueClicked() {
-        viewModelScope.launch { _events.emit(Onboarding2Event.NavigateToNext) }
+        viewModelScope.launch {
+            userPreferencesRepository.setPrimaryGoal(_selectedGoal.value)
+            userPreferencesRepository.setTargetHours(_targetHours.value)
+            _events.emit(Onboarding2Event.NavigateToNext)
+        }
     }
 
     fun onSkipClicked() {

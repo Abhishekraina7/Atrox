@@ -155,7 +155,6 @@ fun OnboardingScreen2(
                     modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
                 )
             }
-            
             // RECOMMENDED Badge
             Box(
                 modifier = Modifier
