@@ -7,6 +7,8 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.preferencesOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -20,7 +22,10 @@ class UserPreferencesRepository @Inject constructor(
     private object PreferencesKeys {
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
         val PRIMARY_GOAL = stringPreferencesKey("primary_goal")
-        val TARGET_HOURS = floatPreferencesKey("target_hours")
+        val TARGET_HOURS = intPreferencesKey("target_hours")
+        val SPRINT_DURATION = intPreferencesKey("sprint_duration")
+        val BREAK_DURATION = intPreferencesKey("break_duration")
+        val DAILY_SPRINTS = intPreferencesKey("daily_sprints_goal")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -39,9 +44,21 @@ class UserPreferencesRepository @Inject constructor(
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.PRIMARY_GOAL] ?: "Deep Work" }
 
-    val targetHours: Flow<Float> = dataStore.data
+    val targetHours: Flow<Int> = dataStore.data
         .catch { emit(emptyPreferences()) }
-        .map { preferences -> preferences[PreferencesKeys.TARGET_HOURS] ?: 4f }
+        .map { preferences -> preferences[PreferencesKeys.TARGET_HOURS] ?: 4 }
+
+    val sprintDuration: Flow<Int> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.SPRINT_DURATION] ?: 25 }
+
+    val breakDuration: Flow<Int> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.BREAK_DURATION] ?: 10 }
+
+    val dailySprints: Flow<Int> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.DAILY_SPRINTS] ?: 2 }
 
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
         dataStore.edit { preferences ->
@@ -55,9 +72,24 @@ class UserPreferencesRepository @Inject constructor(
         }
     }
 
-    suspend fun setTargetHours(hours: Float) {
+    suspend fun setTargetHours(hours: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.TARGET_HOURS] = hours
+        }
+    }
+
+    suspend fun setSprintDuration(duration: Int){
+        dataStore.edit { preferences -> preferences[PreferencesKeys.SPRINT_DURATION] = duration
+        }
+    }
+
+    suspend fun setBreakDuration(breakDuration: Int){
+        dataStore.edit { preferences -> preferences[PreferencesKeys.BREAK_DURATION] = breakDuration
+        }
+    }
+
+    suspend fun setSprintGoal(sprints: Int){
+        dataStore.edit { preferences -> preferences[PreferencesKeys.DAILY_SPRINTS] = sprints
         }
     }
 }

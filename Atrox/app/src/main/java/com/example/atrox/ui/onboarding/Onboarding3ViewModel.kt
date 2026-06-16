@@ -2,6 +2,7 @@ package com.example.atrox.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.preferences.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +12,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class Onboarding3ViewModel @Inject constructor() : ViewModel() {
+class Onboarding3ViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _events = MutableSharedFlow<Onboarding3Event>()
     val events = _events.asSharedFlow()
@@ -22,7 +25,7 @@ class Onboarding3ViewModel @Inject constructor() : ViewModel() {
     private val _breakDuration = MutableStateFlow(5)
     val breakDuration = _breakDuration.asStateFlow()
 
-    private val _dailySprints = MutableStateFlow(8)
+    private val _dailySprints = MutableStateFlow(2)
     val dailySprints = _dailySprints.asStateFlow()
 
     fun onSprintDurationSelected(duration: Int) {
@@ -50,7 +53,11 @@ class Onboarding3ViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onContinueClicked() {
-        viewModelScope.launch { _events.emit(Onboarding3Event.NavigateToNext) }
+        viewModelScope.launch {
+            userPreferencesRepository.setSprintDuration(_sprintDuration.value)
+            userPreferencesRepository.setBreakDuration(_breakDuration.value)
+            userPreferencesRepository.setSprintGoal(_dailySprints.value)
+            _events.emit(Onboarding3Event.NavigateToNext) }
     }
 
     fun onSkipClicked() {

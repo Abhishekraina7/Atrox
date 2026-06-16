@@ -64,7 +64,7 @@ fun OnboardingScreen1(
                 .clip(RoundedCornerShape(8.dp))
         ) {
              Image(
-                 painter = painterResource(id = R.drawable.img_onboarding_1),
+                 painter = painterResource(id = R.drawable.ill_onboarding_screen_1),
                  contentDescription = "Onboarding Graphic",
                  contentScale = ContentScale.Crop,
                  modifier = Modifier.fillMaxSize()
@@ -86,7 +86,6 @@ fun OnboardingScreen1(
             letterSpacing = (-1).sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-
         // --- 5. Subtitle Text ---
         Text(
             text = "Atrox helps you regain control over your digital habits through scientific focus training and neuro-performance coaching.",
@@ -109,19 +108,5 @@ fun OnboardingScreen1(
             Spacer(modifier = Modifier.width(8.dp))
             Icon(imageVector = Icons.Rounded.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- 8. Footer Link ---
-        Text(
-            text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) { append("Already have an account? ") }
-                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)) { append("Sign in") }
-            },
-            fontSize = 14.sp,
-            modifier = Modifier
-                .clickable { viewModel.onSignInClicked() }
-                .padding(8.dp)
-        )
     }
 }
