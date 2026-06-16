@@ -22,7 +22,7 @@ class Onboarding2ViewModel @Inject constructor(
     private val _selectedGoal = MutableStateFlow("Deep Work")
     val selectedGoal = _selectedGoal.asStateFlow()
 
-    private val _targetHours = MutableStateFlow(4f)
+    private val _targetHours = MutableStateFlow(2f)
     val targetHours = _targetHours.asStateFlow()
 
     fun onGoalSelected(goal: String) {

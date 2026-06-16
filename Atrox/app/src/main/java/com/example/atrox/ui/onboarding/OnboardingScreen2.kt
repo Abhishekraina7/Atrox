@@ -141,7 +141,7 @@ fun OnboardingScreen2(
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    text = "${targetHours.toInt()}",
+                    text = "$targetHours",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold,
