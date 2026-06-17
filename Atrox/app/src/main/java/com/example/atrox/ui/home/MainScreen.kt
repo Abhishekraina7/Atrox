@@ -27,7 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.atrox.ui.home.focus.FocusScreen
 import com.example.atrox.ui.home.tasks.TaskScreen
-import com.example.atrox.ui.main.dashboard.DashboardScreen
+import com.example.atrox.ui.home.dashboard.DashboardScreen
 
 private val ColorBackground = Color(0xFF0A0A0F)
 private val ColorSurface = Color(0xFF14141E)

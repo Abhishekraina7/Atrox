@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -36,6 +37,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.CustomCredential
 import com.example.atrox.BuildConfig
+import com.example.atrox.R
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
@@ -92,14 +94,14 @@ fun LoginScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.FlashOn,
-                        contentDescription = "Logo",
+                        contentDescription = stringResource(R.string.login_logo_desc),
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Atrox",
+                    text = stringResource(R.string.app_name),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold
@@ -108,7 +110,7 @@ fun LoginScreen(
 
             // --- 2. Title Section ---
             Text(
-                text = if (isRegisterMode) "Create Account" else "Welcome",
+                text = if (isRegisterMode) stringResource(R.string.login_title_create_account) else stringResource(R.string.login_title_welcome),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -118,7 +120,7 @@ fun LoginScreen(
                     .padding(bottom = 8.dp)
             )
             Text(
-                text = if (isRegisterMode) "Sign up to start your journey." else "Sign in to continue to your workspace.",
+                text = if (isRegisterMode) stringResource(R.string.login_subtitle_signup) else stringResource(R.string.login_subtitle_signin),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
@@ -149,7 +151,7 @@ fun LoginScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Sign In",
+                        text = stringResource(R.string.login_tab_signin),
                         color = if (!isRegisterMode) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = if (!isRegisterMode) FontWeight.Bold else FontWeight.Medium,
                         fontSize = 14.sp
@@ -165,7 +167,7 @@ fun LoginScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Sign Up",
+                        text = stringResource(R.string.login_tab_signup),
                         color = if (isRegisterMode) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = if (isRegisterMode) FontWeight.Bold else FontWeight.Medium,
                         fontSize = 14.sp
@@ -176,7 +178,7 @@ fun LoginScreen(
             // --- 3. Optional Username Input ---
             if (isRegisterMode) {
                 Text(
-                    text = "USERNAME",
+                    text = stringResource(R.string.login_username_label),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -188,7 +190,7 @@ fun LoginScreen(
                     onValueChange = { viewModel.onUsernameChanged(it) },
                     placeholder = {
                         Text(
-                            "your_username",
+                            stringResource(R.string.login_username_placeholder),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     },
@@ -208,7 +210,7 @@ fun LoginScreen(
 
             // --- 4. Email Input ---
             Text(
-                text = "EMAIL ADDRESS",
+                text = stringResource(R.string.login_email_label),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -220,7 +222,7 @@ fun LoginScreen(
                 onValueChange = { viewModel.onEmailChanged(it) },
                 placeholder = {
                     Text(
-                        "name@company.com",
+                        stringResource(R.string.login_email_placeholder),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 },
@@ -247,14 +249,14 @@ fun LoginScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "PASSWORD",
+                    text = stringResource(R.string.login_password_label),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = "Forgot password?",
+                    text = stringResource(R.string.login_forgot_password),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -266,7 +268,7 @@ fun LoginScreen(
                 onValueChange = { viewModel.onPasswordChanged(it) },
                 placeholder = {
                     Text(
-                        "••••••••",
+                        stringResource(R.string.login_password_placeholder),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 },
@@ -303,7 +305,7 @@ fun LoginScreen(
                     )
                 } else {
                     Text(
-                        text = if (isRegisterMode) "Create Account" else "Sign in",
+                        text = if (isRegisterMode) stringResource(R.string.login_button_signup) else stringResource(R.string.login_button_signin),
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -323,7 +325,7 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                 )
                 Text(
-                    text = "OR CONTINUE WITH",
+                    text = stringResource(R.string.login_divider_text),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -344,7 +346,7 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 SocialButton(
-                    text = "Google",
+                    text = stringResource(R.string.login_social_google),
                     iconText = "G",
                     isLoading = isGoogleLoading,
                     onClick = {
@@ -393,7 +395,7 @@ fun LoginScreen(
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
-                                viewModel.showTemporaryError("Google Sign-In failed or was cancelled.")
+                                viewModel.showTemporaryError("Google Sign-In failed or was cancelled")
                             } finally {
                                 viewModel.setGoogleLoading(false)
                             }
@@ -402,7 +404,7 @@ fun LoginScreen(
                     modifier = Modifier.weight(1f)
                 )
                 SocialButton(
-                    text = "Apple",
+                    text = stringResource(R.string.login_social_apple),
                     iconText = "",
                     onClick = { viewModel.onAppleSignInClicked() },
                     modifier = Modifier.weight(1f)
@@ -420,7 +422,7 @@ fun LoginScreen(
                 Text(
                     text = androidx.compose.ui.text.buildAnnotatedString {
                         withStyle(style = androidx.compose.ui.text.SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                            append(if (isRegisterMode) "Already have an account? " else "Don't have an account? ")
+                            append(if (isRegisterMode) stringResource(R.string.login_footer_signin) else stringResource(R.string.login_footer_signup))
                         }
                         withStyle(
                             style = androidx.compose.ui.text.SpanStyle(
@@ -428,7 +430,7 @@ fun LoginScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                         ) {
-                            append(if (isRegisterMode) "Sign in" else "Create one now")
+                            append(if (isRegisterMode) stringResource(R.string.login_footer_action_signin) else stringResource(R.string.login_footer_action_signup))
                         }
                     },
                     fontSize = 14.sp,
