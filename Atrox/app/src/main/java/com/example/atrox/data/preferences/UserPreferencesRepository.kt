@@ -26,6 +26,7 @@ class UserPreferencesRepository @Inject constructor(
         val SPRINT_DURATION = intPreferencesKey("sprint_duration")
         val BREAK_DURATION = intPreferencesKey("break_duration")
         val DAILY_SPRINTS = intPreferencesKey("daily_sprints_goal")
+        val STREAK_DAYS = intPreferencesKey("streak")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -60,6 +61,11 @@ class UserPreferencesRepository @Inject constructor(
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.DAILY_SPRINTS] ?: 2 }
 
+    val maxStreak: Flow<Int> = dataStore.data
+        .catch{emit(emptyPreferences())}
+        .map{preferences -> preferences[PreferencesKeys.STREAK_DAYS] ?: 0}
+
+    //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_LOGGED_IN] = isLoggedIn
@@ -91,5 +97,9 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setSprintGoal(sprints: Int){
         dataStore.edit { preferences -> preferences[PreferencesKeys.DAILY_SPRINTS] = sprints
         }
+    }
+
+    suspend fun setMaxStreak(streak: Int){
+        dataStore.edit{preferences -> preferences[PreferencesKeys.STREAK_DAYS] = streak}
     }
 }

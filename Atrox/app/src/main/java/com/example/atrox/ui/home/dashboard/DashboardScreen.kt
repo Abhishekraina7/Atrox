@@ -1,5 +1,13 @@
-package com.example.atrox.ui.main.dashboard
+package com.example.atrox.ui.home.dashboard
 
+import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -32,9 +44,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.atrox.R
 import com.example.atrox.data.tasks.TaskItem
+import com.example.atrox.ui.main.dashboard.DashboardViewModel
 import com.example.atrox.ui.theme.atroxColors
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,20 +61,13 @@ fun DashboardScreen(
     val tasks by viewModel.tasks.collectAsState()
     val nextPendingTask by viewModel.nextPendingTask.collectAsState()
     val atroxColors = MaterialTheme.atroxColors
+    val streakCount by viewModel.maxStreak.collectAsStateWithLifecycle()
     
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.dashboard_greeting, "Alex"),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-0.5).sp
-                        )
-                    }
+                    AnimatedGreeting()
                 },
                 actions = {
                     // Streak Badge
@@ -78,7 +86,7 @@ fun DashboardScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.dashboard_streak_days, 12), 
+                            text = streakCount.toString(),
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp, 
                             fontWeight = FontWeight.Bold,
@@ -260,7 +268,7 @@ fun TaskItemRow(task: TaskItem, onToggle: () -> Unit) {
 // ----------------------------
 @Composable
 fun CurrentSprintCard(
-    task: com.example.atrox.data.tasks.TaskItem,
+    task: TaskItem,
     onStartFocus: (taskId: String) -> Unit = {}
 ) {
     val atroxColors = MaterialTheme.atroxColors
@@ -283,7 +291,7 @@ fun CurrentSprintCard(
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp,
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
@@ -379,5 +387,162 @@ fun EmptySprintCard() {
         ) {
             Text(stringResource(R.string.dashboard_add_task_button), color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
+    }
+}
+
+enum class TimeOfDay {
+    MORNING, AFTERNOON, EVENING, NIGHT, LATE_NIGHT, EARLY_MORNING
+}
+
+@Composable
+fun getGreetingAndTimeOfDay(): Pair<String, TimeOfDay> {
+    val calendar = Calendar.getInstance()
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    
+    return when (hour) {
+        in 5..11 -> "Good morning" to TimeOfDay.MORNING
+        in 12..15 -> "Good afternoon" to TimeOfDay.AFTERNOON
+        in 16..19 -> "Good evening" to TimeOfDay.EVENING
+        in 20..22 -> "Night Time" to TimeOfDay.NIGHT
+        23 -> "Going to Sleep?" to TimeOfDay.LATE_NIGHT
+        else -> "Still awake?" to TimeOfDay.EARLY_MORNING
+    }
+}
+
+@Composable
+fun AnimatedGreeting() {
+    val (greetingText, timeOfDay) = getGreetingAndTimeOfDay()
+    
+    val infiniteTransition = rememberInfiniteTransition(label = "GreetingAnimation")
+    
+    // Bobbing animation for the celestial body
+    val offsetY by infiniteTransition.animateFloat(
+        initialValue = -3f,
+        targetValue = 3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "IconBobbing"
+    )
+
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "IconRotation"
+    )
+
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "IconPulse"
+    )
+
+    val iconColor = when (timeOfDay) {
+        TimeOfDay.MORNING -> Color(0xFFFFB300) // Deep yellow
+        TimeOfDay.AFTERNOON -> Color(0xFFFF9800) // Orange
+        TimeOfDay.EVENING -> Color(0xFFFF5722) // Deep Orange
+        TimeOfDay.NIGHT, TimeOfDay.LATE_NIGHT, TimeOfDay.EARLY_MORNING -> Color(0xFF9FA8DA) // Light Indigo
+    }
+    
+    val bgColor = MaterialTheme.colorScheme.background
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier.size(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val centerOffset = Offset(size.width / 2, size.height / 2 + offsetY)
+                val radius = size.width / 3.5f
+                
+                if (timeOfDay == TimeOfDay.MORNING || timeOfDay == TimeOfDay.AFTERNOON) {
+                    // Rotating sun rays
+                    rotate(rotation, pivot = centerOffset) {
+                        for (i in 0 until 8) {
+                            rotate(i * 45f, pivot = centerOffset) {
+                                drawRoundRect(
+                                    color = iconColor.copy(alpha = pulseAlpha),
+                                    topLeft = Offset(centerOffset.x - radius * 0.15f, centerOffset.y - radius * 1.8f),
+                                    size = Size(radius * 0.3f, radius * 0.6f),
+                                    cornerRadius = CornerRadius(2f, 2f)
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Sun core
+                    drawCircle(
+                        color = iconColor,
+                        radius = radius,
+                        center = centerOffset
+                    )
+                } else if (timeOfDay == TimeOfDay.EVENING) {
+                    // Setting sun (half circle or slightly submerged)
+                    drawCircle(
+                        color = iconColor.copy(alpha = pulseAlpha),
+                        radius = radius * 1.5f,
+                        center = centerOffset.copy(y = centerOffset.y + radius * 0.5f)
+                    )
+                    drawCircle(
+                        color = iconColor,
+                        radius = radius,
+                        center = centerOffset.copy(y = centerOffset.y + radius * 0.5f)
+                    )
+                    // Cutoff for horizon
+                    drawRect(
+                        color = bgColor,
+                        topLeft = Offset(0f, centerOffset.y + radius * 1.2f),
+                        size = Size(size.width, size.height)
+                    )
+                } else {
+                    // Moon
+                    drawCircle(
+                        color = iconColor,
+                        radius = radius,
+                        center = centerOffset
+                    )
+                    // Moon inner shadow (crescent cutout)
+                    drawCircle(
+                        color = bgColor,
+                        radius = radius * 0.85f,
+                        center = centerOffset.copy(x = centerOffset.x - radius * 0.4f, y = centerOffset.y - radius * 0.2f)
+                    )
+                    
+                    // Twinkling stars
+                    val starCenter1 = Offset(centerOffset.x + radius * 1.5f, centerOffset.y - radius * 0.8f)
+                    drawCircle(
+                        color = iconColor.copy(alpha = pulseAlpha),
+                        radius = radius * 0.2f,
+                        center = starCenter1
+                    )
+                    val starCenter2 = Offset(centerOffset.x - radius * 1.2f, centerOffset.y + radius * 1.2f)
+                    drawCircle(
+                        color = iconColor.copy(alpha = (1f - pulseAlpha + 0.3f).coerceIn(0f, 1f)), // Opposite phase
+                        radius = radius * 0.15f,
+                        center = starCenter2
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = greetingText,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-0.5).sp
+        )
     }
 }

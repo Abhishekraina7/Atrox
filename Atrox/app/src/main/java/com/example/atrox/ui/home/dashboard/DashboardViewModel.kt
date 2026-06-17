@@ -2,6 +2,7 @@ package com.example.atrox.ui.main.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.preferences.UserPreferencesRepository
 import com.example.atrox.data.tasks.TaskItem
 import com.example.atrox.data.tasks.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,16 +11,23 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _isPhoneBlockActive = MutableStateFlow(true)
     val isPhoneBlockActive = _isPhoneBlockActive.asStateFlow()
 
+    val maxStreak = userPreferencesRepository.maxStreak.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = 0
+    )
     // Today's task rows (still in-memory for the dashboard list section)
     private val _tasks = MutableStateFlow(
         listOf(
@@ -38,6 +46,14 @@ class DashboardViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
+
+    fun incrementStreak(){
+        viewModelScope.launch {
+            val currentStreak = maxStreak.value
+            userPreferencesRepository.setMaxStreak(currentStreak + 1)
+
+        }
+    }
 
     fun togglePhoneBlock() {
         _isPhoneBlockActive.value = !_isPhoneBlockActive.value
