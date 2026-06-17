@@ -55,7 +55,7 @@
     <string name="splash_loading_status">CALIBRATING ENVIRONMENT</string>
 
     <!-- Dashboard Screen -->
-    <string name="dashboard_greeting">Good morning, %1$s</string>
+    <string name="dashboard_greeting">Good morning</string>
     <string name="dashboard_streak_days">%1$d DAYS</string>
     <string name="dashboard_stat_focus">FOCUS</string>
     <string name="dashboard_stat_tasks">TASKS</string>
