@@ -28,6 +28,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +65,7 @@ fun DashboardScreen(
     val nextPendingTask by viewModel.nextPendingTask.collectAsState()
     val atroxColors = MaterialTheme.atroxColors
     val streakCount by viewModel.maxStreak.collectAsStateWithLifecycle()
+    var showAllTasks by remember { mutableStateOf(false) }
     
     Scaffold(
         topBar = {
@@ -169,20 +173,39 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // --- 5. Today's Tasks ---
+            val displayedTasks = if (showAllTasks) tasks else tasks.filter { !it.isCompleted }
+
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = stringResource(R.string.dashboard_tasks_title), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text(text = stringResource(R.string.dashboard_view_all), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text(
+                    text = if (showAllTasks) "View Less" else stringResource(R.string.dashboard_view_all), 
+                    color = MaterialTheme.colorScheme.primary, 
+                    fontSize = 12.sp, 
+                    fontWeight = FontWeight.Bold, 
+                    letterSpacing = 1.sp,
+                    modifier = Modifier.clickable { showAllTasks = !showAllTasks }
+                )
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                tasks.forEach { task ->
+                displayedTasks.forEach { task ->
                     TaskItemRow(
                         task = task,
                         onToggle = { viewModel.toggleTaskCompletion(task.id) }
+                    )
+                }
+                
+                if (displayedTasks.isEmpty() && tasks.isNotEmpty() && !showAllTasks) {
+                    Text(
+                        text = "All tasks completed!", 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
                     )
                 }
             }
