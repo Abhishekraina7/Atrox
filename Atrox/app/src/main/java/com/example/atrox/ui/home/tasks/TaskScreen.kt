@@ -15,11 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.atrox.R
 import com.example.atrox.data.tasks.TaskItem
 import com.example.atrox.ui.theme.atroxColors
 
@@ -39,7 +41,7 @@ fun TaskScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Your Tasks",
+                        text = stringResource(R.string.tasks_title),
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -61,7 +63,7 @@ fun TaskScreen(
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     shape = CircleShape
                 ) {
-                    Icon(imageVector = Icons.Rounded.Add, contentDescription = "Add Task")
+                    Icon(imageVector = Icons.Rounded.Add, contentDescription = stringResource(R.string.tasks_add_icon_desc))
                 }
             }
         },
@@ -154,7 +156,7 @@ fun EmptyTaskState(onAddTaskClick: () -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Add your Tasks",
+            text = stringResource(R.string.tasks_empty_title),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 28.sp,
             fontWeight = FontWeight.ExtraBold
@@ -163,7 +165,7 @@ fun EmptyTaskState(onAddTaskClick: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Your workspace is currently silent.\nElevate your productivity by defining\nyour next objectives.",
+            text = stringResource(R.string.tasks_empty_desc),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             textAlign = TextAlign.Center,
@@ -178,7 +180,7 @@ fun EmptyTaskState(onAddTaskClick: () -> Unit) {
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.height(56.dp).fillMaxWidth()
         ) {
-            Text("Add Tasks", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.tasks_add_button), color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(imageVector = Icons.Rounded.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
         }
@@ -208,7 +210,7 @@ fun AddTaskOverlay(
                 .padding(bottom = 48.dp)
         ) {
             Text(
-                text = "Create New Task",
+                text = stringResource(R.string.tasks_create_title),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -220,7 +222,7 @@ fun AddTaskOverlay(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                placeholder = { Text("What do you need to focus on?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                placeholder = { Text(stringResource(R.string.tasks_create_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.background,
                     unfocusedContainerColor = MaterialTheme.colorScheme.background,
@@ -237,7 +239,7 @@ fun AddTaskOverlay(
             Spacer(modifier = Modifier.height(24.dp))
             
             // Duration Selection
-            Text(text = "DURATION", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.tasks_duration_label), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -274,7 +276,7 @@ fun AddTaskOverlay(
                     onClick = onDismiss,
                     modifier = Modifier.height(56.dp).weight(1f)
                 ) {
-                    Text("Discard", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.common_discard), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(
@@ -285,7 +287,7 @@ fun AddTaskOverlay(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.height(56.dp).weight(1.5f)
                 ) {
-                    Text("Create Task", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.tasks_create_button), color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -301,7 +303,7 @@ fun PendingTasksList(tasks: List<TaskItem>, onTaskClick: (TaskItem) -> Unit) {
             .padding(top = 16.dp)
     ) {
         Text(
-            text = "Pending Tasks",
+            text = stringResource(R.string.tasks_pending_title),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold
@@ -356,7 +358,7 @@ fun PendingTaskRow(task: TaskItem, onClick: () -> Unit) {
 
         Icon(
             imageVector = Icons.Rounded.PlayArrow,
-            contentDescription = "Start",
+            contentDescription = stringResource(R.string.tasks_start_icon_desc),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )
@@ -396,7 +398,7 @@ fun TaskActionOverlay(
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = task.title, color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "${task.durationMin} minutes reserved", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+            Text(text = stringResource(R.string.tasks_reserved_desc, task.durationMin), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
 
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -409,7 +411,7 @@ fun TaskActionOverlay(
             ) {
                 Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Start Focus Sprint", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.tasks_start_sprint_button), color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -423,7 +425,7 @@ fun TaskActionOverlay(
             ) {
                 Icon(imageVector = Icons.Rounded.Delete, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Discard Task", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.tasks_discard_button), fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

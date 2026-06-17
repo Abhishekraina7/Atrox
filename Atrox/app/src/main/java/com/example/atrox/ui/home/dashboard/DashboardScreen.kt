@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.atrox.R
 import com.example.atrox.data.tasks.TaskItem
 import com.example.atrox.ui.theme.atroxColors
 
@@ -51,7 +53,7 @@ fun DashboardScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Good morning, Alex",
+                            text = stringResource(R.string.dashboard_greeting, "Alex"),
                             color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
@@ -76,7 +78,7 @@ fun DashboardScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "12 DAYS", 
+                            text = stringResource(R.string.dashboard_streak_days, 12), 
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp, 
                             fontWeight = FontWeight.Bold,
@@ -115,9 +117,9 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatCard(title = "FOCUS", value = "4.5h", modifier = Modifier.weight(1f))
-                StatCard(title = "TASKS", value = "12", modifier = Modifier.weight(1f))
-                StatCard(title = "SAVED", value = "1.2h", modifier = Modifier.weight(1f))
+                StatCard(title = stringResource(R.string.dashboard_stat_focus), value = "4.5h", modifier = Modifier.weight(1f))
+                StatCard(title = stringResource(R.string.dashboard_stat_tasks), value = "12", modifier = Modifier.weight(1f))
+                StatCard(title = stringResource(R.string.dashboard_stat_saved), value = "1.2h", modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -141,8 +143,8 @@ fun DashboardScreen(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "Phone Block", color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text(text = "Strict mode is currently active", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(text = stringResource(R.string.dashboard_phone_block_title), color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.dashboard_phone_block_desc), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
                 Switch(
                     checked = isPhoneBlockActive,
@@ -164,8 +166,8 @@ fun DashboardScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Today's Tasks", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text(text = "VIEW ALL", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text(text = stringResource(R.string.dashboard_tasks_title), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.dashboard_view_all), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -276,7 +278,7 @@ fun CurrentSprintCard(
         ) {
             Column {
                 Text(
-                    text = "CURRENT SPRINT",
+                    text = stringResource(R.string.dashboard_current_sprint_label),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
@@ -291,7 +293,7 @@ fun CurrentSprintCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${task.durationMin} min focus",
+                    text = stringResource(R.string.dashboard_task_duration_desc, task.durationMin),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
@@ -322,7 +324,7 @@ fun CurrentSprintCard(
         ) {
             Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Start Focus", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dashboard_start_focus_button), color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -355,14 +357,14 @@ fun EmptySprintCard() {
         }
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Add a task to start",
+            text = stringResource(R.string.dashboard_empty_tasks_title),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "You don't have any tasks in your current\nfocus session.",
+            text = stringResource(R.string.dashboard_empty_tasks_desc),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
@@ -375,7 +377,7 @@ fun EmptySprintCard() {
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth().height(56.dp)
         ) {
-            Text("+ Add Task", color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dashboard_add_task_button), color = MaterialTheme.colorScheme.onPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

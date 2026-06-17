@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -65,7 +66,7 @@ fun OnboardingScreen1(
         ) {
              Image(
                  painter = painterResource(id = R.drawable.ill_onboarding_screen_1),
-                 contentDescription = "Onboarding Graphic",
+                 contentDescription = stringResource(R.string.onboarding_graphic_desc),
                  contentScale = ContentScale.Crop,
                  modifier = Modifier.fillMaxSize()
              )
@@ -76,8 +77,8 @@ fun OnboardingScreen1(
         // --- 4. Main Title ---
         Text(
             text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) { append("Train your focus\n") }
-                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontStyle = FontStyle.Italic)) { append("like a muscle.") }
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) { append(stringResource(R.string.onboarding1_title_part1)) }
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontStyle = FontStyle.Italic)) { append(stringResource(R.string.onboarding1_title_part2)) }
             },
             fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -88,7 +89,7 @@ fun OnboardingScreen1(
         )
         // --- 5. Subtitle Text ---
         Text(
-            text = "Atrox helps you regain control over your digital habits through scientific focus training and neuro-performance coaching.",
+            text = stringResource(R.string.onboarding1_subtitle),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
@@ -104,7 +105,7 @@ fun OnboardingScreen1(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text(text = "Let's begin", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.onboarding1_begin_button), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(imageVector = Icons.Rounded.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }

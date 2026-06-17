@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -114,7 +115,7 @@ fun OnboardingScreen4(
         ) {
             Icon(
                 imageVector = Icons.Rounded.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.onboarding_back),
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -123,7 +124,7 @@ fun OnboardingScreen4(
             )
 
             Text(
-                text = "Add Your Regulator",
+                text = stringResource(R.string.onboarding_add_regulator_title),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -140,20 +141,6 @@ fun OnboardingScreen4(
                 .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
                 .padding(bottom = 24.dp)
         ) {
-            // Placeholder for image
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                 Image(
-                     painter = painterResource(id = R.drawable.img_onboarding_4),
-                     contentDescription = null,
-                     contentScale = ContentScale.Crop,
-                     modifier = Modifier.fillMaxSize()
-                 )
-            }
-
             // Gradient Overlay
             Box(
                 modifier = Modifier
@@ -172,25 +159,8 @@ fun OnboardingScreen4(
                     .align(Alignment.BottomStart)
                     .padding(16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                        .padding(bottom = 8.dp)
-                ) {
-                    Text(
-                        text = "STEP 04",
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
                 Text(
-                    text = "Choose your Regulator",
+                    text = stringResource(R.string.onboarding_choose_regulator),
                     color = Color.White,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -203,7 +173,7 @@ fun OnboardingScreen4(
 
         // --- 4. Description Section ---
         Text(
-            text = "A Regulator is someone you trust to hold you accountable to your goals at Atrox. They will receive updates on your progress.",
+            text = stringResource(R.string.onboarding_regulator_description),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             lineHeight = 22.sp,
@@ -213,7 +183,7 @@ fun OnboardingScreen4(
 
         // --- 5. Phone field ---
         Text(
-            text = "GUARDIAN PHONE",
+            text = stringResource(R.string.onboarding_guardian_phone_label),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -224,12 +194,12 @@ fun OnboardingScreen4(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { viewModel.onSearchQueryChanged(it) },
-            placeholder = { Text("Guardian's Phone Number", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+            placeholder = { Text(stringResource(R.string.onboarding_guardian_phone_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Rounded.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.onboarding_search_icon_desc),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -251,9 +221,7 @@ fun OnboardingScreen4(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            FilterChip("Contacts", onClick = { contactPickerLauncher.launch(null) })
-            FilterChip("Recent")
-            FilterChip("Invite Link")
+            FilterChip(stringResource(R.string.onboarding_contacts_filter), onClick = { contactPickerLauncher.launch(null) })
         }
 
         Spacer(modifier = Modifier.weight(1f, fill = false))
@@ -272,7 +240,7 @@ fun OnboardingScreen4(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text(text = "Complete Setup", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.onboarding_complete_setup), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 imageVector = Icons.Rounded.CheckCircle,
@@ -285,7 +253,7 @@ fun OnboardingScreen4(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Skip for now",
+            text = stringResource(R.string.onboarding_skip_for_now),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,

@@ -16,11 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.atrox.R
 import com.example.atrox.ui.theme.atroxColors
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -57,7 +59,7 @@ fun OnboardingScreen2(
         ) {
             Icon(
                 imageVector = Icons.Rounded.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.common_back),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -68,7 +70,7 @@ fun OnboardingScreen2(
 
         // --- 2. Title Section ---
         Text(
-            text = "What do you want to achieve?",
+            text = stringResource(R.string.onboarding2_title),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -77,7 +79,7 @@ fun OnboardingScreen2(
             modifier = Modifier.padding(bottom = 12.dp)
         )
         Text(
-            text = "Select your primary focus goal to personalize your experience.",
+            text = stringResource(R.string.onboarding2_subtitle),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             lineHeight = 22.sp,
@@ -86,11 +88,11 @@ fun OnboardingScreen2(
 
         // --- 3. Goals FlowRow ---
         val goals = listOf(
-            "Deep Work" to "🚀",
-            "Study" to "📖",
-            "Creative Work" to "🎨",
-            "Reading" to "📚",
-            "Coding" to "💻"
+            stringResource(R.string.onboarding2_goal_deep_work) to "🚀",
+            stringResource(R.string.onboarding2_goal_study) to "📖",
+            stringResource(R.string.onboarding2_goal_creative) to "🎨",
+            stringResource(R.string.onboarding2_goal_reading) to "📚",
+            stringResource(R.string.onboarding2_goal_coding) to "💻"
         )
         
         FlowRow(
@@ -127,7 +129,7 @@ fun OnboardingScreen2(
 
         // --- 4. Daily Focus Target Slider ---
         Text(
-            text = "Daily focus target",
+            text = stringResource(R.string.onboarding2_target_title),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
@@ -163,7 +165,7 @@ fun OnboardingScreen2(
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = "RECOMMENDED",
+                    text = stringResource(R.string.onboarding2_recommended_badge),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
@@ -222,14 +224,14 @@ fun OnboardingScreen2(
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = "Productivity Boost",
+                    text = stringResource(R.string.onboarding2_info_title),
                     color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "Setting a daily target increases your consistency by 40% based on user data.",
+                    text = stringResource(R.string.onboarding2_info_desc),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     lineHeight = 16.sp
@@ -248,7 +250,7 @@ fun OnboardingScreen2(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text(text = "Continue", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.common_continue), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(imageVector = Icons.Rounded.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
@@ -256,7 +258,7 @@ fun OnboardingScreen2(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "I'll do this later",
+            text = stringResource(R.string.common_skip),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,

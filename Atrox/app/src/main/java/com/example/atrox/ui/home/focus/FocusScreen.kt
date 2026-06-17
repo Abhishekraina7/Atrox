@@ -23,6 +23,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.example.atrox.R
 import com.example.atrox.service.worker.SendSmsWorker
 import android.content.Intent
 import android.provider.Settings
@@ -65,9 +67,10 @@ fun FocusScreen(
     }
 
     // Auto-navigate back when approved
+    val canceledMsg = stringResource(R.string.focus_toast_canceled)
     LaunchedEffect(uiState.isApproved) {
         if (uiState.isApproved) {
-            Toast.makeText(context, "Sprint canceled by Guardian", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, canceledMsg, Toast.LENGTH_SHORT).show()
             onNavigateBack()
         }
     }
@@ -78,6 +81,10 @@ fun FocusScreen(
         label = "timer_arc"
     )
 
+    val smsRequestMsg = stringResource(R.string.focus_sms_request_message)
+    val noGuardianMsg = stringResource(R.string.focus_toast_no_guardian)
+    val smsPermissionMsg = stringResource(R.string.focus_toast_sms_permission)
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -85,7 +92,7 @@ fun FocusScreen(
             uiState.guardianPhone?.let { phone ->
                 val data = workDataOf(
                     SendSmsWorker.KEY_PHONE_NUMBER to phone,
-                    SendSmsWorker.KEY_MESSAGE to "Marcus is requesting to cancel their current focus sprint. Reply APPROVE to allow."
+                    SendSmsWorker.KEY_MESSAGE to smsRequestMsg
                 )
                 val request = OneTimeWorkRequestBuilder<SendSmsWorker>()
                     .setInputData(data)
@@ -93,10 +100,10 @@ fun FocusScreen(
                 WorkManager.getInstance(context).enqueue(request)
                 viewModel.markRequestSent()
             } ?: run {
-                Toast.makeText(context, "No Guardian Phone found", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, noGuardianMsg, Toast.LENGTH_SHORT).show()
             }
         } else {
-            Toast.makeText(context, "SMS Permission is required to send the request.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, smsPermissionMsg, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -126,7 +133,7 @@ fun FocusScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "SPRINT 1  ·  ${uiState.task?.durationMin ?: 0} MIN",
+                        text = stringResource(R.string.focus_header_sprint, uiState.task?.durationMin ?: 0),
                         color = ColorTextSecondary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -146,7 +153,7 @@ fun FocusScreen(
                     ){
                         Icon(
                             imageVector = Icons.Outlined.PlayCircleOutline,
-                            contentDescription = "Stats",
+                            contentDescription = stringResource(R.string.focus_icon_stats_desc),
                             tint = ColorTextPrimary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -204,7 +211,7 @@ fun FocusScreen(
 
             // ── Task Info ─────────────────────────────
             Text(
-                text = uiState.task?.title ?: "Loading...",
+                text = uiState.task?.title ?: stringResource(R.string.focus_loading_task),
                 color = ColorTextPrimary,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -213,7 +220,7 @@ fun FocusScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "FOCUSING DEEPLY",
+                text = stringResource(R.string.focus_status_text),
                 color = ColorTextSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -235,7 +242,7 @@ fun FocusScreen(
                         .size(48.dp)
                         .background(ColorCard, CircleShape)
                 ) {
-                    Icon(imageVector = Icons.Rounded.Refresh, contentDescription = "Reset", tint = ColorTextSecondary)
+                    Icon(imageVector = Icons.Rounded.Refresh, contentDescription = stringResource(R.string.focus_button_reset), tint = ColorTextSecondary)
                 }
 
                 // Play / Pause
@@ -250,7 +257,7 @@ fun FocusScreen(
                 ) {
                     Icon(
                         imageVector = if (uiState.timerState == TimerState.RUNNING) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        contentDescription = "Play/Pause",
+                        contentDescription = stringResource(R.string.focus_button_play_pause),
                         tint = Color.White,
                         modifier = Modifier.size(30.dp)
                     )
@@ -263,7 +270,7 @@ fun FocusScreen(
                         .size(48.dp)
                         .background(ColorCard, CircleShape)
                 ) {
-                    Icon(imageVector = Icons.Rounded.BarChart, contentDescription = "Stats", tint = ColorTextSecondary)
+                    Icon(imageVector = Icons.Rounded.BarChart, contentDescription = stringResource(R.string.focus_icon_stats_desc), tint = ColorTextSecondary)
                 }
             }
 
@@ -318,13 +325,13 @@ fun FocusScreen(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Ping your Regulator?",
+                        text = stringResource(R.string.focus_panel_title),
                         color = ColorTextPrimary,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Need to exit early? Notify Marcus.",
+                        text = stringResource(R.string.focus_panel_desc),
                         color = ColorTextSecondary,
                         fontSize = 13.sp
                     )
@@ -333,13 +340,14 @@ fun FocusScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            val notifAccessMsg = stringResource(R.string.focus_toast_notif_access)
             Button(
                 onClick = { 
                     if (!uiState.isCancelRequestSent) {
                         // First check for Notification Access
                         val enabledListeners = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
                         if (enabledListeners == null || !enabledListeners.contains(context.packageName)) {
-                            Toast.makeText(context, "Please grant Notification Access to Atrox first.", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, notifAccessMsg, Toast.LENGTH_LONG).show()
                             val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                             context.startActivity(intent)
                         } else {
@@ -357,11 +365,11 @@ fun FocusScreen(
                     .height(56.dp)
             ) {
                 if (uiState.isCancelRequestSent) {
-                    Text("Waiting for approval...", color = ColorTextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.focus_waiting_approval), color = ColorTextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 } else {
                     Icon(imageVector = Icons.Rounded.Send, contentDescription = null, tint = Color.White)
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Send Request", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.focus_button_send_request), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

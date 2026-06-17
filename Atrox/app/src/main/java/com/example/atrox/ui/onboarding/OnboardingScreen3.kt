@@ -21,12 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.atrox.R
 import com.example.atrox.ui.theme.atroxColors
 
 @Composable
@@ -64,7 +66,7 @@ fun OnboardingScreen3(
         ) {
             Icon(
                 imageVector = Icons.Rounded.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.common_back),
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -73,7 +75,7 @@ fun OnboardingScreen3(
             )
 
             Text(
-                text = "Sprint Preferences",
+                text = stringResource(R.string.onboarding3_topbar_title),
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
@@ -83,7 +85,7 @@ fun OnboardingScreen3(
 
         // --- 2. Title Section ---
         Text(
-            text = "Optimize your rhythm",
+            text = stringResource(R.string.onboarding3_title),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 28.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -93,7 +95,7 @@ fun OnboardingScreen3(
             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
         )
         Text(
-            text = "Set your focus and recovery intervals for maximum productivity.",
+            text = stringResource(R.string.onboarding3_subtitle),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             lineHeight = 22.sp,
@@ -102,7 +104,7 @@ fun OnboardingScreen3(
         )
 
         // --- 4. Sprint Duration ---
-        SectionHeader(icon = Icons.Rounded.Timer, title = "SPRINT DURATION")
+        SectionHeader(icon = Icons.Rounded.Timer, title = stringResource(R.string.onboarding3_sprint_label))
         SegmentedControl(
             options = listOf(15, 25, 45, 60),
             selectedValue = sprintDuration,
@@ -111,7 +113,7 @@ fun OnboardingScreen3(
         )
 
         // --- 5. Break Duration ---
-        SectionHeader(icon = Icons.Rounded.LocalCafe, title = "BREAK DURATION")
+        SectionHeader(icon = Icons.Rounded.LocalCafe, title = stringResource(R.string.onboarding3_break_label))
         SegmentedControl(
             options = listOf(5, 10, 15),
             selectedValue = breakDuration,
@@ -120,7 +122,7 @@ fun OnboardingScreen3(
         )
 
         // --- 6. Daily Sprints Goal ---
-        SectionHeader(icon = Icons.Rounded.DateRange, title = "DAILY SPRINTS GOAL")
+        SectionHeader(icon = Icons.Rounded.DateRange, title = stringResource(R.string.onboarding3_daily_goal_label))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -151,7 +153,7 @@ fun OnboardingScreen3(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "SPRINTS / DAY",
+                    text = stringResource(R.string.onboarding3_sprints_per_day),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     fontFamily = FontFamily.Monospace,
@@ -177,7 +179,7 @@ fun OnboardingScreen3(
         // --- 7. Total Focus Time ---
         val totalFocusTime = sprintDuration * dailySprints
         Text(
-            text = "TOTAL FOCUS TIME: $totalFocusTime MIN / DAY",
+            text = stringResource(R.string.onboarding3_total_focus_time, totalFocusTime),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 11.sp,
             fontFamily = FontFamily.Monospace,
@@ -197,7 +199,7 @@ fun OnboardingScreen3(
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-            Text(text = "Continue", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.common_continue), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(8.dp))
             Icon(imageVector = Icons.Rounded.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
@@ -205,7 +207,7 @@ fun OnboardingScreen3(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "I'll do this later",
+            text = stringResource(R.string.common_skip),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
@@ -271,7 +273,7 @@ fun SegmentedControl(
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                 )
                 Text(
-                    text = "MIN",
+                    text = stringResource(R.string.common_min_unit),
                     color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     letterSpacing = 1.sp

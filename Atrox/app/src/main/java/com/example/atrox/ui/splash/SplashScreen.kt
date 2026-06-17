@@ -36,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.atrox.app.ui.theme.DmMono
 import com.atrox.app.ui.theme.PlusJakartaSans
+import com.example.atrox.R
 import com.example.atrox.ui.theme.AtroxTheme
 import com.example.atrox.ui.theme.Background
 import com.example.atrox.ui.theme.IndigoAccent
@@ -123,7 +125,7 @@ fun SplashScreenContent() {
             
             // "Atrox" Wordmark
             Text(
-                text = "Atrox",
+                text = stringResource(R.string.app_name),
                 color = TextPrimary,
                 fontSize = 42.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -135,7 +137,7 @@ fun SplashScreenContent() {
             
             // Tagline below the wordmark
             Text(
-                text = "TRAIN YOUR FOCUS LIKE A MUSCLE",
+                text = stringResource(R.string.splash_tagline),
                 color = IndigoAccent,
                 fontSize = 10.sp,
                 letterSpacing = 3.sp,
@@ -157,7 +159,7 @@ fun SplashScreenContent() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "CALIBRATING ENVIRONMENT",
+                    text = stringResource(R.string.splash_loading_status),
                     color = TextSecondary,
                     fontSize = 9.sp,
                     fontFamily = DmMono

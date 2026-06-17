@@ -1,3 +1,132 @@
 <resources>
     <string name="app_name">Atrox</string>
+    <string name="common_back">Back</string>
+    <string name="common_continue">Continue</string>
+    <string name="common_skip">I\'ll do this later</string>
+    <string name="common_discard">Discard</string>
+    <string name="common_min_unit">MIN</string>
+
+    <!-- Onboarding common -->
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_skip_for_now">Skip for now</string>
+
+    <!-- Onboarding Screen 1 -->
+    <string name="onboarding_graphic_desc">Onboarding Graphic</string>
+    <string name="onboarding1_title_part1">Train your focus\n</string>
+    <string name="onboarding1_title_part2">like a muscle.</string>
+    <string name="onboarding1_subtitle">Atrox helps you regain control over your digital habits through scientific focus training and neuro-performance coaching.</string>
+    <string name="onboarding1_begin_button">Let\'s begin</string>
+
+    <!-- Onboarding Screen 2 -->
+    <string name="onboarding2_title">What do you want to achieve?</string>
+    <string name="onboarding2_subtitle">Select your primary focus goal to personalize your experience.</string>
+    <string name="onboarding2_target_title">Daily focus target</string>
+    <string name="onboarding2_recommended_badge">RECOMMENDED</string>
+    <string name="onboarding2_info_title">Productivity Boost</string>
+    <string name="onboarding2_info_desc">Setting a daily target increases your consistency by 40% based on user data.</string>
+    <string name="onboarding2_goal_deep_work">Deep Work</string>
+    <string name="onboarding2_goal_study">Study</string>
+    <string name="onboarding2_goal_creative">Creative Work</string>
+    <string name="onboarding2_goal_reading">Reading</string>
+    <string name="onboarding2_goal_coding">Coding</string>
+
+    <!-- Onboarding Screen 3 -->
+    <string name="onboarding3_topbar_title">Sprint Preferences</string>
+    <string name="onboarding3_title">Optimize your rhythm</string>
+    <string name="onboarding3_subtitle">Set your focus and recovery intervals for maximum productivity.</string>
+    <string name="onboarding3_sprint_label">SPRINT DURATION</string>
+    <string name="onboarding3_break_label">BREAK DURATION</string>
+    <string name="onboarding3_daily_goal_label">DAILY SPRINTS GOAL</string>
+    <string name="onboarding3_sprints_per_day">SPRINTS / DAY</string>
+    <string name="onboarding3_total_focus_time">TOTAL FOCUS TIME: %1$d MIN / DAY</string>
+
+    <!-- Onboarding Screen 4 -->
+    <string name="onboarding_add_regulator_title">Add Your Regulator</string>
+    <string name="onboarding_choose_regulator">Choose your Regulator</string>
+    <string name="onboarding_regulator_description">A Regulator is someone you trust to hold you accountable to your goals at Atrox. They will receive updates on your progress.</string>
+    <string name="onboarding_guardian_phone_label">GUARDIAN PHONE</string>
+    <string name="onboarding_guardian_phone_placeholder">Guardian\'s Phone Number</string>
+    <string name="onboarding_search_icon_desc">Search</string>
+    <string name="onboarding_contacts_filter">Contacts</string>
+    <string name="onboarding_complete_setup">Complete Setup</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_tagline">TRAIN YOUR FOCUS LIKE A MUSCLE</string>
+    <string name="splash_loading_status">CALIBRATING ENVIRONMENT</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_greeting">Good morning, %1$s</string>
+    <string name="dashboard_streak_days">%1$d DAYS</string>
+    <string name="dashboard_stat_focus">FOCUS</string>
+    <string name="dashboard_stat_tasks">TASKS</string>
+    <string name="dashboard_stat_saved">SAVED</string>
+    <string name="dashboard_phone_block_title">Phone Block</string>
+    <string name="dashboard_phone_block_desc">Strict mode is currently active</string>
+    <string name="dashboard_tasks_title">Today\'s Tasks</string>
+    <string name="dashboard_view_all">VIEW ALL</string>
+    <string name="dashboard_current_sprint_label">CURRENT SPRINT</string>
+    <string name="dashboard_task_duration_desc">%1$d min focus</string>
+    <string name="dashboard_start_focus_button">Start Focus</string>
+    <string name="dashboard_empty_tasks_title">Add a task to start</string>
+    <string name="dashboard_empty_tasks_desc">You don\'t have any tasks in your current\nfocus session.</string>
+    <string name="dashboard_add_task_button">+ Add Task</string>
+
+    <!-- Task Screen -->
+    <string name="tasks_title">Your Tasks</string>
+    <string name="tasks_add_icon_desc">Add Task</string>
+    <string name="tasks_empty_title">Add your Tasks</string>
+    <string name="tasks_empty_desc">Your workspace is currently silent.\nElevate your productivity by defining\nyour next objectives.</string>
+    <string name="tasks_add_button">Add Tasks</string>
+    <string name="tasks_create_title">Create New Task</string>
+    <string name="tasks_create_placeholder">What do you need to focus on?</string>
+    <string name="tasks_duration_label">DURATION</string>
+    <string name="tasks_create_button">Create Task</string>
+    <string name="tasks_pending_title">Pending Tasks</string>
+    <string name="tasks_start_icon_desc">Start</string>
+    <string name="tasks_reserved_desc">%1$d minutes reserved</string>
+    <string name="tasks_start_sprint_button">Start Focus Sprint</string>
+    <string name="tasks_discard_button">Discard Task</string>
+
+    <!-- Login Screen -->
+    <string name="login_logo_desc">Logo</string>
+    <string name="login_title_welcome">Welcome</string>
+    <string name="login_title_create_account">Create Account</string>
+    <string name="login_subtitle_signin">Sign in to continue to your workspace.</string>
+    <string name="login_subtitle_signup">Sign up to start your journey.</string>
+    <string name="login_tab_signin">Sign In</string>
+    <string name="login_tab_signup">Sign Up</string>
+    <string name="login_username_label">USERNAME</string>
+    <string name="login_username_placeholder">your_username</string>
+    <string name="login_email_label">EMAIL ADDRESS</string>
+    <string name="login_email_placeholder">name@company.com</string>
+    <string name="login_password_label">PASSWORD</string>
+    <string name="login_password_placeholder">••••••••</string>
+    <string name="login_forgot_password">Forgot password?</string>
+    <string name="login_button_signin">Sign in</string>
+    <string name="login_button_signup">Create Account</string>
+    <string name="login_divider_text">OR CONTINUE WITH</string>
+    <string name="login_social_google">Google</string>
+    <string name="login_social_apple">Apple</string>
+    <string name="login_footer_signin">Already have an account? </string>
+    <string name="login_footer_signup">Don\'t have an account? </string>
+    <string name="login_footer_action_signin">Sign in</string>
+    <string name="login_footer_action_signup">Create one now</string>
+    <string name="login_error_google_failed">Google Sign-In failed or was cancelled.</string>
+
+    <!-- Focus Screen -->
+    <string name="focus_toast_canceled">Sprint canceled by Guardian</string>
+    <string name="focus_sms_request_message">Marcus is requesting to cancel their current focus sprint. Reply APPROVE to allow.</string>
+    <string name="focus_toast_no_guardian">No Guardian Phone found</string>
+    <string name="focus_toast_sms_permission">SMS Permission is required to send the request.</string>
+    <string name="focus_header_sprint">SPRINT 1  ·  %1$d MIN</string>
+    <string name="focus_icon_stats_desc">Stats</string>
+    <string name="focus_loading_task">Loading...</string>
+    <string name="focus_status_text">FOCUSING DEEPLY</string>
+    <string name="focus_button_reset">Reset</string>
+    <string name="focus_button_play_pause">Play/Pause</string>
+    <string name="focus_panel_title">Ping your Regulator?</string>
+    <string name="focus_panel_desc">Need to exit early? Notify Marcus.</string>
+    <string name="focus_toast_notif_access">Please grant Notification Access to Atrox first.</string>
+    <string name="focus_waiting_approval">Waiting for approval...</string>
+    <string name="focus_button_send_request">Send Request</string>
 </resources>
