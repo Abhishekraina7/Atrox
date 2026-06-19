@@ -52,6 +52,7 @@ private val ColorTextPrimary = Color(0xFFFFFFFF)
 private val ColorTextSecondary = Color(0xFF8888A0)
 private val ColorTrack = Color(0xFF1E1E2D)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FocusScreen(
     onNavigateBack: () -> Unit,
@@ -59,6 +60,8 @@ fun FocusScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     // Auto-start when screen opens
     LaunchedEffect(uiState.task) {
         if (uiState.task != null && uiState.timerState == TimerState.IDLE) {
@@ -232,45 +235,54 @@ fun FocusScreen(
 
             // ── Timer Controls ───────────────────────
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Reset
-                IconButton(
-                    onClick = { viewModel.resetTimer() },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(ColorCard, CircleShape)
-                ) {
-                    Icon(imageVector = Icons.Rounded.Refresh, contentDescription = stringResource(R.string.focus_button_reset), tint = ColorTextSecondary)
-                }
-
                 // Play / Pause
-                IconButton(
+                Button(
                     onClick = {
                         if (uiState.timerState == TimerState.RUNNING) viewModel.pauseTimer()
                         else viewModel.startTimer()
                     },
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorCardLighter),
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
-                        .size(64.dp)
-                        .background(ColorAccent, CircleShape)
+                        .weight(1f)
+                        .height(56.dp)
                 ) {
+                    val isRunning = uiState.timerState == TimerState.RUNNING
                     Icon(
-                        imageVector = if (uiState.timerState == TimerState.RUNNING) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                        imageVector = if (isRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = stringResource(R.string.focus_button_play_pause),
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        tint = ColorTextPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (isRunning) "Pause" else "Resume",
+                        color = ColorTextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                // Stats placeholder
-                IconButton(
-                    onClick = { },
+                // End Session
+                Button(
+                    onClick = { showBottomSheet = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)), // Red color
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
-                        .size(48.dp)
-                        .background(ColorCard, CircleShape)
+                        .weight(1f)
+                        .height(56.dp)
                 ) {
-                    Icon(imageVector = Icons.Rounded.BarChart, contentDescription = stringResource(R.string.focus_icon_stats_desc), tint = ColorTextSecondary)
+                    Text(
+                        text = "End session",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -278,98 +290,100 @@ fun FocusScreen(
         }
 
         // ── Regulator Bottom Panel ────────────────────
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(
-                    color = ColorCard,
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 28.dp)
-        ) {
-            // Drag handle
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(40.dp)
-                    .height(4.dp)
-                    .background(ColorCardLighter, RoundedCornerShape(50))
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Guardian avatar
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .background(Color(0xFFD4A574), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("M", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    // Online dot
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState,
+                containerColor = ColorCard,
+                dragHandle = {
                     Box(
                         modifier = Modifier
-                            .size(14.dp)
-                            .background(Color(0xFF4CAF50), CircleShape)
-                            .align(Alignment.BottomEnd)
+                            .padding(top = 16.dp, bottom = 8.dp)
+                            .width(40.dp)
+                            .height(4.dp)
+                            .background(ColorCardLighter, RoundedCornerShape(50))
                     )
                 }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .padding(bottom = 24.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Guardian avatar
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .background(Color(0xFFD4A574), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("M", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            // Online dot
+                            Box(
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .background(Color(0xFF4CAF50), CircleShape)
+                                    .align(Alignment.BottomEnd)
+                            )
+                        }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.focus_panel_title),
-                        color = ColorTextPrimary,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = stringResource(R.string.focus_panel_desc),
-                        color = ColorTextSecondary,
-                        fontSize = 13.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            val notifAccessMsg = stringResource(R.string.focus_toast_notif_access)
-            Button(
-                onClick = { 
-                    if (!uiState.isCancelRequestSent) {
-                        // First check for Notification Access
-                        val enabledListeners = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-                        if (enabledListeners == null || !enabledListeners.contains(context.packageName)) {
-                            Toast.makeText(context, notifAccessMsg, Toast.LENGTH_LONG).show()
-                            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                            context.startActivity(intent)
-                        } else {
-                            // If granted, proceed to ask for SMS permission to send the request
-                            permissionLauncher.launch(Manifest.permission.SEND_SMS)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.focus_panel_title),
+                                color = ColorTextPrimary,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.focus_panel_desc),
+                                color = ColorTextSecondary,
+                                fontSize = 13.sp
+                            )
                         }
                     }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (uiState.isCancelRequestSent) ColorCardLighter else ColorAccent
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                if (uiState.isCancelRequestSent) {
-                    Text(stringResource(R.string.focus_waiting_approval), color = ColorTextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                } else {
-                    Icon(imageVector = Icons.Rounded.Send, contentDescription = null, tint = Color.White)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(stringResource(R.string.focus_button_send_request), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    val notifAccessMsg = stringResource(R.string.focus_toast_notif_access)
+                    Button(
+                        onClick = { 
+                            if (!uiState.isCancelRequestSent) {
+                                // First check for Notification Access
+                                val enabledListeners = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+                                if (enabledListeners == null || !enabledListeners.contains(context.packageName)) {
+                                    Toast.makeText(context, notifAccessMsg, Toast.LENGTH_LONG).show()
+                                    val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                    context.startActivity(intent)
+                                } else {
+                                    // If granted, proceed to ask for SMS permission to send the request
+                                    permissionLauncher.launch(Manifest.permission.SEND_SMS)
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (uiState.isCancelRequestSent) ColorCardLighter else ColorAccent
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                    ) {
+                        if (uiState.isCancelRequestSent) {
+                            Text(stringResource(R.string.focus_waiting_approval), color = ColorTextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        } else {
+                            Icon(imageVector = Icons.Rounded.Send, contentDescription = null, tint = Color.White)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(stringResource(R.string.focus_button_send_request), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         }
