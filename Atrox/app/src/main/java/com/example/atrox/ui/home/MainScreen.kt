@@ -30,6 +30,7 @@ import com.example.atrox.ui.home.tasks.TaskScreen
 import com.example.atrox.ui.home.dashboard.DashboardScreen
 import com.example.atrox.ui.home.notes.AddNotesScreen
 import com.example.atrox.ui.home.notes.NotesScreen
+import com.example.atrox.ui.home.profile.ProfileScreen
 
 private val ColorBackground = Color(0xFF0A0A0F)
 private val ColorSurface = Color(0xFF14141E)
@@ -100,7 +101,7 @@ fun MainScreen(
                     onAddNote = { bottomNavController.navigate("add_note") }
                 )
             }
-            composable(BottomNavItem.Profile.route) { PlaceholderScreen("Profile") }
+            composable(BottomNavItem.Profile.route) { ProfileScreen() }
 
             // Full-screen Focus Session (hides bottom bar)
             composable(

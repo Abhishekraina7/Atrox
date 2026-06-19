@@ -52,9 +52,6 @@ object HomeDestination : NavigationDestination {
     override val titleRes = 0 
 }
 
-// ------------------------------------
-// Main Navigation Graph
-// ------------------------------------
 @Composable
 fun AtroxNavHost(
     navController: NavHostController,
@@ -85,7 +82,6 @@ fun AtroxNavHost(
                 }
             )
         }
-        
         // --- Onboarding 1 ---
         composable(route = OnboardingDestination.route) {
             OnboardingScreen1(
@@ -100,7 +96,6 @@ fun AtroxNavHost(
                 }
             )
         }
-        
         // --- Onboarding 2 ---
         composable(route = Onboarding2Destination.route) {
             OnboardingScreen2(
@@ -119,7 +114,6 @@ fun AtroxNavHost(
                 }
             )
         }
-
         // --- Onboarding 3 ---
         composable(route = Onboarding3Destination.route) {
             OnboardingScreen3(
@@ -136,7 +130,6 @@ fun AtroxNavHost(
                 }
             )
         }
-
         // --- Onboarding 4 ---
         composable(route = Onboarding4Destination.route) {
             OnboardingScreen4(
@@ -155,7 +148,6 @@ fun AtroxNavHost(
                 }
             )
         }
-        
         // --- Login Screen ---
         composable(route = LoginDestination.route) {
             LoginScreen(
@@ -169,7 +161,6 @@ fun AtroxNavHost(
                 }
             )
         }
-        
         composable(route = HomeDestination.route) {
             MainScreen(rootNavController = navController)
         }
