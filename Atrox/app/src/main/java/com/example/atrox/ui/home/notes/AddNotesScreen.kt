@@ -2,7 +2,9 @@ package com.example.atrox.ui.home.notes
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.AddCircleOutline
@@ -42,6 +44,7 @@ fun AddNotesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     Scaffold(
         containerColor = ColorBackground,
@@ -182,6 +185,7 @@ fun AddNotesScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp, vertical = 16.dp)
+                .verticalScroll(scrollState)
         ) {
             // Title Field
             BasicTextField(
@@ -231,7 +235,6 @@ fun AddNotesScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
             )
         }
     }
