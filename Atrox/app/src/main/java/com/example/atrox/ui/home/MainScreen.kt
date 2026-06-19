@@ -28,6 +28,7 @@ import androidx.navigation.navArgument
 import com.example.atrox.ui.home.focus.FocusScreen
 import com.example.atrox.ui.home.tasks.TaskScreen
 import com.example.atrox.ui.home.dashboard.DashboardScreen
+import com.example.atrox.ui.home.notes.AddNotesScreen
 import com.example.atrox.ui.home.notes.NotesScreen
 
 private val ColorBackground = Color(0xFF0A0A0F)
@@ -94,7 +95,11 @@ fun MainScreen(
                 )
             }
             composable(BottomNavItem.Focus.route) { PlaceholderScreen("Focus") }
-            composable(BottomNavItem.Notes.route) { NotesScreen() }
+            composable(BottomNavItem.Notes.route) {
+                NotesScreen(
+                    onAddNote = { bottomNavController.navigate("add_note") }
+                )
+            }
             composable(BottomNavItem.Profile.route) { PlaceholderScreen("Profile") }
 
             // Full-screen Focus Session (hides bottom bar)
@@ -103,6 +108,13 @@ fun MainScreen(
                 arguments = listOf(navArgument("taskId") { type = NavType.StringType })
             ) {
                 FocusScreen(
+                    onNavigateBack = { bottomNavController.popBackStack() }
+                )
+            }
+
+            // Add Note screen (hides bottom bar)
+            composable("add_note") {
+                AddNotesScreen(
                     onNavigateBack = { bottomNavController.popBackStack() }
                 )
             }
