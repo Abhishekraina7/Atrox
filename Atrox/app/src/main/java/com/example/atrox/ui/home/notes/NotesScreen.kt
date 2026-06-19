@@ -13,12 +13,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
-import androidx.compose.material3.BottomAppBarDefaults.windowInsets
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,13 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
-private val ColorBackground = Color(0xFF0F1016)
-private val ColorCard = Color(0xFF1E2235)
-private val ColorSearchBox = Color(0xFF181C2C)
-private val ColorAccent = Color(0xFF6C63FF)
-private val ColorTextPrimary = Color.White
-private val ColorTextSecondary = Color(0xFF8B92A5)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesScreen(
@@ -52,21 +43,24 @@ fun NotesScreen(
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val notes by viewModel.notes.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
-    
+
     val categories = NoteCategory.values().toList()
-    
-    val filteredNotes = notes.filter { 
+
+    val filteredNotes = notes.filter {
         (selectedCategory == NoteCategory.ALL || it.category == selectedCategory) &&
         (searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.content.contains(searchQuery, ignoreCase = true))
     }
 
+    val colors = MaterialTheme.colorScheme
+
     Scaffold(
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "Notes",
-                        color = ColorTextPrimary,
+                        color = colors.onBackground,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 8.dp)
@@ -78,24 +72,24 @@ fun NotesScreen(
                             Icon(
                                 imageVector = Icons.Rounded.MoreVert,
                                 contentDescription = "More Option",
-                                tint = ColorTextPrimary
+                                tint = colors.onBackground
                             )
                         }
                         DropdownMenu(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false },
-                            modifier = Modifier.background(ColorCard)
+                            modifier = Modifier.background(colors.surfaceVariant)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("ListView", color = ColorTextPrimary) },
+                                text = { Text("ListView", color = colors.onBackground) },
                                 onClick = { showMenu = false }
                             )
                             DropdownMenuItem(
-                                text = { Text("Sort by Time created", color = ColorTextPrimary) },
+                                text = { Text("Sort by Time created", color = colors.onBackground) },
                                 onClick = { showMenu = false }
                             )
                             DropdownMenuItem(
-                                text = { Text("Sort by the time edited", color = ColorTextPrimary) },
+                                text = { Text("Sort by the time edited", color = colors.onBackground) },
                                 onClick = { showMenu = false }
                             )
                         }
@@ -103,8 +97,8 @@ fun NotesScreen(
                 },
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                    containerColor = colors.background,
+                    titleContentColor = colors.onBackground
                 )
             )
         }
@@ -115,95 +109,95 @@ fun NotesScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-            // Search Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(52.dp)
-                    .background(ColorSearchBox, RoundedCornerShape(16.dp))
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Search,
-                    contentDescription = "Search",
-                    tint = ColorTextSecondary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.updateSearchQuery(it) },
-                    textStyle = TextStyle(color = ColorTextPrimary, fontSize = 16.sp),
-                    cursorBrush = SolidColor(ColorAccent),
-                    decorationBox = { innerTextField ->
-                        if (searchQuery.isEmpty()) {
-                            Text("Search entries...", color = ColorTextSecondary, fontSize = 16.sp)
+                // Search Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .height(52.dp)
+                        .background(colors.surface, RoundedCornerShape(16.dp))
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Search,
+                        contentDescription = "Search",
+                        tint = colors.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    BasicTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.updateSearchQuery(it) },
+                        textStyle = TextStyle(color = colors.onBackground, fontSize = 16.sp),
+                        cursorBrush = SolidColor(colors.primary),
+                        decorationBox = { innerTextField ->
+                            if (searchQuery.isEmpty()) {
+                                Text("Search entries...", color = colors.onSurfaceVariant, fontSize = 16.sp)
+                            }
+                            innerTextField()
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Chips
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(categories) { category ->
+                        val isSelected = selectedCategory == category
+                        val bgColor = if (isSelected) colors.primary else colors.surface
+                        val textColor = if (isSelected) Color.White else colors.onSurfaceVariant
+
+                        Box(
+                            modifier = Modifier
+                                .background(bgColor, RoundedCornerShape(20.dp))
+                                .clip(RoundedCornerShape(20.dp))
+                                .clickable { viewModel.selectCategory(category) }
+                                .padding(horizontal = 20.dp, vertical = 10.dp)
+                        ) {
+                            val text = when (category) {
+                                NoteCategory.ALL -> "All"
+                                NoteCategory.PERSONAL -> "Personal"
+                                NoteCategory.JOURNAL -> "Journal"
+                                NoteCategory.WORK -> "Work"
+                            }
+                            Text(
+                                text = text,
+                                color = textColor,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
-                        innerTextField()
-                    },
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Grid
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 100.dp), // Extra padding for bottom nav
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // Chips
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(categories) { category ->
-                    val isSelected = selectedCategory == category
-                    val bgColor = if (isSelected) ColorAccent else ColorSearchBox
-                    val textColor = if (isSelected) Color.White else ColorTextSecondary
-                    
-                    Box(
-                        modifier = Modifier
-                            .background(bgColor, RoundedCornerShape(20.dp))
-                            .clip(RoundedCornerShape(20.dp))
-                            .clickable { viewModel.selectCategory(category) }
-                            .padding(horizontal = 20.dp, vertical = 10.dp)
-                    ) {
-                        val text = when (category) {
-                            NoteCategory.ALL -> "All"
-                            NoteCategory.PERSONAL -> "Personal"
-                            NoteCategory.JOURNAL -> "Journal"
-                            NoteCategory.WORK -> "Work"
+                ) {
+                    items(filteredNotes, span = { note ->
+                        if (note.isSpanning) GridItemSpan(2) else GridItemSpan(1)
+                    }) { note ->
+                        if (note.isSpanning) {
+                            SpanningNoteCard(note)
+                        } else {
+                            NoteCard(note)
                         }
-                        Text(
-                            text = text,
-                            color = textColor,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Grid
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 100.dp), // Extra padding for bottom nav
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                items(filteredNotes, span = { note ->
-                    if (note.isSpanning) GridItemSpan(2) else GridItemSpan(1)
-                }) { note ->
-                    if (note.isSpanning) {
-                        SpanningNoteCard(note)
-                    } else {
-                        NoteCard(note)
-                    }
-                }
-            }
-            }
-            
+
             // Floating Action Button
             Box(
                 modifier = Modifier
@@ -211,9 +205,9 @@ fun NotesScreen(
                     .padding(innerPadding)
                     .padding(bottom = 24.dp, end = 20.dp)
                     .size(56.dp)
-                    .shadow(16.dp, RoundedCornerShape(16.dp), ambientColor = ColorAccent, spotColor = ColorAccent)
+                    .shadow(16.dp, RoundedCornerShape(16.dp), ambientColor = colors.primary, spotColor = colors.primary)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(ColorAccent)
+                    .background(colors.primary)
                     .clickable { onAddNote() },
                 contentAlignment = Alignment.Center
             ) {
@@ -230,11 +224,13 @@ fun NotesScreen(
 
 @Composable
 fun NoteCard(note: NoteItem) {
+    val colors = MaterialTheme.colorScheme
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .height(160.dp)
-            .background(ColorCard, RoundedCornerShape(20.dp))
+            .background(colors.surfaceVariant, RoundedCornerShape(20.dp))
             .padding(16.dp)
     ) {
         Row(
@@ -244,7 +240,7 @@ fun NoteCard(note: NoteItem) {
         ) {
             Text(
                 text = note.title,
-                color = ColorTextPrimary,
+                color = colors.onBackground,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -256,29 +252,29 @@ fun NoteCard(note: NoteItem) {
                 Icon(
                     imageVector = Icons.Rounded.Mic,
                     contentDescription = "Audio note",
-                    tint = ColorAccent,
+                    tint = colors.primary,
                     modifier = Modifier.size(16.dp)
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Text(
             text = note.content,
-            color = ColorTextSecondary,
+            color = colors.onSurfaceVariant,
             fontSize = 14.sp,
             lineHeight = 20.sp,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
-        
+
         Spacer(modifier = Modifier.weight(1f))
-        
+
         Text(
             text = note.timestamp,
-            color = ColorTextSecondary.copy(alpha = 0.5f),
+            color = colors.onSurfaceVariant.copy(alpha = 0.5f),
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
@@ -289,13 +285,15 @@ fun NoteCard(note: NoteItem) {
 
 @Composable
 fun SpanningNoteCard(note: NoteItem) {
+    val colors = MaterialTheme.colorScheme
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(ColorCard, RoundedCornerShape(20.dp))
+            .background(colors.surfaceVariant, RoundedCornerShape(20.dp))
             .clip(RoundedCornerShape(20.dp))
     ) {
-        // Image or gradient placeholder
+        // Gradient placeholder using primary color matching theme
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -303,37 +301,37 @@ fun SpanningNoteCard(note: NoteItem) {
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF3B5B78), // Light bluish slate
-                            ColorCard
+                            colors.primary.copy(alpha = 0.4f),
+                            colors.surfaceVariant
                         )
                     )
                 )
         )
-        
+
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
                 text = note.title,
-                color = ColorTextPrimary,
+                color = colors.onBackground,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = note.content,
-                color = ColorTextSecondary,
+                color = colors.onSurfaceVariant,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = note.timestamp,
-                color = ColorTextSecondary.copy(alpha = 0.5f),
+                color = colors.onSurfaceVariant.copy(alpha = 0.5f),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,

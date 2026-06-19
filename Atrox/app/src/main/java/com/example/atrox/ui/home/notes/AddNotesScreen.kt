@@ -14,27 +14,15 @@ import androidx.compose.material.icons.rounded.Redo
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material3.*
-import androidx.compose.material3.BottomAppBarDefaults.windowInsets
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.atrox.R
-
-// Theme colors consistent with the app
-private val ColorBackground = Color(0xFF0A0A0F)
-private val ColorTextPrimary = Color(0xFFFFFFFF)
-private val ColorTextSecondary = Color(0xFF8888A0)
-private val ColorSurface = Color(0xFF14141E)
-private val ColorAccent = Color(0xFF6C63FF)
-private val ColorRedDot = Color(0xFFE53935)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,8 +34,10 @@ fun AddNotesScreen(
     var showMenu by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
+    val colors = MaterialTheme.colorScheme
+
     Scaffold(
-        containerColor = ColorBackground,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 navigationIcon = {
@@ -55,7 +45,7 @@ fun AddNotesScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
-                            tint = ColorTextPrimary
+                            tint = colors.onBackground
                         )
                     }
                 },
@@ -69,7 +59,7 @@ fun AddNotesScreen(
                         Icon(
                             imageVector = Icons.Rounded.Undo,
                             contentDescription = "Undo",
-                            tint = if (viewModel.canUndo) ColorTextPrimary else ColorTextSecondary
+                            tint = if (viewModel.canUndo) colors.onBackground else colors.onSurfaceVariant
                         )
                     }
                     // Redo
@@ -80,7 +70,7 @@ fun AddNotesScreen(
                         Icon(
                             imageVector = Icons.Rounded.Redo,
                             contentDescription = "Redo",
-                            tint = if (viewModel.canRedo) ColorTextPrimary else ColorTextSecondary
+                            tint = if (viewModel.canRedo) colors.onBackground else colors.onSurfaceVariant
                         )
                     }
 
@@ -91,7 +81,7 @@ fun AddNotesScreen(
                         Icon(
                             imageVector = Icons.Rounded.Share,
                             contentDescription = "Share",
-                            tint = ColorTextPrimary
+                            tint = colors.onBackground
                         )
                     }
 
@@ -102,32 +92,32 @@ fun AddNotesScreen(
                                 Icon(
                                     imageVector = Icons.Rounded.MoreVert,
                                     contentDescription = "More Options",
-                                    tint = ColorTextPrimary
+                                    tint = colors.onBackground
                                 )
                                 // Red dot indicator
                                 Box(
                                     modifier = Modifier
                                         .size(8.dp)
                                         .align(Alignment.TopEnd)
-                                        .background(ColorRedDot, shape = androidx.compose.foundation.shape.CircleShape)
+                                        .background(colors.error, shape = androidx.compose.foundation.shape.CircleShape)
                                 )
                             }
                         }
                         DropdownMenu(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false },
-                            modifier = Modifier.background(ColorSurface)
+                            modifier = Modifier.background(colors.surfaceVariant)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Delete", color = ColorRedDot) },
+                                text = { Text("Delete", color = colors.error) },
                                 onClick = { showMenu = false }
                             )
                             DropdownMenuItem(
-                                text = { Text("Pin note", color = ColorTextPrimary) },
+                                text = { Text("Pin note", color = colors.onBackground) },
                                 onClick = { showMenu = false }
                             )
                             DropdownMenuItem(
-                                text = { Text("Labels", color = ColorTextPrimary) },
+                                text = { Text("Labels", color = colors.onBackground) },
                                 onClick = { showMenu = false }
                             )
                         }
@@ -135,7 +125,7 @@ fun AddNotesScreen(
                 },
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ColorBackground
+                    containerColor = colors.background
                 )
             )
         },
@@ -144,7 +134,7 @@ fun AddNotesScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(ColorSurface)
+                    .background(colors.surface)
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -155,7 +145,7 @@ fun AddNotesScreen(
                     Icon(
                         imageVector = Icons.Rounded.CheckCircleOutline,
                         contentDescription = "Checklist",
-                        tint = ColorTextSecondary,
+                        tint = colors.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -164,7 +154,7 @@ fun AddNotesScreen(
                     Icon(
                         imageVector = Icons.Rounded.CheckCircleOutline, // placeholder for mic+text icon
                         contentDescription = "Voice Input",
-                        tint = ColorTextSecondary,
+                        tint = colors.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -173,7 +163,7 @@ fun AddNotesScreen(
                     Icon(
                         imageVector = Icons.Rounded.AddCircleOutline,
                         contentDescription = "Add",
-                        tint = ColorTextSecondary,
+                        tint = colors.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -192,16 +182,16 @@ fun AddNotesScreen(
                 value = uiState.title,
                 onValueChange = { viewModel.updateTitle(it) },
                 textStyle = TextStyle(
-                    color = ColorTextPrimary,
+                    color = colors.onBackground,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 ),
-                cursorBrush = SolidColor(ColorAccent),
+                cursorBrush = SolidColor(colors.primary),
                 decorationBox = { innerTextField ->
                     if (uiState.title.isEmpty()) {
                         Text(
                             text = "Title",
-                            color = ColorTextSecondary,
+                            color = colors.onSurfaceVariant,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -218,16 +208,16 @@ fun AddNotesScreen(
                 value = uiState.body,
                 onValueChange = { viewModel.updateBody(it) },
                 textStyle = TextStyle(
-                    color = ColorTextPrimary,
+                    color = colors.onBackground,
                     fontSize = 16.sp,
                     lineHeight = 24.sp
                 ),
-                cursorBrush = SolidColor(ColorAccent),
+                cursorBrush = SolidColor(colors.primary),
                 decorationBox = { innerTextField ->
                     if (uiState.body.isEmpty()) {
                         Text(
                             text = "Start typing...",
-                            color = ColorTextSecondary,
+                            color = colors.onSurfaceVariant,
                             fontSize = 16.sp
                         )
                     }
