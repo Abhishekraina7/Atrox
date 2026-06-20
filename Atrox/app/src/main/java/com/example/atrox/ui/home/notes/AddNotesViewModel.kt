@@ -91,6 +91,34 @@ class AddNotesViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Adds an image that already exists at [path] in internal storage
+     * (used by the camera flow where we pre-create the file).
+     */
+    fun addImageByPath(path: String) {
+        val current = _uiState.value
+        _uiState.value = current.copy(
+            undoStack = (current.undoStack + current.toMemento()).takeLast(MAX_STACK_SIZE),
+            redoStack = emptyList(),
+            attachedImages = current.attachedImages + path
+        )
+    }
+
+    /**
+     * Creates a new empty file in "note_images/" and returns a Pair of
+     * (absolutePath, contentUri) so the TakePicture contract can write to it.
+     */
+    fun createCameraImageFile(): Pair<String, android.net.Uri> {
+        val imagesDir = File(appContext.filesDir, "note_images").apply { mkdirs() }
+        val file = File(imagesDir, "${UUID.randomUUID()}.jpg")
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            appContext,
+            "${appContext.packageName}.fileprovider",
+            file
+        )
+        return file.absolutePath to uri
+    }
+
     // ── Undo / Redo ─────────────────────────────────────────────────
 
     fun undo() {

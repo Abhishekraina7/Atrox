@@ -15,10 +15,14 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Redo
+import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.MicNone
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Redo
@@ -38,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -90,6 +96,47 @@ fun AddNotesScreen(
         }
     }
 
+    // ══════════════════════════════════════════════════════════════════
+    // ── Camera capture flow ──
+    // ══════════════════════════════════════════════════════════════════
+
+    // Holds the file path of the image the camera is about to write to
+    var pendingCameraPath by remember { mutableStateOf<String?>(null) }
+
+    // Holds the file path of the successfully captured photo (shown in preview)
+    var capturedPreviewPath by remember { mutableStateOf<String?>(null) }
+
+    // TakePicture launcher — camera writes directly to a pre-created file via FileProvider URI
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && pendingCameraPath != null) {
+            // Photo was taken — show preview dialog
+            capturedPreviewPath = pendingCameraPath
+        } else {
+            // User canceled or capture failed — clean up the empty file
+            pendingCameraPath?.let { File(it).delete() }
+        }
+        pendingCameraPath = null
+        showAttachmentSheet = false
+    }
+
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val (path, uri) = viewModel.createCameraImageFile()
+            pendingCameraPath = path
+            takePictureLauncher.launch(uri)
+        }
+    }
+
+    // Helper to open camera with permission check
+    val onCameraClick: () -> Unit = {
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
     Scaffold(
         containerColor = colors.background,
         topBar = {
@@ -111,7 +158,7 @@ fun AddNotesScreen(
                         enabled = uiState.undoStack.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Undo,
+                            imageVector = Icons.AutoMirrored.Rounded.Undo,
                             contentDescription = "Undo",
                             tint = if (uiState.undoStack.isNotEmpty()) colors.onBackground else colors.onSurfaceVariant
                         )
@@ -122,7 +169,7 @@ fun AddNotesScreen(
                         enabled = uiState.redoStack.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Redo,
+                            imageVector = Icons.AutoMirrored.Rounded.Redo,
                             contentDescription = "Redo",
                             tint = if (uiState.redoStack.isNotEmpty()) colors.onBackground else colors.onSurfaceVariant
                         )
@@ -194,19 +241,10 @@ fun AddNotesScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Checklist / Todo
-                IconButton(onClick = { /* toggle checklist */ }) {
-                    Icon(
-                        imageVector = Icons.Rounded.CheckCircleOutline,
-                        contentDescription = "Checklist",
-                        tint = colors.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
                 // Voice to text
                 IconButton(onClick = { /* voice input */ }) {
                     Icon(
-                        imageVector = Icons.Rounded.CheckCircleOutline, // placeholder for mic+text icon
+                        imageVector = Icons.Rounded.MicNone, // placeholder for mic+text icon
                         contentDescription = "Voice Input",
                         tint = colors.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
@@ -349,8 +387,114 @@ fun AddNotesScreen(
                         label = "Camera",
                         containerColor = colors.surfaceContainerHighest,
                         iconTint = colors.onSurfaceVariant,
-                        onClick = { /* TODO: open camera */ }
+                        onClick = onCameraClick
                     )
+                }
+            }
+        }
+    }
+
+    // ── Camera Preview Dialog ──
+    capturedPreviewPath?.let { path ->
+        CameraPreviewDialog(
+            imagePath = path,
+            onInsert = {
+                viewModel.addImageByPath(path)
+                capturedPreviewPath = null
+            },
+            onDiscard = {
+                // Delete the captured file and re-open camera
+                File(path).delete()
+                capturedPreviewPath = null
+                // Re-launch camera
+                val (newPath, newUri) = viewModel.createCameraImageFile()
+                pendingCameraPath = newPath
+                takePictureLauncher.launch(newUri)
+            }
+        )
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── Camera Preview Dialog ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun CameraPreviewDialog(
+    imagePath: String,
+    onInsert: () -> Unit,
+    onDiscard: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Dialog(
+        onDismissRequest = { /* prevent accidental dismiss — user must pick Insert or Discard */ },
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background)
+        ) {
+            // Full-screen image preview
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(File(imagePath))
+                    .crossfade(300)
+                    .build(),
+                contentDescription = "Captured photo preview",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 100.dp) // leave room for action bar
+            )
+
+            // Bottom action bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        color = colors.surfaceContainerHigh,
+                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                    )
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Discard button
+                OutlinedButton(
+                    onClick = onDiscard,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = colors.error
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Retake", fontWeight = FontWeight.SemiBold)
+                }
+
+                // Insert button
+                Button(
+                    onClick = onInsert,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.AddCircleOutline,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Insert", fontWeight = FontWeight.SemiBold)
                 }
             }
         }
