@@ -54,23 +54,23 @@ fun AddNotesScreen(
                     // Undo
                     IconButton(
                         onClick = { viewModel.undo() },
-                        enabled = viewModel.canUndo
+                        enabled = uiState.undoStack.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Undo,
                             contentDescription = "Undo",
-                            tint = if (viewModel.canUndo) colors.onBackground else colors.onSurfaceVariant
+                            tint = if (uiState.undoStack.isNotEmpty()) colors.onBackground else colors.onSurfaceVariant
                         )
                     }
                     // Redo
                     IconButton(
                         onClick = { viewModel.redo() },
-                        enabled = viewModel.canRedo
+                        enabled = uiState.redoStack.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Redo,
                             contentDescription = "Redo",
-                            tint = if (viewModel.canRedo) colors.onBackground else colors.onSurfaceVariant
+                            tint = if (uiState.redoStack.isNotEmpty()) colors.onBackground else colors.onSurfaceVariant
                         )
                     }
 

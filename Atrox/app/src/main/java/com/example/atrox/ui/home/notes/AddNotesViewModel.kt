@@ -24,7 +24,7 @@ class AddNotesViewModel @Inject constructor() : ViewModel() {
     fun updateTitle(newTitle: String) {
         val current = _uiState.value
         _uiState.value = current.copy(
-            undoStack = current.undoStack + (current.title to current.body),
+            undoStack = (current.undoStack + (current.title to current.body)).takeLast(MAX_STACK_SIZE),
             redoStack = emptyList(),
             title = newTitle
         )
@@ -33,7 +33,7 @@ class AddNotesViewModel @Inject constructor() : ViewModel() {
     fun updateBody(newBody: String) {
         val current = _uiState.value
         _uiState.value = current.copy(
-            undoStack = current.undoStack + (current.title to current.body),
+            undoStack = (current.undoStack + (current.title to current.body)).takeLast(MAX_STACK_SIZE),
             redoStack = emptyList(),
             body = newBody
         )
@@ -47,7 +47,7 @@ class AddNotesViewModel @Inject constructor() : ViewModel() {
                 title = previous.first,
                 body = previous.second,
                 undoStack = current.undoStack.dropLast(1),
-                redoStack = current.redoStack + (current.title to current.body)
+                redoStack = (current.redoStack + (current.title to current.body)).takeLast(MAX_STACK_SIZE)
             )
         }
     }
@@ -59,12 +59,13 @@ class AddNotesViewModel @Inject constructor() : ViewModel() {
             _uiState.value = current.copy(
                 title = next.first,
                 body = next.second,
-                undoStack = current.undoStack + (current.title to current.body),
+                undoStack = (current.undoStack + (current.title to current.body)).takeLast(MAX_STACK_SIZE),
                 redoStack = current.redoStack.dropLast(1)
             )
         }
     }
 
-    val canUndo: Boolean get() = _uiState.value.undoStack.isNotEmpty()
-    val canRedo: Boolean get() = _uiState.value.redoStack.isNotEmpty()
+    companion object {
+        private const val MAX_STACK_SIZE = 50
+    }
 }
