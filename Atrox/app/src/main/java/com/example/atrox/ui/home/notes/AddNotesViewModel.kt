@@ -1,9 +1,13 @@
 package com.example.atrox.ui.home.notes
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.atrox.utils.SpeechRecognitionManager
+import com.example.atrox.utils.SpeechState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +34,11 @@ data class AddNoteUiState(
     val attachedImages: List<String> = emptyList(), // internal storage file paths
     val undoStack: List<NoteMemento> = emptyList(),
     val redoStack: List<NoteMemento> = emptyList(),
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    // ── Speech recognition state ──
+    val speechState: SpeechState = SpeechState.Idle,
+    /** Live preview text shown while the recognizer is still processing. */
+    val partialSpeechText: String = ""
 )
 
 @HiltViewModel
@@ -40,9 +48,115 @@ class AddNotesViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AddNoteUiState())
     val uiState: StateFlow<AddNoteUiState> = _uiState.asStateFlow()
+    // To optimize for memory we limit the redo/undo feature to a upper limit of 50
+    companion object {
+        private const val MAX_STACK_SIZE = 50
+    }
+
+    // ── Speech Recognition ──────────────────────────────────────────
+
+    private val speechManager = SpeechRecognitionManager(appContext)
+
+    init {
+        // Observe the speech manager's state and react accordingly
+        viewModelScope.launch {
+            speechManager.state.collect { speechState ->
+                val partial = when (speechState) {
+                    is SpeechState.Listening -> speechState.partialText
+                    is SpeechState.Processing -> speechState.partialText
+                    is SpeechState.Result -> speechState.text
+                    else -> _uiState.value.partialSpeechText
+                }
+
+                _uiState.value = _uiState.value.copy(
+                    speechState = speechState,
+                    partialSpeechText = partial
+                )
+            }
+        }
+    }
+
+    /** Whether the device supports speech recognition at all. */
+    fun isSpeechAvailable(): Boolean = speechManager.isAvailable()
+
+    /** Check if device has an active internet connection */
+    fun isNetworkAvailable(): Boolean {
+        val connectivityManager = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return when {
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
+        }
+    }
+
+    /**
+     * Start speech recognition. Must be called from the Main thread
+     * (the Composable layer ensures this via the permission callback).
+     */
+    fun startSpeechRecognition() {
+        // Clear any stale preview text
+        _uiState.value = _uiState.value.copy(partialSpeechText = "")
+        speechManager.startListening()
+    }
+
+    /** Stop speech recognition and discard any partial results. */
+    fun stopSpeechRecognition() {
+        speechManager.cancelListening()
+        _uiState.value = _uiState.value.copy(
+            speechState = SpeechState.Idle,
+            partialSpeechText = ""
+        )
+    }
+
+    /** Manually stop listening and process current audio. */
+    fun finishSpeechRecognition() {
+        speechManager.finishListening()
+    }
+
+    /**
+     * Called by the UI when the user confirms the transcribed text.
+     * Appends the recognized text to the note body (with a space separator).
+     */
+    fun acceptSpeechResult() {
+        speechManager.cancelListening()
+        val text = _uiState.value.partialSpeechText.trim()
+        if (text.isNotEmpty()) {
+            val current = _uiState.value
+            val separator = if (current.body.isNotEmpty() && !current.body.endsWith(" ")) " " else ""
+            val newBody = current.body + separator + text
+            _uiState.value = current.copy(
+                undoStack = (current.undoStack + current.toMemento()).takeLast(MAX_STACK_SIZE),
+                redoStack = emptyList(),
+                body = newBody,
+                speechState = SpeechState.Idle,
+                partialSpeechText = ""
+            )
+        } else {
+            _uiState.value = _uiState.value.copy(
+                speechState = SpeechState.Idle,
+                partialSpeechText = ""
+            )
+        }
+    }
+
+    /** Dismiss the speech UI without appending any text. */
+    fun dismissSpeech() {
+        speechManager.cancelListening()
+        _uiState.value = _uiState.value.copy(
+            speechState = SpeechState.Idle,
+            partialSpeechText = ""
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        speechManager.destroy()
+    }
 
     // ── Text mutations ──────────────────────────────────────────────
-
     fun updateTitle(newTitle: String) {
         val current = _uiState.value
         _uiState.value = current.copy(
@@ -174,8 +288,5 @@ class AddNotesViewModel @Inject constructor(
         body = body,
         attachedImages = attachedImages
     )
-
-    companion object {
-        private const val MAX_STACK_SIZE = 50
-    }
 }
+

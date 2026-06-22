@@ -5,6 +5,17 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +33,7 @@ import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicNone
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PhotoLibrary
@@ -33,6 +45,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -47,6 +60,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.atrox.utils.SpeechState
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +75,38 @@ fun AddNotesScreen(
     val scrollState = rememberScrollState()
 
     val colors = MaterialTheme.colorScheme
+
+    // ── Speech recognition state ──
+    val isSpeechActive = uiState.speechState is SpeechState.Listening
+            || uiState.speechState is SpeechState.Processing
+            || uiState.speechState is SpeechState.Result
+
+    // ── Mic permission launcher ──
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.startSpeechRecognition()
+        }
+    }
+
+    val context = LocalContext.current
+
+    val onMicClick: () -> Unit = {
+        if (uiState.speechState is SpeechState.Listening) {
+            viewModel.finishSpeechRecognition()
+        } else if (isSpeechActive) {
+            viewModel.acceptSpeechResult()
+        } else {
+            // Check internet connection first
+            if (!viewModel.isNetworkAvailable()) {
+                android.widget.Toast.makeText(context, "No Internet Connection", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                // Request permission first, then start
+                micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
 
     // ── Photo Picker launcher (no permission needed on API 33+ with PickVisualMedia) ──
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -242,11 +288,11 @@ fun AddNotesScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Voice to text
-                IconButton(onClick = { /* voice input */ }) {
+                IconButton(onClick = onMicClick) {
                     Icon(
-                        imageVector = Icons.Rounded.MicNone, // placeholder for mic+text icon
+                        imageVector = if (isSpeechActive) Icons.Rounded.Mic else Icons.Rounded.MicNone,
                         contentDescription = "Voice Input",
-                        tint = colors.onSurfaceVariant,
+                        tint = if (isSpeechActive) colors.primary else colors.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -411,6 +457,22 @@ fun AddNotesScreen(
                 pendingCameraPath = newPath
                 takePictureLauncher.launch(newUri)
             }
+        )
+    }
+
+    // ── Speech Recognition Overlay ──
+    AnimatedVisibility(
+        visible = isSpeechActive || uiState.speechState is SpeechState.Error,
+        enter = fadeIn() + scaleIn(initialScale = 0.9f),
+        exit = fadeOut() + scaleOut(targetScale = 0.9f)
+    ) {
+        SpeechRecognitionOverlay(
+            speechState = uiState.speechState,
+            partialText = uiState.partialSpeechText,
+            onAccept = { viewModel.acceptSpeechResult() },
+            onDismiss = { viewModel.dismissSpeech() },
+            onRetry = { viewModel.startSpeechRecognition() },
+            onFinish = { viewModel.finishSpeechRecognition() }
         )
     }
 }
@@ -589,5 +651,309 @@ private fun AttachmentOption(
             fontSize = 12.sp,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── Speech Recognition Overlay ───────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun SpeechRecognitionOverlay(
+    speechState: SpeechState,
+    partialText: String,
+    onAccept: () -> Unit,
+    onDismiss: () -> Unit,
+    onRetry: () -> Unit,
+    onFinish: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background.copy(alpha = 0.95f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+            ) {
+                // ── Pulsing mic indicator ──
+                when (speechState) {
+                    is SpeechState.Listening -> {
+                        PulsingMicIndicator(colors = colors, rmsDb = speechState.rmsDb)
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Listening…",
+                            color = colors.primary,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    is SpeechState.Processing -> {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .background(colors.primaryContainer, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(36.dp),
+                                color = colors.primary,
+                                strokeWidth = 3.dp
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Processing…",
+                            color = colors.onSurfaceVariant,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    is SpeechState.Result -> {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .background(colors.primaryContainer, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Mic,
+                                contentDescription = null,
+                                tint = colors.primary,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Got it!",
+                            color = colors.primary,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    is SpeechState.Error -> {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .background(colors.errorContainer, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.MicNone,
+                                contentDescription = null,
+                                tint = colors.error,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = speechState.message,
+                            color = colors.error,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    else -> { /* SpeechState.Idle — overlay shouldn't be visible */ }
+                }
+
+                // ── Live transcription preview ──
+                if (partialText.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = colors.surfaceContainerHigh,
+                        tonalElevation = 2.dp
+                    ) {
+                        Text(
+                            text = partialText,
+                            color = colors.onSurface,
+                            fontSize = 16.sp,
+                            lineHeight = 24.sp,
+                            modifier = Modifier.padding(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // ── Action buttons ──
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Dismiss / Cancel
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = colors.onSurfaceVariant
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Cancel", fontWeight = FontWeight.SemiBold)
+                    }
+
+                    if (speechState is SpeechState.Error && speechState.isRecoverable) {
+                        // Retry
+                        Button(
+                            onClick = onRetry,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colors.primary
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Mic,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Retry", fontWeight = FontWeight.SemiBold)
+                        }
+                    } else if (speechState is SpeechState.Listening) {
+                        // Done listening
+                        Button(
+                            onClick = onFinish,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colors.primary
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.CheckCircleOutline,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Done", fontWeight = FontWeight.SemiBold)
+                        }
+                    } else if (speechState is SpeechState.Processing) {
+                        // Disabled Done button
+                        Button(
+                            onClick = { },
+                            enabled = false,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Processing", fontWeight = FontWeight.SemiBold)
+                        }
+                    } else if (partialText.isNotBlank() || speechState is SpeechState.Result) {
+                        // Accept transcribed text
+                        Button(
+                            onClick = onAccept,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colors.primary
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.CheckCircleOutline,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Insert", fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── Pulsing mic indicator with concentric rings ──────────────────────
+
+@Composable
+private fun PulsingMicIndicator(
+    colors: ColorScheme,
+    rmsDb: Float = 0f
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "mic_pulse")
+    
+    // Dynamic scale based on voice volume
+    val normalizedRms = (rmsDb.coerceIn(-2f, 10f) + 2f) / 12f // 0f to 1f
+    val dynamicScale = 1f + (normalizedRms * 0.4f) // 1f to 1.4f
+    
+    val animatedScale by animateFloatAsState(
+        targetValue = dynamicScale,
+        animationSpec = tween(100),
+        label = "dynamic_scale"
+    )
+
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+    val ringAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "ring_alpha"
+    )
+
+    Box(contentAlignment = Alignment.Center) {
+        // Outer pulsing ring
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .scale(pulseScale)
+                .background(
+                    color = colors.primary.copy(alpha = ringAlpha),
+                    shape = CircleShape
+                )
+        )
+        // Inner ring responsive to voice
+        Box(
+            modifier = Modifier
+                .size(96.dp)
+                .scale(animatedScale)
+                .background(
+                    color = colors.primary.copy(alpha = 0.12f),
+                    shape = CircleShape
+                )
+        )
+        // Mic icon
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .background(colors.primaryContainer, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Mic,
+                contentDescription = "Listening",
+                tint = colors.primary,
+                modifier = Modifier.size(36.dp)
+            )
+        }
     }
 }
