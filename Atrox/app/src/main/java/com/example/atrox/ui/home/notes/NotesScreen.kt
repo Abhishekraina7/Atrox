@@ -43,6 +43,7 @@ fun NotesScreen(
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val notes by viewModel.notes.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
+    var isListView by remember { mutableStateOf(false) }
 
     val categories = NoteCategory.values().toList()
 
@@ -81,8 +82,11 @@ fun NotesScreen(
                             modifier = Modifier.background(colors.surfaceVariant)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("ListView", color = colors.onBackground) },
-                                onClick = { showMenu = false }
+                                text = { Text(if (isListView) "GridView" else "ListView", color = colors.onBackground) },
+                                onClick = { 
+                                    isListView = !isListView
+                                    showMenu = false 
+                                }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort by Time created", color = colors.onBackground) },
@@ -178,16 +182,18 @@ fun NotesScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Grid
+                // Grid or List
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    columns = if (isListView) GridCells.Fixed(1) else GridCells.Fixed(2),
                     contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 100.dp), // Extra padding for bottom nav
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
                     items(filteredNotes, span = { note ->
-                        if (note.isSpanning) GridItemSpan(2) else GridItemSpan(1)
+                        if (isListView) GridItemSpan(1)
+                        else if (note.isSpanning) GridItemSpan(2)
+                        else GridItemSpan(1)
                     }) { note ->
                         if (note.isSpanning) {
                             SpanningNoteCard(note)

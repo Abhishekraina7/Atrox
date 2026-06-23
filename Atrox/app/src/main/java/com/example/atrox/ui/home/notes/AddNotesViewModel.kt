@@ -6,6 +6,8 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.notes.NoteEntity
+import com.example.atrox.data.notes.NoteRepository
 import com.example.atrox.utils.SpeechRecognitionManager
 import com.example.atrox.utils.SpeechState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,7 +45,8 @@ data class AddNoteUiState(
 
 @HiltViewModel
 class AddNotesViewModel @Inject constructor(
-    @ApplicationContext private val appContext: Context
+    @ApplicationContext private val appContext: Context,
+    private val noteRepository: NoteRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddNoteUiState())
@@ -260,6 +263,27 @@ class AddNotesViewModel @Inject constructor(
                 undoStack = (current.undoStack + current.toMemento()).takeLast(MAX_STACK_SIZE),
                 redoStack = current.redoStack.dropLast(1)
             )
+        }
+    }
+
+    fun saveNote() {
+        val current = _uiState.value
+        if (current.title.isNotBlank() || current.body.isNotBlank()) {
+            _uiState.value = current.copy(isSaved = true)
+            
+            viewModelScope.launch {
+                val entity = NoteEntity(
+                    id = UUID.randomUUID().toString(),
+                    title = current.title.ifBlank { "Untitled" },
+                    content = current.body,
+                    timestamp = System.currentTimeMillis(),
+                    hasAudio = current.speechState !is SpeechState.Idle,
+                    isSpanning = current.attachedImages.isNotEmpty(),
+                    category = NoteCategory.PERSONAL,
+                    attachedImages = current.attachedImages.joinToString(",")
+                )
+                noteRepository.insertNote(entity)
+            }
         }
     }
 

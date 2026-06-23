@@ -2,6 +2,7 @@ package com.example.atrox.ui.home.notes
 
 import android.Manifest
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -72,6 +73,7 @@ fun AddNotesScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
     var showAttachmentSheet by remember { mutableStateOf(false) }
+    var showExitDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     val colors = MaterialTheme.colorScheme
@@ -183,12 +185,23 @@ fun AddNotesScreen(
         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
+    // ── Exit and Save logic ──
+    val handleExit = {
+        if (uiState.title.isNotBlank() || uiState.body.isNotBlank()) {
+            showExitDialog = true
+        } else {
+            onNavigateBack()
+        }
+    }
+
+    BackHandler(onBack = handleExit)
+
     Scaffold(
         containerColor = colors.background,
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = handleExit) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "Back",
@@ -473,6 +486,32 @@ fun AddNotesScreen(
             onDismiss = { viewModel.dismissSpeech() },
             onRetry = { viewModel.startSpeechRecognition() },
             onFinish = { viewModel.finishSpeechRecognition() }
+        )
+    }
+
+    // ── Exit Dialog ──
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("Save your note") },
+            text = { Text("Do you want to save your note before exiting?") },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.saveNote()
+                    showExitDialog = false
+                    onNavigateBack()
+                }) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = {
+                    showExitDialog = false
+                    onNavigateBack()
+                }) {
+                    Text("Exit")
+                }
+            }
         )
     }
 }

@@ -5,6 +5,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.notes.NoteRepository
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 enum class NoteCategory {
@@ -22,56 +30,35 @@ data class NoteItem(
 )
 
 @HiltViewModel
-class NotesViewModel @Inject constructor() : ViewModel() {
+class NotesViewModel @Inject constructor(
+    private val noteRepository: NoteRepository
+) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     private val _selectedCategory = MutableStateFlow(NoteCategory.ALL)
     val selectedCategory: StateFlow<NoteCategory> = _selectedCategory.asStateFlow()
 
-    private val _notes = MutableStateFlow(
-        listOf(
-            NoteItem(
-                id = "1",
-                title = "Product...",
-                content = "Focus on user-centric design...",
-                timestamp = "12 OCT • 14:30",
-                hasAudio = true,
-                category = NoteCategory.WORK
-            ),
-            NoteItem(
-                id = "2",
-                title = "Morning...",
-                content = "Woke up feeling energized. The...",
-                timestamp = "12 OCT • 08:15",
-                category = NoteCategory.JOURNAL
-            ),
-            NoteItem(
-                id = "3",
-                title = "Project Alpha...",
-                content = "Finalize the quarterly projections and se...",
-                timestamp = "11 OCT • 16:45",
-                category = NoteCategory.WORK
-            ),
-            NoteItem(
-                id = "4",
-                title = "Grocery List",
-                content = "Almond milk, kale, salmon, blueberrie...",
-                timestamp = "11 OCT • 10:20",
-                hasAudio = true,
-                category = NoteCategory.PERSONAL
-            ),
-            NoteItem(
-                id = "5",
-                title = "Inspiration Board",
-                content = "Moodboard for the new mobile interface project.",
-                timestamp = "10 OCT • 18:00",
-                isSpanning = true,
-                category = NoteCategory.WORK
-            )
+    private val dateFormat = SimpleDateFormat("dd MMM • HH:mm", Locale.getDefault())
+
+    val notes: StateFlow<List<NoteItem>> = noteRepository.getAllNotes()
+        .map { entities ->
+            entities.map { entity ->
+                NoteItem(
+                    id = entity.id,
+                    title = entity.title,
+                    content = entity.content,
+                    timestamp = dateFormat.format(Date(entity.timestamp)).uppercase(),
+                    hasAudio = entity.hasAudio,
+                    isSpanning = entity.isSpanning,
+                    category = entity.category
+                )
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
         )
-    )
-    val notes: StateFlow<List<NoteItem>> = _notes.asStateFlow()
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
