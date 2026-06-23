@@ -194,6 +194,23 @@ fun AddNotesScreen(
         }
     }
 
+    val shareNote = {
+        val title = uiState.title.ifBlank { "Untitled Note" }
+        val body = uiState.body
+        val shareContent = if (body.isNotBlank()) "$title\n\n$body" else title
+        
+        if (uiState.title.isNotBlank() || uiState.body.isNotBlank()) {
+            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_SUBJECT, title)
+                putExtra(android.content.Intent.EXTRA_TEXT, shareContent)
+            }
+            context.startActivity(android.content.Intent.createChooser(intent, "Share Note"))
+        } else {
+            android.widget.Toast.makeText(context, "Nothing to share", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
     BackHandler(onBack = handleExit)
 
     Scaffold(
@@ -237,7 +254,7 @@ fun AddNotesScreen(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     // Share
-                    IconButton(onClick = { /* share action */ }) {
+                    IconButton(onClick = shareNote) {
                         Icon(
                             imageVector = Icons.Rounded.Share,
                             contentDescription = "Share",
