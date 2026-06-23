@@ -37,6 +37,7 @@ data class AddNoteUiState(
     val title: String = "",
     val body: String = "",
     val attachedImages: List<String> = emptyList(), // internal storage file paths
+    val isPinned: Boolean = false,
     val undoStack: List<NoteMemento> = emptyList(),
     val redoStack: List<NoteMemento> = emptyList(),
     val isSaved: Boolean = false,
@@ -93,6 +94,7 @@ class AddNotesViewModel @Inject constructor(
                         title = note.title,
                         body = note.content,
                         attachedImages = if (note.attachedImages.isNotBlank()) note.attachedImages.split(",") else emptyList(),
+                        isPinned = note.isPinned,
                         isSaved = true
                     )
                 }
@@ -304,7 +306,8 @@ class AddNotesViewModel @Inject constructor(
                     hasAudio = current.speechState !is SpeechState.Idle,
                     isSpanning = current.attachedImages.isNotEmpty(),
                     category = com.example.atrox.ui.home.notes.NoteCategory.PERSONAL,
-                    attachedImages = current.attachedImages.joinToString(",")
+                    attachedImages = current.attachedImages.joinToString(","),
+                    isPinned = current.isPinned
                 )
                 noteRepository.insertNote(entity)
             }
@@ -318,6 +321,13 @@ class AddNotesViewModel @Inject constructor(
                 noteRepository.deleteNoteById(idToDelete)
             }
         }
+    }
+
+    fun togglePin() {
+        val current = _uiState.value
+        val newPinned = !current.isPinned
+        _uiState.value = current.copy(isPinned = newPinned)
+        if (current.noteId != null) saveNote()
     }
 
     // ── Helpers ──────────────────────────────────────────────────────

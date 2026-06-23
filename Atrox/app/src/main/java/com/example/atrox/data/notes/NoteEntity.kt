@@ -1,5 +1,6 @@
 package com.example.atrox.data.notes
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.atrox.ui.home.notes.NoteCategory
@@ -14,5 +15,7 @@ data class NoteEntity(
     val hasAudio: Boolean,
     val isSpanning: Boolean,
     val category: NoteCategory,
-    val attachedImages: String // comma separated list of internal paths
+    val attachedImages: String, // comma separated list of internal paths
+    @ColumnInfo(defaultValue = "0")
+    val isPinned: Boolean = false
 )

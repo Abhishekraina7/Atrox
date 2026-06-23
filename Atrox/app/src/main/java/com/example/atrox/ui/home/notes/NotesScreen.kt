@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -256,6 +257,15 @@ fun NoteCard(note: NoteItem) {
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
+            if (note.isPinned) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Rounded.PushPin,
+                    contentDescription = "Pinned note",
+                    tint = colors.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
             if (note.hasAudio) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
@@ -320,12 +330,24 @@ fun SpanningNoteCard(note: NoteItem) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = note.title,
-                color = colors.onBackground,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                Text(
+                    text = note.title,
+                    color = colors.onBackground,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                if (note.isPinned) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.PushPin,
+                        contentDescription = "Pinned note",
+                        tint = colors.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

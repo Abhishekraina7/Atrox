@@ -302,8 +302,11 @@ fun AddNotesScreen(
                                 enabled = uiState.noteId != null
                             )
                             DropdownMenuItem(
-                                text = { Text("Pin note", color = colors.onBackground) },
-                                onClick = { showMenu = false }
+                                text = { Text(if (uiState.isPinned) "Unpin note" else "Pin note", color = colors.onBackground) },
+                                onClick = { 
+                                    viewModel.togglePin()
+                                    showMenu = false 
+                                }
                             )
                             DropdownMenuItem(
                                 text = { Text("Labels", color = colors.onBackground) },

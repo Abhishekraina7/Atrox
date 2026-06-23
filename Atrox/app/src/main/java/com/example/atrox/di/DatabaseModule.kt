@@ -22,7 +22,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "atrox_db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides

@@ -26,7 +26,8 @@ data class NoteItem(
     val timestamp: String,
     val hasAudio: Boolean = false,
     val isSpanning: Boolean = false, // for the full-width card with image
-    val category: NoteCategory = NoteCategory.PERSONAL
+    val category: NoteCategory = NoteCategory.PERSONAL,
+    val isPinned: Boolean = false
 )
 
 @HiltViewModel
@@ -51,7 +52,8 @@ class NotesViewModel @Inject constructor(
                     timestamp = dateFormat.format(Date(entity.timestamp)).uppercase(),
                     hasAudio = entity.hasAudio,
                     isSpanning = entity.isSpanning,
-                    category = entity.category
+                    category = entity.category,
+                    isPinned = entity.isPinned
                 )
             }
         }.stateIn(
