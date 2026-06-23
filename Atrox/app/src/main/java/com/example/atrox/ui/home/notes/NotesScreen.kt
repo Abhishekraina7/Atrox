@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun NotesScreen(
     onAddNote: () -> Unit = {},
+    onNoteClick: (String) -> Unit = {},
     viewModel: NotesViewModel = hiltViewModel()
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -195,10 +196,12 @@ fun NotesScreen(
                         else if (note.isSpanning) GridItemSpan(2)
                         else GridItemSpan(1)
                     }) { note ->
-                        if (note.isSpanning) {
-                            SpanningNoteCard(note)
-                        } else {
-                            NoteCard(note)
+                        Box(modifier = Modifier.clickable { onNoteClick(note.id) }) {
+                            if (note.isSpanning) {
+                                SpanningNoteCard(note)
+                            } else {
+                                NoteCard(note)
+                            }
                         }
                     }
                 }

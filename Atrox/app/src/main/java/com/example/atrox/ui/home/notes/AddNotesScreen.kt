@@ -286,8 +286,20 @@ fun AddNotesScreen(
                             modifier = Modifier.background(colors.surfaceVariant)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Delete", color = colors.error) },
-                                onClick = { showMenu = false }
+                                text = { 
+                                    Text(
+                                        "Delete", 
+                                        color = if (uiState.noteId != null) colors.error else colors.onSurfaceVariant.copy(alpha = 0.38f)
+                                    ) 
+                                },
+                                onClick = { 
+                                    if (uiState.noteId != null) {
+                                        viewModel.deleteNote()
+                                        showMenu = false
+                                        onNavigateBack()
+                                    }
+                                },
+                                enabled = uiState.noteId != null
                             )
                             DropdownMenuItem(
                                 text = { Text("Pin note", color = colors.onBackground) },

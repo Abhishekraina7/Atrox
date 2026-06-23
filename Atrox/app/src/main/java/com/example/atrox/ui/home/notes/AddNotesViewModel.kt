@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.atrox.data.notes.NoteEntity
 import com.example.atrox.data.notes.NoteRepository
@@ -16,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
@@ -31,6 +33,7 @@ data class NoteMemento(
 )
 
 data class AddNoteUiState(
+    val noteId: String? = null,
     val title: String = "",
     val body: String = "",
     val attachedImages: List<String> = emptyList(), // internal storage file paths
@@ -46,10 +49,13 @@ data class AddNoteUiState(
 @HiltViewModel
 class AddNotesViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
-    private val noteRepository: NoteRepository
+    private val noteRepository: NoteRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AddNoteUiState())
+    private val initialNoteId: String? = savedStateHandle["noteId"]
+
+    private val _uiState = MutableStateFlow(AddNoteUiState(noteId = initialNoteId))
     val uiState: StateFlow<AddNoteUiState> = _uiState.asStateFlow()
     // To optimize for memory we limit the redo/undo feature to a upper limit of 50
     companion object {
@@ -75,6 +81,21 @@ class AddNotesViewModel @Inject constructor(
                     speechState = speechState,
                     partialSpeechText = partial
                 )
+            }
+        }
+
+        // Load note if editing
+        initialNoteId?.let { id ->
+            viewModelScope.launch {
+                val note = noteRepository.getNoteById(id).firstOrNull()
+                if (note != null) {
+                    _uiState.value = _uiState.value.copy(
+                        title = note.title,
+                        body = note.content,
+                        attachedImages = if (note.attachedImages.isNotBlank()) note.attachedImages.split(",") else emptyList(),
+                        isSaved = true
+                    )
+                }
             }
         }
     }
@@ -272,17 +293,29 @@ class AddNotesViewModel @Inject constructor(
             _uiState.value = current.copy(isSaved = true)
             
             viewModelScope.launch {
+                val idToSave = current.noteId ?: UUID.randomUUID().toString()
+                _uiState.value = _uiState.value.copy(noteId = idToSave)
+                
                 val entity = NoteEntity(
-                    id = UUID.randomUUID().toString(),
-                    title = current.title.ifBlank { "Untitled" },
+                    id = idToSave,
+                    title = current.title.ifBlank { "Untitled Note" },
                     content = current.body,
                     timestamp = System.currentTimeMillis(),
                     hasAudio = current.speechState !is SpeechState.Idle,
                     isSpanning = current.attachedImages.isNotEmpty(),
-                    category = NoteCategory.PERSONAL,
+                    category = com.example.atrox.ui.home.notes.NoteCategory.PERSONAL,
                     attachedImages = current.attachedImages.joinToString(",")
                 )
                 noteRepository.insertNote(entity)
+            }
+        }
+    }
+
+    fun deleteNote() {
+        val idToDelete = _uiState.value.noteId
+        if (idToDelete != null) {
+            viewModelScope.launch {
+                noteRepository.deleteNoteById(idToDelete)
             }
         }
     }

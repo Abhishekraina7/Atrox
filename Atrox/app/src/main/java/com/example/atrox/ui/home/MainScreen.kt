@@ -98,7 +98,8 @@ fun MainScreen(
             composable(BottomNavItem.Focus.route) { PlaceholderScreen("Focus") }
             composable(BottomNavItem.Notes.route) {
                 NotesScreen(
-                    onAddNote = { bottomNavController.navigate("add_note") }
+                    onAddNote = { bottomNavController.navigate("add_note") },
+                    onNoteClick = { noteId -> bottomNavController.navigate("add_note?noteId=$noteId") }
                 )
             }
             composable(BottomNavItem.Profile.route) { ProfileScreen() }
@@ -114,7 +115,10 @@ fun MainScreen(
             }
 
             // Add Note screen (hides bottom bar)
-            composable("add_note") {
+            composable(
+                route = "add_note?noteId={noteId}",
+                arguments = listOf(navArgument("noteId") { type = NavType.StringType; nullable = true; defaultValue = null })
+            ) {
                 AddNotesScreen(
                     onNavigateBack = { bottomNavController.popBackStack() }
                 )
