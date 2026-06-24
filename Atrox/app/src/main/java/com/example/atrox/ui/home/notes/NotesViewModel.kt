@@ -19,11 +19,17 @@ enum class NoteCategory {
     ALL, PERSONAL, JOURNAL, WORK
 }
 
+enum class SortOption {
+    TIME_CREATED_DESC,
+    TIME_CREATED_ASC
+}
+
 data class NoteItem(
     val id: String,
     val title: String,
     val content: String,
     val timestamp: String,
+    val rawTimestamp: Long,
     val hasAudio: Boolean = false,
     val isSpanning: Boolean = false, // for the full-width card with image
     val category: NoteCategory = NoteCategory.PERSONAL,
@@ -40,6 +46,9 @@ class NotesViewModel @Inject constructor(
     private val _selectedCategory = MutableStateFlow(NoteCategory.ALL)
     val selectedCategory: StateFlow<NoteCategory> = _selectedCategory.asStateFlow()
 
+    private val _sortOption = MutableStateFlow(SortOption.TIME_CREATED_DESC)
+    val sortOption: StateFlow<SortOption> = _sortOption.asStateFlow()
+
     private val dateFormat = SimpleDateFormat("dd MMM • HH:mm", Locale.getDefault())
 
     val notes: StateFlow<List<NoteItem>> = noteRepository.getAllNotes()
@@ -50,6 +59,7 @@ class NotesViewModel @Inject constructor(
                     title = entity.title,
                     content = entity.content,
                     timestamp = dateFormat.format(Date(entity.timestamp)).uppercase(),
+                    rawTimestamp = entity.timestamp,
                     hasAudio = entity.hasAudio,
                     isSpanning = entity.isSpanning,
                     category = entity.category,
@@ -68,5 +78,9 @@ class NotesViewModel @Inject constructor(
 
     fun selectCategory(category: NoteCategory) {
         _selectedCategory.value = category
+    }
+
+    fun updateSortOption(option: SortOption) {
+        _sortOption.value = option
     }
 }

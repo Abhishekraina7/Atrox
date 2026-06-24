@@ -43,6 +43,7 @@ fun NotesScreen(
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val sortOption by viewModel.sortOption.collectAsState()
     val notes by viewModel.notes.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
     var isListView by remember { mutableStateOf(false) }
@@ -52,7 +53,15 @@ fun NotesScreen(
     val filteredNotes = notes.filter {
         (selectedCategory == NoteCategory.ALL || it.category == selectedCategory) &&
         (searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.content.contains(searchQuery, ignoreCase = true))
-    }
+    }.sortedWith(Comparator { a, b ->
+        if (a.isPinned && !b.isPinned) return@Comparator -1
+        if (!a.isPinned && b.isPinned) return@Comparator 1
+
+        when (sortOption) {
+            SortOption.TIME_CREATED_ASC -> a.rawTimestamp.compareTo(b.rawTimestamp)
+            SortOption.TIME_CREATED_DESC -> b.rawTimestamp.compareTo(a.rawTimestamp)
+        }
+    })
 
     val colors = MaterialTheme.colorScheme
 
@@ -91,8 +100,15 @@ fun NotesScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Sort by Time created", color = colors.onBackground) },
-                                onClick = { showMenu = false }
+                                text = { 
+                                    val text = if (sortOption == SortOption.TIME_CREATED_DESC) "Sort by Time created (Newest)" else "Sort by Time created (Oldest)"
+                                    Text(text, color = colors.onBackground) 
+                                },
+                                onClick = { 
+                                    val newOption = if (sortOption == SortOption.TIME_CREATED_DESC) SortOption.TIME_CREATED_ASC else SortOption.TIME_CREATED_DESC
+                                    viewModel.updateSortOption(newOption)
+                                    showMenu = false 
+                                }
                             )
                             DropdownMenuItem(
                                 text = { Text("Sort by the time edited", color = colors.onBackground) },
