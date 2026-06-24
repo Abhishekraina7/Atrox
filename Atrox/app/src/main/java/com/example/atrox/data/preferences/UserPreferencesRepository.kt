@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -27,6 +28,7 @@ class UserPreferencesRepository @Inject constructor(
         val BREAK_DURATION = intPreferencesKey("break_duration")
         val DAILY_SPRINTS = intPreferencesKey("daily_sprints_goal")
         val STREAK_DAYS = intPreferencesKey("streak")
+        val FOCUS_GOALS = stringSetPreferencesKey("focus_goals")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -65,6 +67,10 @@ class UserPreferencesRepository @Inject constructor(
         .catch{emit(emptyPreferences())}
         .map{preferences -> preferences[PreferencesKeys.STREAK_DAYS] ?: 0}
 
+    val focusGoals: Flow<Set<String>> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.FOCUS_GOALS] ?: emptySet() }
+
     //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
         dataStore.edit { preferences ->
@@ -75,6 +81,12 @@ class UserPreferencesRepository @Inject constructor(
     suspend fun setPrimaryGoal(goal: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.PRIMARY_GOAL] = goal
+        }
+    }
+
+    suspend fun setFocusGoals(goals: Set<String>) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.FOCUS_GOALS] = goals
         }
     }
 

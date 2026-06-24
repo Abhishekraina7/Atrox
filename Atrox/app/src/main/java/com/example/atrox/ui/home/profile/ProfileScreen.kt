@@ -2,6 +2,7 @@ package com.example.atrox.ui.home.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,7 +12,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +40,7 @@ fun ProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    var showGoalsDialog by remember { mutableStateOf(false) }
 
     val colors = MaterialTheme.colorScheme
     val extendedColors = MaterialTheme.atroxColors
@@ -179,8 +187,10 @@ fun ProfileScreen(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("✏️", fontSize = 14.sp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { showGoalsDialog = true }.padding(4.dp)
+                ) {
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Edit",
@@ -262,6 +272,115 @@ fun ProfileScreen(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+
+    if (showGoalsDialog) {
+        FocusGoalsDialog(
+            currentGoals = uiState.focusGoals.map { it.label }.toSet(),
+            onDismiss = { showGoalsDialog = false },
+            onSave = { selectedGoals ->
+                viewModel.updateFocusGoals(selectedGoals)
+                showGoalsDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun FocusGoalsDialog(
+    currentGoals: Set<String>,
+    onDismiss: () -> Unit,
+    onSave: (Set<String>) -> Unit
+) {
+    var selectedGoals by remember { mutableStateOf(currentGoals) }
+    val colors = MaterialTheme.colorScheme
+    val extendedColors = MaterialTheme.atroxColors
+
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colors.surface, RoundedCornerShape(24.dp))
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "Edit Focus Goals",
+                color = colors.onBackground,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp)
+            ) {
+                items(FocusGoalCatalogue.goals) { goal ->
+                    val isSelected = selectedGoals.contains(goal.label)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (isSelected) colors.primary.copy(alpha = 0.15f)
+                                else extendedColors.cardElevated
+                            )
+                            .border(
+                                1.dp,
+                                if (isSelected) colors.primary else Color.Transparent,
+                                RoundedCornerShape(16.dp)
+                            )
+                            .clickable {
+                                selectedGoals = if (isSelected) {
+                                    selectedGoals - goal.label
+                                } else {
+                                    selectedGoals + goal.label
+                                }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = goal.emoji, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = goal.label,
+                            color = if (isSelected) colors.primary else colors.onBackground,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = if (isSelected) Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,
+                            contentDescription = null,
+                            tint = if (isSelected) colors.primary else colors.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel", color = colors.onSurfaceVariant)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = { onSave(selectedGoals) },
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
+                ) {
+                    Text("Save", color = Color.White)
+                }
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ import javax.inject.Inject
 import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewModelScope
 import com.example.atrox.data.preferences.UserPreferencesRepository
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 data class Badge(
@@ -72,20 +73,26 @@ class ProfileViewModel @Inject constructor(
 
     private fun loadPreferences() {
         viewModelScope.launch {
-            userPreferencesRepository.primaryGoal.collect { goal ->
-                val emoji = when {
-                    goal.contains("Deep Work", ignoreCase = true) -> "🚀"
-                    goal.contains("Coding", ignoreCase = true) -> "💻"
-                    goal.contains("Creative", ignoreCase = true) || goal.contains("Design", ignoreCase = true) -> "🎨"
-                    goal.contains("Reading", ignoreCase = true) -> "📚"
-                    goal.contains("Study", ignoreCase = true) -> "📖"
-                    else -> "🎯"
+            combine(
+                userPreferencesRepository.focusGoals,
+                userPreferencesRepository.primaryGoal
+            ) { goalsSet, primary ->
+                if (goalsSet.isNotEmpty()) {
+                    goalsSet.map { goalLabel ->
+                        FocusGoal(goalLabel, FocusGoalCatalogue.getEmojiForGoal(goalLabel))
+                    }
+                } else {
+                    listOf(FocusGoal(primary, FocusGoalCatalogue.getEmojiForGoal(primary)))
                 }
-
-                _uiState.value = _uiState.value.copy(
-                    focusGoals = listOf(FocusGoal(goal, emoji))
-                )
+            }.collect { focusGoalsList ->
+                _uiState.value = _uiState.value.copy(focusGoals = focusGoalsList)
             }
+        }
+    }
+
+    fun updateFocusGoals(newGoals: Set<String>) {
+        viewModelScope.launch {
+            userPreferencesRepository.setFocusGoals(newGoals)
         }
     }
 
