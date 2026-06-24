@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.preferences.FocusGoalCatalogue
 import com.example.atrox.data.preferences.UserPreferencesRepository
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
