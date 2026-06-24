@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
+import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.preferences.UserPreferencesRepository
+import kotlinx.coroutines.launch
 
 data class Badge(
     val title: String,
@@ -54,7 +58,51 @@ data class ProfileUiState(
 )
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor() : ViewModel() {
+class ProfileViewModel @Inject constructor(
+    private val firebaseAuth: FirebaseAuth,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+
+    init {
+        loadUserProfile()
+        loadPreferences()
+    }
+
+    private fun loadPreferences() {
+        viewModelScope.launch {
+            userPreferencesRepository.primaryGoal.collect { goal ->
+                val emoji = when {
+                    goal.contains("Deep Work", ignoreCase = true) -> "🚀"
+                    goal.contains("Coding", ignoreCase = true) -> "💻"
+                    goal.contains("Creative", ignoreCase = true) || goal.contains("Design", ignoreCase = true) -> "🎨"
+                    goal.contains("Reading", ignoreCase = true) -> "📚"
+                    goal.contains("Study", ignoreCase = true) -> "📖"
+                    else -> "🎯"
+                }
+
+                _uiState.value = _uiState.value.copy(
+                    focusGoals = listOf(FocusGoal(goal, emoji))
+                )
+            }
+        }
+    }
+
+    private fun loadUserProfile() {
+        val user = firebaseAuth.currentUser
+        if (user != null) {
+            val email = user.email ?: ""
+            val emailPrefix = email.substringBefore("@")
+            val name = user.displayName?.takeIf { it.isNotBlank() } ?: emailPrefix.replaceFirstChar { it.uppercase() }
+            val handle = if (emailPrefix.isNotBlank()) "@$emailPrefix" else ""
+            val avatarInitial = if (name.isNotBlank()) name.first().uppercase() else "U"
+
+            _uiState.value = _uiState.value.copy(
+                name = name.ifBlank { "User" },
+                handle = handle,
+                avatarInitial = avatarInitial
+            )
+        }
+    }
 }

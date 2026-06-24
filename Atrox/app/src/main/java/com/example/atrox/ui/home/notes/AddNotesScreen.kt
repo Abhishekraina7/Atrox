@@ -308,10 +308,11 @@ fun AddNotesScreen(
                                     showMenu = false 
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text("Labels", color = colors.onBackground) },
-                                onClick = { showMenu = false }
-                            )
+                            //TODO: Implement this later
+//                            DropdownMenuItem(
+//                                text = { Text("Labels", color = colors.onBackground) },
+//                                onClick = { showMenu = false }
+//                            )
                         }
                     }
                 },
