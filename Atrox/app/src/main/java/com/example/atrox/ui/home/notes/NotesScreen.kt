@@ -33,6 +33,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalFocusManager
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,12 +52,18 @@ fun NotesScreen(
     val notes by viewModel.notes.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
     var isListView by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.resetSearch()
+        }
+    }
 
     val categories = NoteCategory.values().toList()
 
     val filteredNotes = notes.filter {
-        (selectedCategory == NoteCategory.ALL || it.category == selectedCategory) &&
-        (searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.content.contains(searchQuery, ignoreCase = true))
+        (selectedCategory == NoteCategory.ALL || it.category == selectedCategory)
     }.sortedWith(Comparator { a, b ->
         if (a.isPinned && !b.isPinned) return@Comparator -1
         if (!a.isPinned && b.isPinned) return@Comparator 1
@@ -110,10 +121,6 @@ fun NotesScreen(
                                     showMenu = false 
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text("Sort by the time edited", color = colors.onBackground) },
-                                onClick = { showMenu = false }
-                            )
                         }
                     }
                 },
@@ -151,6 +158,11 @@ fun NotesScreen(
                     BasicTextField(
                         value = searchQuery,
                         onValueChange = { viewModel.updateSearchQuery(it) },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {
+                            viewModel.submitSearchQuery(searchQuery)
+                            focusManager.clearFocus()
+                        }),
                         textStyle = TextStyle(color = colors.onBackground, fontSize = 16.sp),
                         cursorBrush = SolidColor(colors.primary),
                         decorationBox = { innerTextField ->

@@ -11,6 +11,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY isPinned DESC, timestamp DESC")
     fun getAllNotes(): Flow<List<NoteEntity>>
 
+    @Query("SELECT * FROM notes WHERE LOWER(title) LIKE '%' || LOWER(:searchQuery) || '%' ORDER BY isPinned DESC, timestamp DESC")
+    fun searchNotesByTitle(searchQuery: String): Flow<List<NoteEntity>>
+
     @Query("SELECT * FROM notes WHERE id = :id LIMIT 1")
     fun getNoteById(id: String): Flow<NoteEntity?>
 

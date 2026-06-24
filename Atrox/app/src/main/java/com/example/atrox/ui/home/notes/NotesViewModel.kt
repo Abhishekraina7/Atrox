@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import androidx.lifecycle.viewModelScope
 import com.example.atrox.data.notes.NoteRepository
 import java.text.SimpleDateFormat
@@ -43,6 +45,9 @@ class NotesViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _submittedQuery = MutableStateFlow("")
+    val submittedQuery: StateFlow<String> = _submittedQuery.asStateFlow()
+
     private val _selectedCategory = MutableStateFlow(NoteCategory.ALL)
     val selectedCategory: StateFlow<NoteCategory> = _selectedCategory.asStateFlow()
 
@@ -51,7 +56,15 @@ class NotesViewModel @Inject constructor(
 
     private val dateFormat = SimpleDateFormat("dd MMM • HH:mm", Locale.getDefault())
 
-    val notes: StateFlow<List<NoteItem>> = noteRepository.getAllNotes()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val notes: StateFlow<List<NoteItem>> = _submittedQuery
+        .flatMapLatest { query ->
+            if (query.isBlank()) {
+                noteRepository.getAllNotes()
+            } else {
+                noteRepository.searchNotesByTitle(query)
+            }
+        }
         .map { entities ->
             entities.map { entity ->
                 NoteItem(
@@ -74,6 +87,18 @@ class NotesViewModel @Inject constructor(
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+        if (query.isBlank()) {
+            submitSearchQuery("")
+        }
+    }
+
+    fun submitSearchQuery(query: String) {
+        _submittedQuery.value = query
+    }
+
+    fun resetSearch() {
+        _searchQuery.value = ""
+        _submittedQuery.value = ""
     }
 
     fun selectCategory(category: NoteCategory) {
