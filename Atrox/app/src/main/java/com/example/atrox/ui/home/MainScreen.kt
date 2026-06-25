@@ -32,11 +32,6 @@ import com.example.atrox.ui.home.notes.AddNotesScreen
 import com.example.atrox.ui.home.notes.NotesScreen
 import com.example.atrox.ui.home.profile.ProfileScreen
 
-private val ColorBackground = Color(0xFF0A0A0F)
-private val ColorSurface = Color(0xFF14141E)
-private val ColorAccent = Color(0xFF6C63FF)
-private val ColorTextSecondary = Color(0xFF8888A0)
-
 // Focus session route with a required taskId argument
 const val FOCUS_ROUTE = "focus_session/{taskId}"
 fun focusRoute(taskId: String) = "focus_session/$taskId"
@@ -74,7 +69,7 @@ fun MainScreen(
                 BottomNavBar(navController = bottomNavController)
             }
         },
-        containerColor = ColorBackground
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         NavHost(
             navController = bottomNavController,
@@ -141,8 +136,8 @@ fun BottomNavBar(navController: NavHostController) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     NavigationBar(
-        containerColor = ColorSurface,
-        contentColor = ColorTextSecondary
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         items.forEach { item ->
             NavigationBarItem(
@@ -159,10 +154,10 @@ fun BottomNavBar(navController: NavHostController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = ColorAccent,
-                    selectedTextColor = ColorAccent,
-                    unselectedIconColor = ColorTextSecondary,
-                    unselectedTextColor = ColorTextSecondary,
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     indicatorColor = Color.Transparent
                 )
             )
@@ -172,7 +167,7 @@ fun BottomNavBar(navController: NavHostController) {
 
 @Composable
 fun PlaceholderScreen(title: String) {
-    Box(modifier = Modifier.fillMaxSize().background(ColorBackground), contentAlignment = Alignment.Center) {
-        Text(title, color = Color.White)
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+        Text(title, color = MaterialTheme.colorScheme.onBackground)
     }
 }

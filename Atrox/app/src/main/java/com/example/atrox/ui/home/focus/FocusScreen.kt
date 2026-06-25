@@ -30,14 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.ui.home.profile.CatalogueBadgeCard
-
-// Theme Colors (matching project theme Atrox)
-private val ColorBackground = Color(0xFF0A0A0F)
-private val ColorCard = Color(0xFF14141E)
-private val ColorCardLighter = Color(0xFF1E1E2D)
-private val ColorPrimary = Color(0xFF6C63FF)
-private val ColorTextPrimary = Color(0xFFFFFFFF)
-private val ColorTextSecondary = Color(0xFF8888A0)
+import com.example.atrox.ui.theme.atroxColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,21 +39,27 @@ fun FocusScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    val atroxColors = MaterialTheme.atroxColors
+
     Scaffold(
-        containerColor = ColorBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "Your Focus Activity",
-                        color = ColorTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { /* Handle Menu */ }) {
-                        Icon(imageVector = Icons.Rounded.Menu, contentDescription = "Menu", tint = ColorTextPrimary)
+                        Icon(
+                            imageVector = Icons.Rounded.Menu, 
+                            contentDescription = "Menu", 
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
                 actions = {
@@ -75,7 +74,7 @@ fun FocusScreen(
                         Text("A", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorBackground)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { innerPadding ->
@@ -97,7 +96,7 @@ fun FocusScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Weekly\nPerformance",
-                        color = ColorTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         lineHeight = 32.sp
@@ -105,18 +104,18 @@ fun FocusScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Consistency is your superpower.",
-                        color = ColorTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                 }
                 Box(
                     modifier = Modifier
-                        .background(ColorCardLighter, RoundedCornerShape(16.dp))
+                        .background(atroxColors.cardElevated, RoundedCornerShape(16.dp))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = "MAR 18 -\n24",
-                        color = ColorTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
@@ -158,7 +157,7 @@ fun FocusScreen(
             // ── Streak & Consistency ───────────────
             Text(
                 text = "Streak & Consistency",
-                color = ColorTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -261,13 +260,13 @@ fun FocusScreen(
             ) {
                 Text(
                     text = "Milestones",
-                    color = ColorTextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "VIEW ALL",
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -292,7 +291,7 @@ fun FocusScreen(
             // ── Digital Balance ────────────────────
             Text(
                 text = "Digital Balance",
-                color = ColorTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -302,7 +301,7 @@ fun FocusScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(ColorCard, RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(24.dp))
                     .padding(24.dp)
             ) {
                 Row(
@@ -313,14 +312,14 @@ fun FocusScreen(
                     Column {
                         Text(
                             text = "Daily Insight",
-                            color = ColorTextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Your focus vs. screen time today.",
-                            color = ColorTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
@@ -336,7 +335,7 @@ fun FocusScreen(
                         .clip(RoundedCornerShape(6.dp))
                 ) {
                     Box(modifier = Modifier.weight(0.7f).fillMaxHeight().background(Color(0xFFC0B3FF)))
-                    Box(modifier = Modifier.weight(0.3f).fillMaxHeight().background(ColorPrimary))
+                    Box(modifier = Modifier.weight(0.3f).fillMaxHeight().background(MaterialTheme.colorScheme.primary))
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -359,15 +358,15 @@ fun FocusScreen(
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
-                            Text(text = "${uiState.todayFocusWorkHours}h", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "${uiState.todayFocusWorkHours}h", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = "${uiState.todayFocusWorkMinutes}m", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "${uiState.todayFocusWorkMinutes}m", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                     
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(8.dp).background(ColorPrimary, CircleShape))
+                            Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "PHONE USE",
@@ -379,9 +378,9 @@ fun FocusScreen(
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
-                            Text(text = "${uiState.todayPhoneUseHours}h", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "${uiState.todayPhoneUseHours}h", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = "${uiState.todayPhoneUseMinutes}m", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "${uiState.todayPhoneUseMinutes}m", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -391,7 +390,7 @@ fun FocusScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(ColorCardLighter, RoundedCornerShape(16.dp))
+                        .background(atroxColors.cardElevated, RoundedCornerShape(16.dp))
                         .padding(16.dp),
                     verticalAlignment = Alignment.Top
                 ) {
@@ -399,7 +398,7 @@ fun FocusScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = uiState.insightText,
-                        color = ColorTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         lineHeight = 18.sp
                     )
@@ -415,17 +414,17 @@ fun FocusScreen(
 fun PerformanceCard(title: String, value: String, modifier: Modifier = Modifier, hasGlow: Boolean = false) {
     Column(
         modifier = modifier
-            .background(ColorCard, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
             .border(
                 1.dp, 
-                if (hasGlow) ColorPrimary.copy(alpha = 0.3f) else Color.Transparent, 
+                if (hasGlow) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else Color.Transparent, 
                 RoundedCornerShape(16.dp)
             )
             .padding(16.dp)
     ) {
         Text(
             text = title,
-            color = Color.White.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
@@ -435,14 +434,14 @@ fun PerformanceCard(title: String, value: String, modifier: Modifier = Modifier,
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 text = value,
-                color = ColorTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.width(2.dp))
             Text(
                 text = "h",
-                color = ColorTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 2.dp)
@@ -456,7 +455,7 @@ fun CalendarView() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(ColorCard, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(24.dp))
             .padding(24.dp)
     ) {
         Row(
@@ -466,14 +465,22 @@ fun CalendarView() {
         ) {
             Text(
                 text = "March 2024",
-                color = ColorTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
             Row {
-                Icon(imageVector = Icons.Rounded.ChevronLeft, contentDescription = "Previous", tint = ColorTextSecondary)
+                Icon(
+                    imageVector = Icons.Rounded.ChevronLeft, 
+                    contentDescription = "Previous", 
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.width(16.dp))
-                Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = "Next", tint = ColorTextSecondary)
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight, 
+                    contentDescription = "Next", 
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         
@@ -486,7 +493,7 @@ fun CalendarView() {
             listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
                 Text(
                     text = day,
-                    color = ColorTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -517,15 +524,15 @@ fun CalendarView() {
                             .size(32.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(
-                                if (isFocused) ColorPrimary.copy(alpha = 0.2f) else Color.Transparent
+                                if (isFocused) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = day.toString(),
-                            color = if (isFocused) ColorPrimary 
-                                    else if (isCurrentMonth) ColorTextPrimary 
-                                    else ColorTextSecondary.copy(alpha = 0.5f),
+                            color = if (isFocused) MaterialTheme.colorScheme.primary 
+                                    else if (isCurrentMonth) MaterialTheme.colorScheme.onBackground 
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                             fontSize = 12.sp,
                             fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium
                         )
@@ -542,11 +549,12 @@ fun WeeklyFocusChart() {
     val days = listOf("M", "T", "W", "T", "F", "S", "S")
     val values = listOf(5.2f, 6.5f, 4.0f, 7.1f, 8.4f, 2.0f, 3.5f)
     val maxValue = 8.4f
+    val atroxColors = MaterialTheme.atroxColors
     
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(ColorCard, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
             .padding(24.dp)
     ) {
         Row(
@@ -556,13 +564,13 @@ fun WeeklyFocusChart() {
         ) {
             Text(
                 text = "Focus Time",
-                color = ColorTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = "This Week",
-                color = ColorTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp
             )
         }
@@ -584,7 +592,7 @@ fun WeeklyFocusChart() {
                     // Value Text
                     Text(
                         text = value.toString(),
-                        color = if (index == 4) ColorPrimary else ColorTextSecondary,
+                        color = if (index == 4) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 6.dp)
@@ -596,14 +604,14 @@ fun WeeklyFocusChart() {
                             .width(28.dp)
                             .fillMaxHeight(heightFraction.coerceAtLeast(0.05f))
                             .background(
-                                color = if (index == 4) ColorPrimary else ColorCardLighter,
+                                color = if (index == 4) MaterialTheme.colorScheme.primary else atroxColors.cardElevated,
                                 shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
                             )
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = days[index],
-                        color = if (index == 4) ColorPrimary else ColorTextSecondary,
+                        color = if (index == 4) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
