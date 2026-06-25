@@ -43,7 +43,8 @@ import com.example.atrox.ui.theme.atroxColors
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: ProfileViewModel = hiltViewModel(),
+    onNavigateToRegulator: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
@@ -287,7 +288,14 @@ fun ProfileScreen(
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 uiState.settingsItems.forEach { item ->
-                    SettingsRow(item)
+                    SettingsRow(
+                        item = item,
+                        onClick = {
+                            if (item.title == "My Regulator") {
+                                onNavigateToRegulator()
+                            }
+                        }
+                    )
                 }
             }
 
@@ -482,13 +490,15 @@ private fun BadgeCard(badge: Badge, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SettingsRow(item: SettingsItem) {
+private fun SettingsRow(item: SettingsItem, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colors.surfaceVariant, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(colors.surfaceVariant)
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -582,7 +592,6 @@ fun CatalogueBadgeCard(badgeState: BadgeState) {
         animationSpec = tween(durationMillis = 400),
         label = "flipAnimation"
     )
-
     Box(
         modifier = Modifier
             .fillMaxWidth()

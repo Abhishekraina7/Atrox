@@ -31,6 +31,7 @@ import com.example.atrox.ui.home.dashboard.DashboardScreen
 import com.example.atrox.ui.home.notes.AddNotesScreen
 import com.example.atrox.ui.home.notes.NotesScreen
 import com.example.atrox.ui.home.profile.ProfileScreen
+import com.example.atrox.ui.home.profile.RegulatorScreen
 
 // Focus session route with a required taskId argument
 const val FOCUS_ROUTE = "focus_session/{taskId}"
@@ -76,6 +77,7 @@ fun MainScreen(
             startDestination = BottomNavItem.Dashboard.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+
             composable(BottomNavItem.Dashboard.route) {
                 DashboardScreen(
                     onStartFocus = { taskId ->
@@ -90,6 +92,7 @@ fun MainScreen(
                     }
                 )
             }
+
             composable(BottomNavItem.Focus.route) {
                 FocusScreen()
             }
@@ -100,15 +103,20 @@ fun MainScreen(
                     onNoteClick = { noteId -> bottomNavController.navigate("add_note?noteId=$noteId") }
                 )
             }
-            composable(BottomNavItem.Profile.route) { ProfileScreen() }
 
-            // Full-screen Focus Session (hides bottom bar)
-            composable(
-                route = FOCUS_ROUTE,
-
-            ) {
-
+            composable(BottomNavItem.Profile.route) {
+                ProfileScreen(
+                    onNavigateToRegulator = { bottomNavController.navigate("regulator") }
+                )
             }
+
+            // Regulator details screen (hides bottom bar)
+            composable("regulator") {
+                RegulatorScreen(
+                    onNavigateBack = { bottomNavController.popBackStack() }
+                )
+            }
+
             // Add Note screen (hides bottom bar)
             composable(
                 route = "add_note?noteId={noteId}",
