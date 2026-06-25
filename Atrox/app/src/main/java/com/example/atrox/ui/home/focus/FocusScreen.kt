@@ -1,389 +1,612 @@
 package com.example.atrox.ui.home.focus
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayCircleOutline
-import androidx.compose.material.icons.rounded.BarChart
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import android.Manifest
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
-import com.example.atrox.R
-import com.example.atrox.service.worker.SendSmsWorker
-import android.content.Intent
-import android.provider.Settings
+import com.example.atrox.ui.home.profile.CatalogueBadgeCard
 
-// Theme Colors
+// Theme Colors (matching project theme Atrox)
 private val ColorBackground = Color(0xFF0A0A0F)
 private val ColorCard = Color(0xFF14141E)
 private val ColorCardLighter = Color(0xFF1E1E2D)
-private val ColorAccent = Color(0xFF6C63FF)
+private val ColorPrimary = Color(0xFF6C63FF)
 private val ColorTextPrimary = Color(0xFFFFFFFF)
 private val ColorTextSecondary = Color(0xFF8888A0)
-private val ColorTrack = Color(0xFF1E1E2D)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FocusScreen(
-    onNavigateBack: () -> Unit,
     viewModel: FocusViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    // Auto-start when screen opens
-    LaunchedEffect(uiState.task) {
-        if (uiState.task != null && uiState.timerState == TimerState.IDLE) {
-            viewModel.startTimer()
-        }
-    }
-
-    // Auto-navigate back when approved
-    val canceledMsg = stringResource(R.string.focus_toast_canceled)
-    LaunchedEffect(uiState.isApproved) {
-        if (uiState.isApproved) {
-            Toast.makeText(context, canceledMsg, Toast.LENGTH_SHORT).show()
-            onNavigateBack()
-        }
-    }
-
-    val animatedProgress by animateFloatAsState(
-        targetValue = uiState.progressFraction,
-        animationSpec = tween(durationMillis = 800),
-        label = "timer_arc"
-    )
-
-    val smsRequestMsg = stringResource(R.string.focus_sms_request_message)
-    val noGuardianMsg = stringResource(R.string.focus_toast_no_guardian)
-    val smsPermissionMsg = stringResource(R.string.focus_toast_sms_permission)
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            uiState.guardianPhone?.let { phone ->
-                val data = workDataOf(
-                    SendSmsWorker.KEY_PHONE_NUMBER to phone,
-                    SendSmsWorker.KEY_MESSAGE to smsRequestMsg
-                )
-                val request = OneTimeWorkRequestBuilder<SendSmsWorker>()
-                    .setInputData(data)
-                    .build()
-                WorkManager.getInstance(context).enqueue(request)
-                viewModel.markRequestSent()
-            } ?: run {
-                Toast.makeText(context, noGuardianMsg, Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(context, smsPermissionMsg, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(ColorBackground)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // ── Top Bar ──────────────────────────────
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Rounded.PlayArrow,
-                        contentDescription = null,
-                        tint = ColorAccent,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+    val scrollState = rememberScrollState()
+    Scaffold(
+        containerColor = ColorBackground,
+        topBar = {
+            TopAppBar(
+                title = {
                     Text(
-                        text = stringResource(R.string.focus_header_sprint, uiState.task?.durationMin ?: 0),
+                        text = "Your Focus Activity",
+                        color = ColorTextPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { /* Handle Menu */ }) {
+                        Icon(imageVector = Icons.Rounded.Menu, contentDescription = "Menu", tint = ColorTextPrimary)
+                    }
+                },
+                actions = {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Brush.linearGradient(listOf(Color(0xFFD4A574), Color(0xFFA67C52)))),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("A", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorBackground)
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // ── Weekly Performance ─────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Weekly\nPerformance",
+                        color = ColorTextPrimary,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 32.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Consistency is your superpower.",
                         color = ColorTextSecondary,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontSize = 12.sp
                     )
                 }
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(ColorCard, RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
+                        .background(ColorCardLighter, RoundedCornerShape(16.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    IconButton(
-                        onClick = {},//TODO Open the music selection Screen
-                        modifier = Modifier.size(40.dp)
-                    ){
-                        Icon(
-                            imageVector = Icons.Outlined.PlayCircleOutline,
-                            contentDescription = stringResource(R.string.focus_icon_stats_desc),
-                            tint = ColorTextPrimary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
+                    Text(
+                        text = "MAR 18 -\n24",
+                        color = ColorTextSecondary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
-
-            // ── Circular Timer ────────────────────────
-            Spacer(modifier = Modifier.weight(1f))
-
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(280.dp)
-                    .drawBehind {
-                        val strokeWidth = 14.dp.toPx()
-                        val diameter = size.minDimension - strokeWidth
-                        val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
-                        val arcSize = Size(diameter, diameter)
-
-                        // Track (background ring)
-                        drawArc(
-                            color = ColorTrack,
-                            startAngle = -90f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            topLeft = topLeft,
-                            size = arcSize,
-                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                        )
-                        // Progress arc
-                        drawArc(
-                            color = ColorAccent,
-                            startAngle = -90f,
-                            sweepAngle = 360f * animatedProgress,
-                            useCenter = false,
-                            topLeft = topLeft,
-                            size = arcSize,
-                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                        )
-                    }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = viewModel.formatTime(uiState.remainingSeconds),
-                    color = ColorTextPrimary,
-                    fontSize = 52.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 2.sp
+                PerformanceCard(
+                    title = "TOTAL",
+                    value = uiState.weeklyTotalHours.toString(),
+                    modifier = Modifier.weight(1f),
+                    hasGlow = true
+                )
+                PerformanceCard(
+                    title = "AVERAGE",
+                    value = uiState.weeklyAverageHours.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+                PerformanceCard(
+                    title = "BEST",
+                    value = uiState.weeklyBestHours.toString(),
+                    modifier = Modifier.weight(1f)
                 )
             }
-
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            WeeklyFocusChart()
+            
             Spacer(modifier = Modifier.height(40.dp))
-
-            // ── Task Info ─────────────────────────────
+            
+            // ── Streak & Consistency ───────────────
             Text(
-                text = uiState.task?.title ?: stringResource(R.string.focus_loading_task),
+                text = "Streak & Consistency",
                 color = ColorTextPrimary,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.focus_status_text),
-                color = ColorTextSecondary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
-                fontFamily = FontFamily.Monospace
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // ── Timer Controls ───────────────────────
-            Row(
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color(0xFF8A2BE2), Color(0xFF4B0082))
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .padding(24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "CURRENT STREAK",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = uiState.currentStreak.toString(),
+                        color = Color.White,
+                        fontSize = 64.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "DAYS FOCUSED",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "LONGEST STREAK",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "${uiState.longestStreak} Days",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "CONSISTENCY SCORE",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "${uiState.consistencyScore}%",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            CalendarView()
+            
+            Spacer(modifier = Modifier.height(40.dp))
+            
+            // ── Milestones ─────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Play / Pause
-                Button(
-                    onClick = {
-                        if (uiState.timerState == TimerState.RUNNING) viewModel.pauseTimer()
-                        else viewModel.startTimer()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ColorCardLighter),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                ) {
-                    val isRunning = uiState.timerState == TimerState.RUNNING
-                    Icon(
-                        imageVector = if (isRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        contentDescription = stringResource(R.string.focus_button_play_pause),
-                        tint = ColorTextPrimary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isRunning) "Pause" else "Resume",
-                        color = ColorTextPrimary,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                Text(
+                    text = "Milestones",
+                    color = ColorTextPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "VIEW ALL",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(uiState.unlockedBadges) { badgeState ->
+                    // Reusing the CatalogueBadgeCard but wrapped to enforce a specific width
+                    Box(modifier = Modifier.width(140.dp)) {
+                        CatalogueBadgeCard(badgeState)
+                    }
                 }
-
-                // End Session
-                Button(
-                    onClick = { showBottomSheet = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)), // Red color
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
+            }
+            
+            Spacer(modifier = Modifier.height(40.dp))
+            
+            // ── Digital Balance ────────────────────
+            Text(
+                text = "Digital Balance",
+                color = ColorTextPrimary,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(ColorCard, RoundedCornerShape(24.dp))
+                    .padding(24.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
+                    Column {
+                        Text(
+                            text = "Daily Insight",
+                            color = ColorTextPrimary,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Your focus vs. screen time today.",
+                            color = ColorTextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text("📈", fontSize = 18.sp)
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(12.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                ) {
+                    Box(modifier = Modifier.weight(0.7f).fillMaxHeight().background(Color(0xFFC0B3FF)))
+                    Box(modifier = Modifier.weight(0.3f).fillMaxHeight().background(ColorPrimary))
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.size(8.dp).background(Color(0xFFC0B3FF), CircleShape))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "FOCUS WORK",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(text = "${uiState.todayFocusWorkHours}h", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "${uiState.todayFocusWorkMinutes}m", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.size(8.dp).background(ColorPrimary, CircleShape))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "PHONE USE",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(text = "${uiState.todayPhoneUseHours}h", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "${uiState.todayPhoneUseMinutes}m", color = ColorTextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(ColorCardLighter, RoundedCornerShape(16.dp))
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text("💡", fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "End session",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        text = uiState.insightText,
+                        color = ColorTextSecondary,
+                        fontSize = 12.sp,
+                        lineHeight = 18.sp
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.weight(1f))
+            
+            Spacer(modifier = Modifier.height(40.dp))
         }
+    }
+}
 
-        // ── Regulator Bottom Panel ────────────────────
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showBottomSheet = false },
-                sheetState = sheetState,
-                containerColor = ColorCard,
-                dragHandle = {
+@Composable
+fun PerformanceCard(title: String, value: String, modifier: Modifier = Modifier, hasGlow: Boolean = false) {
+    Column(
+        modifier = modifier
+            .background(ColorCard, RoundedCornerShape(16.dp))
+            .border(
+                1.dp, 
+                if (hasGlow) ColorPrimary.copy(alpha = 0.3f) else Color.Transparent, 
+                RoundedCornerShape(16.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Text(
+            text = title,
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            fontFamily = FontFamily.Monospace
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = value,
+                color = ColorTextPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            Text(
+                text = "h",
+                color = ColorTextSecondary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun CalendarView() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ColorCard, RoundedCornerShape(24.dp))
+            .padding(24.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "March 2024",
+                color = ColorTextPrimary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Row {
+                Icon(imageVector = Icons.Rounded.ChevronLeft, contentDescription = "Previous", tint = ColorTextSecondary)
+                Spacer(modifier = Modifier.width(16.dp))
+                Icon(imageVector = Icons.Rounded.ChevronRight, contentDescription = "Next", tint = ColorTextSecondary)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
+                Text(
+                    text = day,
+                    color = ColorTextSecondary,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        val days = listOf(
+            26 to false, 27 to false, 28 to false, 29 to false, 1 to false, 2 to false, 3 to false,
+            4 to true, 5 to true, 6 to true, 7 to true, 8 to true, 9 to false, 10 to false,
+            11 to true, 12 to true, 13 to true, 14 to true, 15 to true, 16 to false, 17 to false
+        )
+        
+        for (week in 0..2) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                for (dayIdx in 0..6) {
+                    val index = week * 7 + dayIdx
+                    val (day, isFocused) = days[index]
+                    val isCurrentMonth = !(week == 0 && day > 20)
+                    
                     Box(
                         modifier = Modifier
-                            .padding(top = 16.dp, bottom = 8.dp)
-                            .width(40.dp)
-                            .height(4.dp)
-                            .background(ColorCardLighter, RoundedCornerShape(50))
-                    )
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (isFocused) ColorPrimary.copy(alpha = 0.2f) else Color.Transparent
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = day.toString(),
+                            color = if (isFocused) ColorPrimary 
+                                    else if (isCurrentMonth) ColorTextPrimary 
+                                    else ColorTextSecondary.copy(alpha = 0.5f),
+                            fontSize = 12.sp,
+                            fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium
+                        )
+                    }
                 }
-            ) {
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun WeeklyFocusChart() {
+    val days = listOf("M", "T", "W", "T", "F", "S", "S")
+    val values = listOf(5.2f, 6.5f, 4.0f, 7.1f, 8.4f, 2.0f, 3.5f)
+    val maxValue = 8.4f
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(ColorCard, RoundedCornerShape(16.dp))
+            .padding(24.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Focus Time",
+                color = ColorTextPrimary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "This Week",
+                color = ColorTextSecondary,
+                fontSize = 12.sp
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth().height(140.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            values.forEachIndexed { index, value ->
+                val heightFraction = value / maxValue
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
-                        .padding(bottom = 24.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom,
+                    modifier = Modifier.fillMaxHeight()
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // Guardian avatar
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .background(Color(0xFFD4A574), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("M", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                            // Online dot
-                            Box(
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .background(Color(0xFF4CAF50), CircleShape)
-                                    .align(Alignment.BottomEnd)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.focus_panel_title),
-                                color = ColorTextPrimary,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = stringResource(R.string.focus_panel_desc),
-                                color = ColorTextSecondary,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    val notifAccessMsg = stringResource(R.string.focus_toast_notif_access)
-                    Button(
-                        onClick = { 
-                            if (!uiState.isCancelRequestSent) {
-                                // First check for Notification Access
-                                val enabledListeners = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-                                if (enabledListeners == null || !enabledListeners.contains(context.packageName)) {
-                                    Toast.makeText(context, notifAccessMsg, Toast.LENGTH_LONG).show()
-                                    val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                                    context.startActivity(intent)
-                                } else {
-                                    // If granted, proceed to ask for SMS permission to send the request
-                                    permissionLauncher.launch(Manifest.permission.SEND_SMS)
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (uiState.isCancelRequestSent) ColorCardLighter else ColorAccent
-                        ),
-                        shape = RoundedCornerShape(16.dp),
+                    // Value Text
+                    Text(
+                        text = value.toString(),
+                        color = if (index == 4) ColorPrimary else ColorTextSecondary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+                    
+                    // Bar
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                    ) {
-                        if (uiState.isCancelRequestSent) {
-                            Text(stringResource(R.string.focus_waiting_approval), color = ColorTextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        } else {
-                            Icon(imageVector = Icons.Rounded.Send, contentDescription = null, tint = Color.White)
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(stringResource(R.string.focus_button_send_request), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
+                            .width(28.dp)
+                            .fillMaxHeight(heightFraction.coerceAtLeast(0.05f))
+                            .background(
+                                color = if (index == 4) ColorPrimary else ColorCardLighter,
+                                shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
+                            )
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = days[index],
+                        color = if (index == 4) ColorPrimary else ColorTextSecondary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

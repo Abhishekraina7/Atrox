@@ -95,7 +95,10 @@ fun MainScreen(
                     }
                 )
             }
-            composable(BottomNavItem.Focus.route) { PlaceholderScreen("Focus") }
+            composable(BottomNavItem.Focus.route) {
+                FocusScreen()
+            }
+
             composable(BottomNavItem.Notes.route) {
                 NotesScreen(
                     onAddNote = { bottomNavController.navigate("add_note") },
@@ -107,13 +110,10 @@ fun MainScreen(
             // Full-screen Focus Session (hides bottom bar)
             composable(
                 route = FOCUS_ROUTE,
-                arguments = listOf(navArgument("taskId") { type = NavType.StringType })
-            ) {
-                FocusScreen(
-                    onNavigateBack = { bottomNavController.popBackStack() }
-                )
-            }
 
+            ) {
+
+            }
             // Add Note screen (hides bottom bar)
             composable(
                 route = "add_note?noteId={noteId}",
