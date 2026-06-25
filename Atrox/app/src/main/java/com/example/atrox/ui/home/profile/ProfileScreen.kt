@@ -14,6 +14,12 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.*
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -42,6 +48,7 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     var showGoalsDialog by remember { mutableStateOf(false) }
+    var showAllBadgesDialog by remember { mutableStateOf(false) }
 
     val colors = MaterialTheme.colorScheme
     val extendedColors = MaterialTheme.atroxColors
@@ -231,13 +238,25 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(36.dp))
 
             // ── Recent Badges ────────────────────────
-            Text(
-                text = "Recent Badges",
-                color = colors.onBackground,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Recent Badges",
+                    color = colors.onBackground,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "View All",
+                    color = colors.primary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable { showAllBadgesDialog = true }.padding(4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -284,6 +303,13 @@ fun ProfileScreen(
                 viewModel.updateFocusGoals(selectedGoals)
                 showGoalsDialog = false
             }
+        )
+    }
+
+    if (showAllBadgesDialog) {
+        AllBadgesDialog(
+            badges = uiState.allBadges,
+            onDismiss = { showAllBadgesDialog = false }
         )
     }
 }
@@ -495,5 +521,154 @@ private fun SettingsRow(item: SettingsItem) {
             tint = colors.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
         )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun AllBadgesDialog(
+    badges: List<BadgeState>,
+    onDismiss: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f)
+                .background(colors.surface, RoundedCornerShape(24.dp))
+                .padding(24.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "All Badges",
+                    color = colors.onBackground,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(imageVector = Icons.Rounded.Close, contentDescription = "Close", tint = colors.onBackground)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(badges) { badgeState ->
+                    CatalogueBadgeCard(badgeState)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CatalogueBadgeCard(badgeState: BadgeState) {
+    val colors = MaterialTheme.colorScheme
+    var isFlipped by remember { mutableStateOf(false) }
+
+    val rotation by animateFloatAsState(
+        targetValue = if (isFlipped) 180f else 0f,
+        animationSpec = tween(durationMillis = 400),
+        label = "flipAnimation"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .graphicsLayer {
+                rotationY = rotation
+                cameraDistance = 12f * density
+            }
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (badgeState.isUnlocked) colors.surfaceVariant else colors.surfaceVariant.copy(alpha = 0.5f))
+            .border(
+                1.dp,
+                if (badgeState.isUnlocked) badgeState.badge.color.copy(alpha = 0.5f) else Color.Transparent,
+                RoundedCornerShape(16.dp)
+            )
+            .clickable { isFlipped = !isFlipped }
+    ) {
+        if (rotation <= 90f) {
+            // Front side
+            Column(
+                modifier = Modifier.fillMaxSize().padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                if (badgeState.isUnlocked) badgeState.badge.color.copy(alpha = 0.15f)
+                                else Color.Gray.copy(alpha = 0.15f), 
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (badgeState.isUnlocked) {
+                            Text(badgeState.badge.emoji, fontSize = 20.sp)
+                        } else {
+                            Icon(Icons.Rounded.Lock, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                    
+                    // Info button in top right
+                    Icon(
+                        Icons.Rounded.Info, 
+                        contentDescription = "Info", 
+                        tint = if (badgeState.isUnlocked) badgeState.badge.color else Color.Gray,
+                        modifier = Modifier.align(Alignment.TopEnd).size(16.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (badgeState.isUnlocked) badgeState.badge.title else "Locked",
+                    color = if (badgeState.isUnlocked) colors.onBackground else Color.Gray,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            // Back side
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { rotationY = 180f } // Fix mirrored text
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = badgeState.badge.title,
+                    color = if (badgeState.isUnlocked) badgeState.badge.color else Color.Gray,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = badgeState.badge.description,
+                    color = colors.onSurfaceVariant,
+                    fontSize = 10.sp,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 14.sp
+                )
+            }
+        }
     }
 }

@@ -11,6 +11,8 @@ import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewModelScope
 import com.example.atrox.data.preferences.FocusGoalCatalogue
 import com.example.atrox.data.preferences.UserPreferencesRepository
+import com.example.atrox.data.preferences.AppBadge
+import com.example.atrox.data.preferences.BadgeCatalogue
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -19,6 +21,11 @@ data class Badge(
     val emoji: String,
     val color: Color,
     val timeAgo: String
+)
+
+data class BadgeState(
+    val badge: AppBadge,
+    val isUnlocked: Boolean
 )
 
 data class SettingsItem(
@@ -52,6 +59,7 @@ data class ProfileUiState(
         Badge("Century Club", "⚡", Color(0xFF6C63FF), "1w ago"),
         Badge("Deep Diver", "✨", Color(0xFF42A5F5), "2w ago")
     ),
+    val allBadges: List<BadgeState> = emptyList(),
     val settingsItems: List<SettingsItem> = listOf(
         SettingsItem("My Regulator", "Manage productivity thresholds", "🛡️", Color(0xFF42A5F5)),
         SettingsItem("Streak History", "View performance timeline", "🔥", Color(0xFFFF9800)),
@@ -70,6 +78,28 @@ class ProfileViewModel @Inject constructor(
     init {
         loadUserProfile()
         loadPreferences()
+        updateBadges()
+    }
+
+    private fun updateBadges() {
+        val state = _uiState.value
+        val badges = BadgeCatalogue.badges.map { badge ->
+            val unlocked = when (badge.id) {
+                "b1" -> state.sprints >= 1
+                "b2" -> state.focusHours >= 2.0
+                "b3" -> state.streakDays >= 3
+                "b4" -> true
+                "b5" -> true
+                "b6" -> state.focusHours >= 10.0
+                "b7" -> state.streakDays >= 7
+                "b8" -> true
+                "b9" -> true
+                "b10" -> state.sprints >= 100
+                else -> false
+            }
+            BadgeState(badge, unlocked)
+        }
+        _uiState.value = state.copy(allBadges = badges)
     }
 
     private fun loadPreferences() {
