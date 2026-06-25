@@ -65,7 +65,7 @@ fun OnboardingScreen1(
                 .clip(RoundedCornerShape(8.dp))
         ) {
              Image(
-                 painter = painterResource(id = R.drawable.ill_onboarding_screen_1),
+                 painter = painterResource(id = R.drawable.img_onboarding_1),
                  contentDescription = stringResource(R.string.onboarding_graphic_desc),
                  contentScale = ContentScale.Crop,
                  modifier = Modifier.fillMaxSize()

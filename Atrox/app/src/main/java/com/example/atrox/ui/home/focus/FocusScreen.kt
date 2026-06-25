@@ -74,6 +74,7 @@ fun FocusScreen(
                         Text("A", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                 },
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
