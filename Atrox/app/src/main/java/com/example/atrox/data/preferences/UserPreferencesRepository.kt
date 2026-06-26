@@ -29,6 +29,8 @@ class UserPreferencesRepository @Inject constructor(
         val DAILY_SPRINTS = intPreferencesKey("daily_sprints_goal")
         val STREAK_DAYS = intPreferencesKey("streak")
         val FOCUS_GOALS = stringSetPreferencesKey("focus_goals")
+        val DISPLAY_NAME = stringPreferencesKey("display_name")
+        val AVATAR_ID = stringPreferencesKey("avatar_id")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -70,6 +72,14 @@ class UserPreferencesRepository @Inject constructor(
     val focusGoals: Flow<Set<String>> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.FOCUS_GOALS] ?: emptySet() }
+
+    val displayName: Flow<String?> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.DISPLAY_NAME] }
+
+    val avatarId: Flow<String?> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.AVATAR_ID] }
 
     //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
@@ -113,5 +123,13 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setMaxStreak(streak: Int){
         dataStore.edit{preferences -> preferences[PreferencesKeys.STREAK_DAYS] = streak}
+    }
+
+    suspend fun setDisplayName(name: String) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.DISPLAY_NAME] = name }
+    }
+
+    suspend fun setAvatarId(id: String) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.AVATAR_ID] = id }
     }
 }

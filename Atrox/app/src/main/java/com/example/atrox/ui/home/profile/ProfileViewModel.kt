@@ -9,9 +9,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.preferences.AppBadge
 import com.example.atrox.data.preferences.FocusGoalCatalogue
 import com.example.atrox.data.preferences.UserPreferencesRepository
-import com.example.atrox.data.preferences.AppBadge
+import com.example.atrox.data.preferences.Avatar
+import com.example.atrox.data.preferences.AvatarCatalogue
 import com.example.atrox.data.preferences.BadgeCatalogue
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -45,6 +47,7 @@ data class ProfileUiState(
     val handle: String = "@arivers_focus",
     val memberSince: String = "Member since October 2023",
     val avatarInitial: String = "A",
+    val avatar: Avatar? = null,
     val sprints: Int = 128,
     val focusHours: Double = 452.5,
     val streakDays: Int = 14,
@@ -127,20 +130,38 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun updateProfile(name: String, avatarId: String?) {
+        viewModelScope.launch {
+            userPreferencesRepository.setDisplayName(name)
+            if (avatarId != null) {
+                userPreferencesRepository.setAvatarId(avatarId)
+            }
+        }
+    }
+
     private fun loadUserProfile() {
         val user = firebaseAuth.currentUser
-        if (user != null) {
-            val email = user.email ?: ""
-            val emailPrefix = email.substringBefore("@")
-            val name = user.displayName?.takeIf { it.isNotBlank() } ?: emailPrefix.replaceFirstChar { it.uppercase() }
-            val handle = if (emailPrefix.isNotBlank()) "@$emailPrefix" else ""
-            val avatarInitial = if (name.isNotBlank()) name.first().uppercase() else "U"
+        val email = user?.email ?: ""
+        val emailPrefix = email.substringBefore("@")
+        val fbName = user?.displayName?.takeIf { it.isNotBlank() } ?: emailPrefix.replaceFirstChar { it.uppercase() }
+        val handle = if (emailPrefix.isNotBlank()) "@$emailPrefix" else ""
 
-            _uiState.value = _uiState.value.copy(
-                name = name.ifBlank { "User" },
-                handle = handle,
-                avatarInitial = avatarInitial
-            )
+        viewModelScope.launch {
+            combine(
+                userPreferencesRepository.displayName,
+                userPreferencesRepository.avatarId
+            ) { namePref, avatarIdPref ->
+                val finalName = namePref?.takeIf { it.isNotBlank() } ?: fbName
+                val finalAvatarInitial = if (finalName.isNotBlank()) finalName.first().uppercase() else "U"
+                val avatar = AvatarCatalogue.getAvatarById(avatarIdPref)
+                
+                _uiState.value = _uiState.value.copy(
+                    name = finalName.ifBlank { "User" },
+                    handle = handle,
+                    avatarInitial = finalAvatarInitial,
+                    avatar = avatar
+                )
+            }.collect { }
         }
     }
 }

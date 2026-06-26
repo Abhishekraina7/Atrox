@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.data.preferences.FocusGoalCatalogue
+import com.example.atrox.data.preferences.Avatar
+import com.example.atrox.data.preferences.AvatarCatalogue
 import com.example.atrox.ui.theme.atroxColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -52,6 +54,7 @@ fun ProfileScreen(
     val scrollState = rememberScrollState()
     var showGoalsDialog by remember { mutableStateOf(false) }
     var showAllBadgesDialog by remember { mutableStateOf(false) }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
 
     val colors = MaterialTheme.colorScheme
     val extendedColors = MaterialTheme.atroxColors
@@ -80,7 +83,7 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* edit profile */ }) {
+                    IconButton(onClick = { showEditProfileDialog = true }) {
                         Icon(
                             imageVector = Icons.Rounded.Edit,
                             contentDescription = "Edit Profile",
@@ -113,15 +116,15 @@ fun ProfileScreen(
                         .clip(CircleShape)
                         .background(
                             Brush.linearGradient(
-                                listOf(Color(0xFFD4A574), Color(0xFFA67C52))
+                                uiState.avatar?.gradientColors ?: listOf(Color(0xFFD4A574), Color(0xFFA67C52))
                             )
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = uiState.avatarInitial,
+                        text = uiState.avatar?.emoji ?: uiState.avatarInitial,
                         color = Color.White,
-                        fontSize = 40.sp,
+                        fontSize = if (uiState.avatar != null) 50.sp else 40.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -321,6 +324,18 @@ fun ProfileScreen(
         AllBadgesDialog(
             badges = uiState.allBadges,
             onDismiss = { showAllBadgesDialog = false }
+        )
+    }
+
+    if (showEditProfileDialog) {
+        EditProfileDialog(
+            currentName = uiState.name,
+            currentAvatarId = uiState.avatar?.id,
+            onDismiss = { showEditProfileDialog = false },
+            onSave = { newName, newAvatarId ->
+                viewModel.updateProfile(newName, newAvatarId)
+                showEditProfileDialog = false
+            }
         )
     }
 }
@@ -680,6 +695,167 @@ fun CatalogueBadgeCard(badgeState: BadgeState) {
                     textAlign = TextAlign.Center,
                     lineHeight = 14.sp
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun EditProfileDialog(
+    currentName: String,
+    currentAvatarId: String?,
+    onDismiss: () -> Unit,
+    onSave: (String, String?) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    var name by remember { mutableStateOf(currentName) }
+    var selectedAvatarId by remember { mutableStateOf(currentAvatarId) }
+    var showAvatarSelection by remember { mutableStateOf(false) }
+
+    val currentAvatar = AvatarCatalogue.getAvatarById(selectedAvatarId)
+
+    if (showAvatarSelection) {
+        AvatarSelectionDialog(
+            onDismiss = { showAvatarSelection = false },
+            onAvatarSelected = { avatarId ->
+                selectedAvatarId = avatarId
+                showAvatarSelection = false
+            }
+        )
+    } else {
+        Dialog(onDismissRequest = onDismiss) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Edit Profile",
+                        color = colors.onBackground,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Avatar Edit Button
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    currentAvatar?.gradientColors ?: listOf(Color(0xFFD4A574), Color(0xFFA67C52))
+                                )
+                            )
+                            .clickable { showAvatarSelection = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = currentAvatar?.emoji ?: if (name.isNotBlank()) name.first().uppercase() else "U",
+                            color = Color.White,
+                            fontSize = if (currentAvatar != null) 50.sp else 40.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.4f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("EDIT", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Display Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = colors.onBackground,
+                            unfocusedTextColor = colors.onBackground
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = onDismiss) {
+                            Text("Cancel", color = colors.onSurfaceVariant)
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { onSave(name, selectedAvatarId) },
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
+                        ) {
+                            Text("Save", color = colors.onPrimary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AvatarSelectionDialog(
+    onDismiss: () -> Unit,
+    onAvatarSelected: (String) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant),
+            modifier = Modifier.fillMaxHeight(0.7f)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Select Avatar",
+                    color = colors.onBackground,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(AvatarCatalogue.avatars) { avatar ->
+                        Box(
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(CircleShape)
+                                .background(Brush.linearGradient(avatar.gradientColors))
+                                .clickable { onAvatarSelected(avatar.id) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = avatar.emoji,
+                                fontSize = 32.sp
+                            )
+                        }
+                    }
+                }
             }
         }
     }
