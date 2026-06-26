@@ -32,6 +32,7 @@ import com.example.atrox.ui.home.notes.AddNotesScreen
 import com.example.atrox.ui.home.notes.NotesScreen
 import com.example.atrox.ui.home.profile.ProfileScreen
 import com.example.atrox.ui.home.profile.RegulatorScreen
+import com.example.atrox.ui.home.profile.StreakHistoryScreen
 
 // Focus session route with a required taskId argument
 const val FOCUS_ROUTE = "focus_session/{taskId}"
@@ -106,7 +107,8 @@ fun MainScreen(
 
             composable(BottomNavItem.Profile.route) {
                 ProfileScreen(
-                    onNavigateToRegulator = { bottomNavController.navigate("regulator") }
+                    onNavigateToRegulator = { bottomNavController.navigate("regulator") },
+                    onNavigateToStreakHistory = { bottomNavController.navigate("streak_history") }
                 )
             }
 
@@ -117,6 +119,13 @@ fun MainScreen(
                 )
             }
 
+            // Streak History details screen (hides bottom bar)
+            composable("streak_history") {
+                StreakHistoryScreen(
+                    onNavigateBack = { bottomNavController.popBackStack() }
+                )
+            }
+            
             // Add Note screen (hides bottom bar)
             composable(
                 route = "add_note?noteId={noteId}",

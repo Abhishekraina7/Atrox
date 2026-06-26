@@ -44,7 +44,8 @@ import com.example.atrox.ui.theme.atroxColors
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
-    onNavigateToRegulator: () -> Unit = {}
+    onNavigateToRegulator: () -> Unit = {},
+    onNavigateToStreakHistory: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
@@ -291,8 +292,9 @@ fun ProfileScreen(
                     SettingsRow(
                         item = item,
                         onClick = {
-                            if (item.title == "My Regulator") {
-                                onNavigateToRegulator()
+                            when (item.title) {
+                                "My Regulator" -> onNavigateToRegulator()
+                                "Streak History" -> onNavigateToStreakHistory()
                             }
                         }
                     )
