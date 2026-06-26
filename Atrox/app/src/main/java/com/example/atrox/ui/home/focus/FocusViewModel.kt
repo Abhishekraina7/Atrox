@@ -7,8 +7,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import com.example.atrox.ui.home.profile.BadgeState
 import com.example.atrox.data.preferences.BadgeCatalogue
+import com.example.atrox.data.preferences.Avatar
+import com.example.atrox.data.preferences.AvatarCatalogue
+import com.example.atrox.data.preferences.UserPreferencesRepository
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.combine
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 data class FocusDashboardUiState(
+    val avatar: Avatar? = null,
+    val avatarInitial: String = "U",
     val weeklyTotalHours: Double = 42.5,
     val weeklyAverageHours: Double = 6.1,
     val weeklyBestHours: Double = 8.4,
@@ -25,12 +34,16 @@ data class FocusDashboardUiState(
 )
 
 @HiltViewModel
-class FocusViewModel @Inject constructor() : ViewModel() {
+class FocusViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val firebaseAuth: FirebaseAuth
+) : ViewModel() {
     private val _uiState = MutableStateFlow(FocusDashboardUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
         loadBadges()
+        loadUserProfile()
     }
 
     private fun loadBadges() {
@@ -38,5 +51,28 @@ class FocusViewModel @Inject constructor() : ViewModel() {
             BadgeState(badge, isUnlocked = index < 5)
         }
         _uiState.value = _uiState.value.copy(unlockedBadges = badges)
+    }
+
+    private fun loadUserProfile() {
+        val user = firebaseAuth.currentUser
+        val email = user?.email ?: ""
+        val emailPrefix = email.substringBefore("@")
+        val fbName = user?.displayName?.takeIf { it.isNotBlank() } ?: emailPrefix.replaceFirstChar { it.uppercase() }
+
+        viewModelScope.launch {
+            combine(
+                userPreferencesRepository.displayName,
+                userPreferencesRepository.avatarId
+            ) { namePref, avatarIdPref ->
+                val finalName = namePref?.takeIf { it.isNotBlank() } ?: fbName
+                val finalAvatarInitial = if (finalName.isNotBlank()) finalName.first().uppercase() else "U"
+                val avatar = AvatarCatalogue.getAvatarById(avatarIdPref)
+                
+                _uiState.value = _uiState.value.copy(
+                    avatarInitial = finalAvatarInitial,
+                    avatar = avatar
+                )
+            }.collect { }
+        }
     }
 }

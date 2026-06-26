@@ -42,7 +42,7 @@ fun focusRoute(taskId: String) = "focus_session/$taskId"
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Dashboard : BottomNavItem("dashboard", Icons.Rounded.Home, "HOME")
     object Tasks : BottomNavItem("tasks", Icons.Rounded.TaskAlt, "TASKS")
-    object Focus : BottomNavItem("focus", Icons.Rounded.GpsFixed, "FOCUS")
+    object Focus : BottomNavItem("activity", Icons.Rounded.GpsFixed, "FOCUS")
     object Notes : BottomNavItem("notes", Icons.Rounded.Assignment, "NOTES")
     object Profile : BottomNavItem("profile", Icons.Rounded.Person, "PROFILE")
 }
@@ -87,6 +87,7 @@ fun MainScreen(
                     }
                 )
             }
+            
             composable(BottomNavItem.Tasks.route) {
                 TaskScreen(
                     onStartFocus = { taskId ->
@@ -96,7 +97,17 @@ fun MainScreen(
             }
 
             composable(BottomNavItem.Focus.route) {
-                FocusScreen()
+                FocusScreen(
+                    onNavigateToProfile = {
+                        bottomNavController.navigate(BottomNavItem.Profile.route) {
+                            bottomNavController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) { saveState = true }
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
 
             composable(BottomNavItem.Notes.route) {

@@ -2,6 +2,7 @@ package com.example.atrox.ui.home.focus
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -34,7 +35,8 @@ import com.example.atrox.ui.theme.atroxColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FocusScreen(
-    viewModel: FocusViewModel = hiltViewModel()
+    viewModel: FocusViewModel = hiltViewModel(),
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
@@ -46,7 +48,7 @@ fun FocusScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Your Focus Activity",
+                        text = "Activity",
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
@@ -58,10 +60,20 @@ fun FocusScreen(
                             .padding(end = 16.dp)
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(Brush.linearGradient(listOf(Color(0xFFD4A574), Color(0xFFA67C52)))),
+                            .background(
+                                Brush.linearGradient(
+                                    uiState.avatar?.gradientColors ?: listOf(Color(0xFFD4A574), Color(0xFFA67C52))
+                                )
+                            )
+                            .clickable { onNavigateToProfile() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("A", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(
+                            text = uiState.avatar?.emoji ?: uiState.avatarInitial, 
+                            color = Color.White, 
+                            fontWeight = FontWeight.Bold, 
+                            fontSize = if (uiState.avatar != null) 18.sp else 14.sp
+                        )
                     }
                 },
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
