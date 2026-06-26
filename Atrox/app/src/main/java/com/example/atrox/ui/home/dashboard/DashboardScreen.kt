@@ -559,7 +559,6 @@ fun AnimatedGreeting() {
                 }
             }
         }
-
         Text(
             text = greetingText,
             color = MaterialTheme.colorScheme.onBackground,

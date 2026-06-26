@@ -322,6 +322,7 @@ fun AddNotesScreen(
                 )
             )
         },
+
         bottomBar = {
             // Bottom Toolbar
             Row(
@@ -367,7 +368,7 @@ fun AddNotesScreen(
                 onValueChange = { viewModel.updateTitle(it) },
                 textStyle = TextStyle(
                     color = colors.onBackground,
-                    fontSize = 28.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 ),
                 cursorBrush = SolidColor(colors.primary),
