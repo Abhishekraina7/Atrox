@@ -45,7 +45,8 @@ import com.example.atrox.ui.theme.atroxColors
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToRegulator: () -> Unit = {},
-    onNavigateToStreakHistory: () -> Unit = {}
+    onNavigateToStreakHistory: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
@@ -70,7 +71,7 @@ fun ProfileScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* settings */ }) {
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.Rounded.Settings,
                             contentDescription = "Settings",
@@ -124,16 +125,16 @@ fun ProfileScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                // Verified badge
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .background(extendedColors.successGreen, CircleShape)
-                        .border(3.dp, colors.background, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("✓", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                }
+                //TODO: For paid users place a star badge here
+//                Box(
+//                    modifier = Modifier
+//                        .size(28.dp)
+//                        .background(extendedColors.successGreen, CircleShape)
+//                        .border(3.dp, colors.background, CircleShape),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Text("✓", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+//                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -1,0 +1,340 @@
+package com.example.atrox.ui.home.profile
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.OpenInNew
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.atrox.ui.theme.atroxColors
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val scrollState = rememberScrollState()
+    val colors = MaterialTheme.colorScheme
+
+    Scaffold(
+        containerColor = colors.background,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "SETTINGS",
+                        color = colors.onBackground,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Back",
+                            tint = colors.onBackground
+                        )
+                    }
+                },
+                // Add a placeholder action to center the title properly
+                actions = {
+                    Spacer(modifier = Modifier.width(48.dp))
+                },
+                windowInsets = WindowInsets(0,0,0,0),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.background)
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ── FOCUS PREFERENCES ──
+            SettingsHeader("FOCUS PREFERENCES")
+            SettingsCard {
+                SettingsNavRow(
+                    title = "Default sprint duration",
+                    subtitle = "Standard Pomodoro",
+                    value = "${uiState.sprintDuration} min",
+                    onClick = { /* TODO */ }
+                )
+                SettingsNavRow(
+                    title = "Default break duration",
+                    subtitle = "Short interval",
+                    value = "${uiState.breakDuration} min",
+                    onClick = { /* TODO */ }
+                )
+                SettingsNavRow(
+                    title = "Daily sprint goal",
+                    subtitle = null,
+                    value = "${uiState.dailySprintGoal} sprints",
+                    onClick = { /* TODO */ }
+                )
+                SettingsSwitchRow(
+                    title = "Auto-start next sprint",
+                    checked = uiState.autoStartNextSprint,
+                    onCheckedChange = { viewModel.toggleAutoStartNextSprint() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── PHONE RESTRICTION ──
+            SettingsHeader("PHONE RESTRICTION")
+            SettingsCard {
+                SettingsSwitchRow(
+                    title = "Block notifications",
+                    checked = uiState.blockNotifications,
+                    onCheckedChange = { viewModel.toggleBlockNotifications() }
+                )
+                SettingsSwitchRow(
+                    title = "Block social apps",
+                    checked = uiState.blockSocialApps,
+                    onCheckedChange = { viewModel.toggleBlockSocialApps() }
+                )
+                SettingsSwitchRow(
+                    title = "Allow emergency calls",
+                    checked = uiState.allowEmergencyCalls,
+                    onCheckedChange = { viewModel.toggleAllowEmergencyCalls() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── REGULATOR ──
+            SettingsHeader("REGULATOR")
+            SettingsCard {
+                SettingsNavRow(
+                    title = "Configure Regulator",
+                    icon = Icons.Rounded.OpenInNew,
+                    onClick = { /* TODO */ }
+                )
+                SettingsSwitchRow(
+                    title = "Approval for early exit",
+                    subtitle = "Require passcode to stop session",
+                    checked = uiState.approvalForEarlyExit,
+                    onCheckedChange = { viewModel.toggleApprovalForEarlyExit() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── NOTIFICATIONS ──
+            SettingsHeader("NOTIFICATIONS")
+            SettingsCard {
+                SettingsSwitchRow(
+                    title = "Sprint reminders",
+                    checked = uiState.sprintReminders,
+                    onCheckedChange = { viewModel.toggleSprintReminders() }
+                )
+                SettingsSwitchRow(
+                    title = "Daily goal nudge",
+                    checked = uiState.dailyGoalNudge,
+                    onCheckedChange = { viewModel.toggleDailyGoalNudge() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── ACCOUNT ──
+            SettingsHeader("ACCOUNT")
+            SettingsCard {
+                SettingsNavRow(
+                    title = "Edit profile",
+                    onClick = { /* TODO */ }
+                )
+                SettingsNavRow(
+                    title = "Change password",
+                    onClick = { /* TODO */ }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── APP ──
+            SettingsHeader("APP")
+            SettingsCard {
+                SettingsNavRow(
+                    title = "Theme",
+                    value = uiState.theme,
+                    valueColor = colors.onSurfaceVariant,
+                    icon = null,
+                    onClick = { /* TODO */ }
+                )
+                SettingsSwitchRow(
+                    title = "Haptic feedback",
+                    checked = uiState.hapticFeedback,
+                    onCheckedChange = { viewModel.toggleHapticFeedback() }
+                )
+                SettingsNavRow(
+                    title = "App version",
+                    value = uiState.appVersion,
+                    valueColor = colors.onSurfaceVariant.copy(alpha = 0.5f),
+                    icon = null,
+                    onClick = { /* TODO */ }
+                )
+
+                HorizontalDivider(
+                    color = colors.onSurfaceVariant.copy(alpha = 0.1f),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                Text(
+                    text = "LOGOUT",
+                    color = colors.error,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { /* TODO */ }
+                        .padding(vertical = 16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun SettingsHeader(title: String) {
+    val colors = MaterialTheme.colorScheme
+    Text(
+        text = title,
+        color = colors.primary,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.sp,
+        fontFamily = FontFamily.Monospace,
+        modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 8.dp),
+            content = content
+        )
+    }
+}
+
+@Composable
+private fun SettingsNavRow(
+    title: String,
+    subtitle: String? = null,
+    value: String? = null,
+    valueColor: Color = MaterialTheme.colorScheme.primary,
+    icon: ImageVector? = Icons.Rounded.ChevronRight,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, color = colors.onBackground, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle, 
+                    color = colors.onSurfaceVariant, 
+                    fontSize = 12.sp, 
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+        if (value != null) {
+            Text(text = value, color = valueColor, fontSize = 13.sp)
+            if (icon != null) {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+        }
+        if (icon != null) {
+            Icon(
+                imageVector = icon, 
+                contentDescription = null, 
+                tint = colors.primary, 
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    title: String,
+    subtitle: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, color = colors.onBackground, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle, 
+                    color = colors.onSurfaceVariant, 
+                    fontSize = 12.sp, 
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = colors.primary,
+                uncheckedThumbColor = colors.onSurfaceVariant,
+                uncheckedTrackColor = colors.surface,
+                uncheckedBorderColor = Color.Transparent
+            )
+        )
+    }
+}
