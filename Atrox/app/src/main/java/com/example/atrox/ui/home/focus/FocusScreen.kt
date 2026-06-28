@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +18,11 @@ import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -114,12 +119,12 @@ fun FocusScreen(
                 Box(
                     modifier = Modifier
                         .background(atroxColors.cardElevated, RoundedCornerShape(16.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "MAR 18 -\n24",
+                        text = "MAR 18-24",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp,
+                        fontSize =10.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         textAlign = TextAlign.Center
@@ -550,9 +555,26 @@ fun CalendarView() {
 @Composable
 fun WeeklyFocusChart() {
     val days = listOf("M", "T", "W", "T", "F", "S", "S")
-    val values = listOf(5.2f, 6.5f, 4.0f, 7.1f, 8.4f, 2.0f, 3.5f)
+    // Creating historical dummy data for horizontal scrolling demonstration
+    val pastWeek2 = listOf(2.5f, 3.0f, 5.0f, 4.5f, 2.0f, 1.0f, 4.0f)
+    val pastWeek1 = listOf(4.0f, 5.5f, 3.5f, 6.0f, 7.5f, 3.0f, 4.5f)
+    val currentWeek = listOf(5.2f, 6.5f, 4.0f, 7.1f, 8.4f, 2.0f, 3.5f)
+    
+    val allWeeks = listOf(pastWeek2, pastWeek1, currentWeek)
     val maxValue = 8.4f
     val atroxColors = MaterialTheme.atroxColors
+    
+    var selectedWeekIndex by remember { mutableStateOf(2) }
+    var selectedDayIndex by remember { mutableStateOf(4) }
+
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = 2)
+    val visibleWeekIndex by remember { derivedStateOf { listState.firstVisibleItemIndex } }
+    
+    val weekLabel = when (allWeeks.size - 1 - visibleWeekIndex) {
+        0 -> "This Week"
+        1 -> "Last Week"
+        else -> "${allWeeks.size - 1 - visibleWeekIndex} Weeks Ago"
+    }
     
     Column(
         modifier = Modifier
@@ -572,7 +594,7 @@ fun WeeklyFocusChart() {
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "This Week",
+                text = weekLabel,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp
             )
@@ -580,44 +602,63 @@ fun WeeklyFocusChart() {
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        Row(
+        LazyRow(
+            state = listState,
             modifier = Modifier.fillMaxWidth().height(140.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            values.forEachIndexed { index, value ->
-                val heightFraction = value / maxValue
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom,
-                    modifier = Modifier.fillMaxHeight()
+            items(allWeeks.size) { weekIndex ->
+                val weekValues = allWeeks[weekIndex]
+                Row(
+                    modifier = Modifier.fillParentMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
                 ) {
-                    // Value Text
-                    Text(
-                        text = value.toString(),
-                        color = if (index == 4) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 6.dp)
-                    )
-                    
-                    // Bar
-                    Box(
-                        modifier = Modifier
-                            .width(28.dp)
-                            .fillMaxHeight(heightFraction.coerceAtLeast(0.05f))
-                            .background(
-                                color = if (index == 4) MaterialTheme.colorScheme.primary else atroxColors.cardElevated,
-                                shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
+                    weekValues.forEachIndexed { dayIndex, value ->
+                        val isSelected = selectedWeekIndex == weekIndex && selectedDayIndex == dayIndex
+                        val fillFraction = value / maxValue
+                        
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Bottom,
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .clickable {
+                                    selectedWeekIndex = weekIndex
+                                    selectedDayIndex = dayIndex
+                                }
+                        ) {
+                            // Spacer takes the remaining weight so the texts are never distorted/pushed out of bounds
+                            Spacer(modifier = Modifier.weight(1f - fillFraction + 0.02f))
+                            
+                            // Value Text
+                            Text(
+                                text = value.toString(),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 6.dp)
                             )
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = days[index],
-                        color = if (index == 4) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                            
+                            // Bar
+                            Box(
+                                modifier = Modifier
+                                    .width(28.dp)
+                                    .weight(fillFraction + 0.02f)
+                                    .background(
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else atroxColors.cardElevated,
+                                        shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
+                                    )
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = days[dayIndex],
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
