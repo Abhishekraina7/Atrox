@@ -1,5 +1,9 @@
 package com.example.atrox.ui.home.focus
 
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.Locale
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -272,13 +276,13 @@ fun FocusScreen(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "VIEW ALL",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
+                    Text(
+                        text = "VIEW ALL",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -460,6 +464,43 @@ fun PerformanceCard(title: String, value: String, modifier: Modifier = Modifier,
 
 @Composable
 fun CalendarView() {
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+    
+    val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    val year = currentMonth.year
+    
+    // Generate days
+    val firstDayOfMonth = currentMonth.atDay(1)
+    val startDayOfWeek = firstDayOfMonth.dayOfWeek.value // 1 (Mon) - 7 (Sun)
+    val offset = startDayOfWeek - 1 // 0 for Mon, 6 for Sun
+    
+    val lengthOfMonth = currentMonth.lengthOfMonth()
+    val prevMonth = currentMonth.minusMonths(1)
+    val prevMonthLength = prevMonth.lengthOfMonth()
+    
+    val gridDays = mutableListOf<Triple<Int, Boolean, Boolean>>() // Day, IsCurrentMonth, IsFocused
+    
+    // Previous month padding
+    for (i in offset downTo 1) {
+        gridDays.add(Triple(prevMonthLength - i + 1, false, false))
+    }
+    
+    // Current month days
+    for (i in 1..lengthOfMonth) {
+        // Dummy focused logic for demonstration
+        val isFocused = (i % 3 == 0 || i % 7 == 0) && (i % 2 != 0) 
+        gridDays.add(Triple(i, true, isFocused))
+    }
+    
+    // Next month padding to complete rows
+    val remaining = (7 - gridDays.size % 7) % 7
+    for (i in 1..remaining) {
+        gridDays.add(Triple(i, false, false))
+    }
+    
+    // Determine number of weeks
+    val weeks = gridDays.size / 7
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -472,22 +513,32 @@ fun CalendarView() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "March 2024",
+                text = "$monthName $year",
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Rounded.ChevronLeft, 
-                    contentDescription = "Previous", 
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    contentDescription = "Previous Month", 
+                    tint = if (currentMonth.monthValue > 1) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(enabled = currentMonth.monthValue > 1) {
+                            currentMonth = currentMonth.minusMonths(1)
+                        }
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Icon(
                     imageVector = Icons.Rounded.ChevronRight, 
-                    contentDescription = "Next", 
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    contentDescription = "Next Month", 
+                    tint = if (currentMonth.monthValue < 12) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(enabled = currentMonth.monthValue < 12) {
+                            currentMonth = currentMonth.plusMonths(1)
+                        }
                 )
             }
         }
@@ -510,13 +561,7 @@ fun CalendarView() {
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        val days = listOf(
-            26 to false, 27 to false, 28 to false, 29 to false, 1 to false, 2 to false, 3 to false,
-            4 to true, 5 to true, 6 to true, 7 to true, 8 to true, 9 to false, 10 to false,
-            11 to true, 12 to true, 13 to true, 14 to true, 15 to true, 16 to false, 17 to false
-        )
-        
-        for (week in 0..2) {
+        for (week in 0 until weeks) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -524,30 +569,35 @@ fun CalendarView() {
             ) {
                 for (dayIdx in 0..6) {
                     val index = week * 7 + dayIdx
-                    val (day, isFocused) = days[index]
-                    val isCurrentMonth = !(week == 0 && day > 20)
-                    
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                if (isFocused) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = day.toString(),
-                            color = if (isFocused) MaterialTheme.colorScheme.primary 
-                                    else if (isCurrentMonth) MaterialTheme.colorScheme.onBackground 
-                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            fontSize = 12.sp,
-                            fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium
-                        )
+                    if (index < gridDays.size) {
+                        val (day, isCurrentMonth, isFocused) = gridDays[index]
+                        
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (isFocused && isCurrentMonth) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = day.toString(),
+                                color = if (isFocused && isCurrentMonth) MaterialTheme.colorScheme.primary 
+                                        else if (isCurrentMonth) MaterialTheme.colorScheme.onBackground 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                                fontSize = 12.sp,
+                                fontWeight = if (isFocused && isCurrentMonth) FontWeight.Bold else FontWeight.Medium
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(32.dp))
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            if (week < weeks - 1) {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
