@@ -276,13 +276,6 @@ fun FocusScreen(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
-                    Text(
-                        text = "VIEW ALL",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
             }
             
             Spacer(modifier = Modifier.height(16.dp))

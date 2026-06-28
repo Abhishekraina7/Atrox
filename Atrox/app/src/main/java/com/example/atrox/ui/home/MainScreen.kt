@@ -87,7 +87,7 @@ fun MainScreen(
                     }
                 )
             }
-            
+
             composable(BottomNavItem.Tasks.route) {
                 TaskScreen(
                     onStartFocus = { taskId ->
