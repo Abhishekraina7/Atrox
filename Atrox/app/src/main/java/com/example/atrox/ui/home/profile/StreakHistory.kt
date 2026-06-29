@@ -1,9 +1,7 @@
 package com.example.atrox.ui.home.profile
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,7 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,8 +36,6 @@ fun StreakHistoryScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    var showMenu by remember { mutableStateOf(false) }
-
     Scaffold(
         containerColor = colors.background,
         topBar = {
@@ -60,37 +55,6 @@ fun StreakHistoryScreen(
                             contentDescription = "Back",
                             tint = colors.onBackground
                         )
-                    }
-                },
-                actions = {
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Rounded.MoreVert,
-                                contentDescription = "Options",
-                                tint = colors.onBackground
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            modifier = Modifier.background(colors.surfaceVariant)
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Reset Streak", color = colors.error) },
-                                onClick = {
-                                    showMenu = false
-                                    Toast.makeText(context, "Streak resetting not supported yet", Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Share Progress", color = colors.onBackground) },
-                                onClick = {
-                                    showMenu = false
-                                    Toast.makeText(context, "Sharing streak...", Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                        }
                     }
                 },
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -199,8 +163,22 @@ fun StreakHistoryScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
+            OutlinedButton(
+                onClick = { viewModel.loadMoreMonths() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.primary),
+                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
+            ) {
+                Text(text = "View More", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
         }
+
+
     }
 }
 

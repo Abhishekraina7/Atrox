@@ -103,4 +103,42 @@ class StreakHistoryViewModel @Inject constructor() : ViewModel() {
             calendarHistory = history
         )
     }
+
+    private var currentYear = 2023
+    private var currentMonth = java.util.Calendar.DECEMBER
+
+    fun loadMoreMonths() {
+        val currentHistory = _uiState.value.calendarHistory.toMutableList()
+        val calendar = java.util.Calendar.getInstance()
+        val monthFormat = java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.getDefault())
+
+        for (i in 0 until 3) {
+            calendar.set(java.util.Calendar.YEAR, currentYear)
+            calendar.set(java.util.Calendar.MONTH, currentMonth)
+            calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            
+            val monthName = monthFormat.format(calendar.time)
+            val daysInMonth = calendar.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+            val startingDayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
+            
+            val days = mutableListOf<DayHistory>()
+            var activeCount = 0
+            for (day in 1..daysInMonth) {
+                // Generate dummy data for older months
+                val isActive = Math.random() > 0.6 
+                if (isActive) activeCount++
+                days.add(DayHistory(day, if (isActive) DayStatus.ACTIVE else DayStatus.INACTIVE))
+            }
+            
+            currentHistory.add(MonthHistory(monthName, "$activeCount Active", startingDayOfWeek, days))
+            
+            currentMonth--
+            if (currentMonth < java.util.Calendar.JANUARY) {
+                currentMonth = java.util.Calendar.DECEMBER
+                currentYear--
+            }
+        }
+        
+        _uiState.value = _uiState.value.copy(calendarHistory = currentHistory)
+    }
 }
