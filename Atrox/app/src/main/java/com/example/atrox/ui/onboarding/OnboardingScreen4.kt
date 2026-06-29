@@ -5,12 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,6 +38,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 
+data class CountryInfo(val code: String, val name: String, val flag: String)
+val countryList = listOf(
+    CountryInfo("+91", "India", "🇮🇳"),
+    CountryInfo("+1", "United States", "🇺🇸"),
+    CountryInfo("+44", "United Kingdom", "🇬🇧"),
+    CountryInfo("+61", "Australia", "🇦🇺"),
+    CountryInfo("+81", "Japan", "🇯🇵"),
+    CountryInfo("+49", "Germany", "🇩🇪"),
+    CountryInfo("+33", "France", "🇫🇷"),
+    CountryInfo("+86", "China", "🇨🇳"),
+    CountryInfo("+55", "Brazil", "🇧🇷"),
+    CountryInfo("+27", "South Africa", "🇿🇦"),
+    CountryInfo("+7", "Russia", "🇷🇺"),
+    CountryInfo("+39", "Italy", "🇮🇹"),
+    CountryInfo("+34", "Spain", "🇪🇸"),
+    CountryInfo("+52", "Mexico", "🇲🇽"),
+    CountryInfo("+62", "Indonesia", "🇮🇩"),
+    CountryInfo("+90", "Turkey", "🇹🇷"),
+    CountryInfo("+82", "South Korea", "🇰🇷"),
+    CountryInfo("+966", "Saudi Arabia", "🇸🇦"),
+    CountryInfo("+971", "United Arab Emirates", "🇦🇪"),
+    CountryInfo("+234", "Nigeria", "🇳🇬")
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen4(
@@ -44,7 +71,10 @@ fun OnboardingScreen4(
     onNavigateToSkip: () -> Unit
 ) {
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val regulatorName by viewModel.regulatorName.collectAsState()
+    val countryCode by viewModel.countryCode.collectAsState()
     val context = LocalContext.current
+    var showCountryDialog by remember { mutableStateOf(false) }
     
     val contactPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickContact(),
@@ -181,6 +211,41 @@ fun OnboardingScreen4(
             modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
         )
 
+        // --- 4.5 Regulator Name field ---
+        Text(
+            text = "Name of the regulator",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        OutlinedTextField(
+            value = regulatorName,
+            onValueChange = { viewModel.onRegulatorNameChanged(it) },
+            placeholder = { Text("Guardian's Name", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Rounded.Person,
+                    contentDescription = "Regulator Name Icon",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+            ),
+            singleLine = true
+        )
+
         // --- 5. Phone field ---
         Text(
             text = stringResource(R.string.onboarding_guardian_phone_label),
@@ -197,11 +262,15 @@ fun OnboardingScreen4(
             placeholder = { Text(stringResource(R.string.onboarding_guardian_phone_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Rounded.Search,
-                    contentDescription = stringResource(R.string.onboarding_search_icon_desc),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    modifier = Modifier
+                        .clickable { showCountryDialog = true }
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val selectedCountry = countryList.find { it.code == countryCode }
+                    Text(text = "${selectedCountry?.flag ?: "🌐"} $countryCode", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -216,6 +285,15 @@ fun OnboardingScreen4(
             singleLine = true
         )
 
+        if (showCountryDialog) {
+            CountryCodePickerDialog(
+                onDismissRequest = { showCountryDialog = false },
+                onCodeSelected = { 
+                    viewModel.onCountryCodeChanged(it)
+                }
+            )
+        }
+
         // --- 6. Quick Filters ---
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -228,9 +306,10 @@ fun OnboardingScreen4(
         Spacer(modifier = Modifier.height(40.dp))
 
         val isPhoneValid = searchQuery.replace(Regex("[^0-9]"), "").length >= 10
+        val isFormValid = isPhoneValid && regulatorName.isNotBlank()
         Button(
             onClick = { viewModel.onContinueClicked() },
-            enabled = isPhoneValid,
+            enabled = isFormValid,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
@@ -280,4 +359,55 @@ fun FilterChip(text: String, onClick: () -> Unit = {}) {
             fontSize = 13.sp
         )
     }
+}
+
+@Composable
+fun CountryCodePickerDialog(
+    onDismissRequest: () -> Unit,
+    onCodeSelected: (String) -> Unit
+) {
+    var dialogSearchQuery by remember { mutableStateOf("") }
+    val filteredCountries = remember(dialogSearchQuery) {
+        countryList.filter { it.name.contains(dialogSearchQuery, ignoreCase = true) || it.code.contains(dialogSearchQuery) }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            OutlinedTextField(
+                value = dialogSearchQuery,
+                onValueChange = { dialogSearchQuery = it },
+                placeholder = { Text("Search country...") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        },
+        text = {
+            LazyColumn {
+                items(filteredCountries) { country ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onCodeSelected(country.code)
+                                onDismissRequest()
+                            }
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = country.flag, fontSize = 24.sp, modifier = Modifier.padding(end = 16.dp))
+                        Column {
+                            Text(text = country.name, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                            Text(text = country.code, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Close")
+            }
+        }
+    )
 }

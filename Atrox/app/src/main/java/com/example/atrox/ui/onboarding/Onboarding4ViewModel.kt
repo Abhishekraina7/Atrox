@@ -25,8 +25,23 @@ class Onboarding4ViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _countryCode = MutableStateFlow("+91")
+    val countryCode: StateFlow<String> = _countryCode.asStateFlow()
+
+    private val _regulatorName = MutableStateFlow("")
+    val regulatorName: StateFlow<String> = _regulatorName.asStateFlow()
+
     fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
+        val digitsOnly = query.filter { it.isDigit() }
+        _searchQuery.value = digitsOnly.take(10)
+    }
+
+    fun onCountryCodeChanged(code: String) {
+        _countryCode.value = code
+    }
+
+    fun onRegulatorNameChanged(name: String) {
+        _regulatorName.value = name
     }
 
     fun onBackClicked() {
@@ -40,8 +55,14 @@ class Onboarding4ViewModel @Inject constructor(
     fun onContinueClicked() {
         viewModelScope.launch {
             val phone = _searchQuery.value.trim()
+            val code = _countryCode.value.trim()
+            val name = _regulatorName.value.trim()
             if (phone.isNotBlank()) {
-                regulatorRepository.saveGuardianPhone(phone)
+                val fullPhone = "$code $phone"
+                regulatorRepository.saveGuardianPhone(fullPhone)
+            }
+            if (name.isNotBlank()) {
+                regulatorRepository.saveGuardianName(name)
             }
             _events.emit(Onboarding4Event.NavigateToDashboard)
         }

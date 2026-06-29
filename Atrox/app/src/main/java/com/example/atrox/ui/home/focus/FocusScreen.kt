@@ -1,9 +1,9 @@
 package com.example.atrox.ui.home.focus
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.time.YearMonth
 import java.time.format.TextStyle
-import java.util.Locale
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,7 +39,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.ui.home.profile.CatalogueBadgeCard
 import com.example.atrox.ui.theme.atroxColors
+import androidx.compose.ui.platform.LocalLocale
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FocusScreen(
@@ -328,7 +329,6 @@ fun FocusScreen(
                             fontSize = 12.sp
                         )
                     }
-                    Text("📈", fontSize = 18.sp)
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -455,11 +455,12 @@ fun PerformanceCard(title: String, value: String, modifier: Modifier = Modifier,
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarView() {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     
-    val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, LocalLocale.current.platformLocale)
     val year = currentMonth.year
     
     // Generate days
