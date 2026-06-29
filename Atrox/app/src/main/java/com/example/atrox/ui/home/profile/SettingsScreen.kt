@@ -34,6 +34,10 @@ fun SettingsScreen(
     val scrollState = rememberScrollState()
     val colors = MaterialTheme.colorScheme
 
+    var showSprintDurationDialog by remember { mutableStateOf(false) }
+    var showBreakDurationDialog by remember { mutableStateOf(false) }
+    var showDailySprintGoalDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = colors.background,
         topBar = {
@@ -82,19 +86,19 @@ fun SettingsScreen(
                     title = "Default sprint duration",
                     subtitle = "Standard Pomodoro",
                     value = "${uiState.sprintDuration} min",
-                    onClick = { /* TODO */ }
+                    onClick = { showSprintDurationDialog = true }
                 )
                 SettingsNavRow(
                     title = "Default break duration",
                     subtitle = "Short interval",
                     value = "${uiState.breakDuration} min",
-                    onClick = { /* TODO */ }
+                    onClick = { showBreakDurationDialog = true }
                 )
                 SettingsNavRow(
                     title = "Daily sprint goal",
                     subtitle = null,
                     value = "${uiState.dailySprintGoal} sprints",
-                    onClick = { /* TODO */ }
+                    onClick = { showDailySprintGoalDialog = true }
                 )
                 SettingsSwitchRow(
                     title = "Auto-start next sprint",
@@ -220,6 +224,31 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+
+        if (showSprintDurationDialog) {
+            SettingInputDialog(
+                title = "Sprint Duration (mins)",
+                initialValue = uiState.sprintDuration.toString(),
+                onDismiss = { showSprintDurationDialog = false },
+                onSave = { viewModel.updateSprintDuration(it) }
+            )
+        }
+        if (showBreakDurationDialog) {
+            SettingInputDialog(
+                title = "Break Duration (mins)",
+                initialValue = uiState.breakDuration.toString(),
+                onDismiss = { showBreakDurationDialog = false },
+                onSave = { viewModel.updateBreakDuration(it) }
+            )
+        }
+        if (showDailySprintGoalDialog) {
+            SettingInputDialog(
+                title = "Daily Sprint Goal",
+                initialValue = uiState.dailySprintGoal.toString(),
+                onDismiss = { showDailySprintGoalDialog = false },
+                onSave = { viewModel.updateDailySprintGoal(it) }
+            )
+        }
     }
 }
 
@@ -337,4 +366,50 @@ private fun SettingsSwitchRow(
             )
         )
     }
+}
+
+@Composable
+fun SettingInputDialog(
+    title: String,
+    initialValue: String,
+    onDismiss: () -> Unit,
+    onSave: (Int) -> Unit
+) {
+    var value by remember { mutableStateOf(initialValue) }
+    val colors = MaterialTheme.colorScheme
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colors.surfaceVariant,
+        title = { Text(text = title, color = colors.onSurfaceVariant, fontWeight = FontWeight.Bold) },
+        text = {
+            OutlinedTextField(
+                value = value,
+                onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) value = it },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.onSurfaceVariant.copy(alpha = 0.5f),
+                    focusedTextColor = colors.onBackground,
+                    unfocusedTextColor = colors.onBackground
+                )
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { 
+                val intVal = value.toIntOrNull()
+                if (intVal != null && intVal > 0) {
+                    onSave(intVal)
+                    onDismiss()
+                }
+            }) {
+                Text("Save", color = colors.primary)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = colors.onSurfaceVariant)
+            }
+        }
+    )
 }
