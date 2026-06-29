@@ -21,7 +21,16 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import com.example.atrox.ui.onboarding.CountryCodePickerDialog
+import com.example.atrox.ui.onboarding.countryList
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +61,59 @@ fun RegulatorScreen(
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
+    
+    var nameInput by remember { mutableStateOf("") }
+    var phoneInput by remember { mutableStateOf("") }
+    var countryCode by remember { mutableStateOf("+91") }
+    var showCountryDialog by remember { mutableStateOf(false) }
+
+    val contactPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickContact(),
+        onResult = { uri ->
+            if (uri != null) {
+                var phoneNumber = ""
+                val cursor = context.contentResolver.query(uri, null, null, null, null)
+                cursor?.use {
+                    if (it.moveToFirst()) {
+                        val hasPhoneIndex = it.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+                        val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
+                        val nameIndex = it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                        
+                        if (nameIndex >= 0) {
+                            nameInput = it.getString(nameIndex) ?: ""
+                        }
+
+                        if (hasPhoneIndex >= 0 && idIndex >= 0) {
+                            val hasPhone = it.getInt(hasPhoneIndex) > 0
+                            val id = it.getString(idIndex)
+                            
+                            if (hasPhone) {
+                                val phonesCursor = context.contentResolver.query(
+                                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                                    null,
+                                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                                    arrayOf(id),
+                                    null
+                                )
+                                phonesCursor?.use { pCursor ->
+                                    if (pCursor.moveToFirst()) {
+                                        val numberIndex = pCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                                        if (numberIndex >= 0) {
+                                            phoneNumber = pCursor.getString(numberIndex)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                val cleanedNumber = phoneNumber.filter { it.isDigit() }
+                if (cleanedNumber.isNotEmpty()) {
+                    phoneInput = cleanedNumber.take(10)
+                }
+            }
+        }
+    )
 
     Scaffold(
         containerColor = colors.background,
@@ -150,23 +212,10 @@ fun RegulatorScreen(
                                             fontSize = 20.sp,
                                             fontWeight = FontWeight.Bold
                                         )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Box(
-                                            modifier = Modifier
-                                                .background(colors.primary.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Text(
-                                                text = "ACTIVE",
-                                                color = colors.primary,
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
                                     }
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = uiState.handle,
+                                        text = uiState.phone,
                                         color = colors.onSurfaceVariant,
                                         fontSize = 14.sp
                                     )
@@ -230,37 +279,20 @@ fun RegulatorScreen(
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Message Regulator Button
-                    OutlinedButton(
-                        onClick = {
-                            Toast.makeText(context, "Messaging ${uiState.name}...", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.primary),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(imageVector = Icons.Rounded.ChatBubbleOutline, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "Message Regulator", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Change Regulator Button (Destructive)
                     OutlinedButton(
                         onClick = {
-                            viewModel.removeRegulator()
+                            nameInput = uiState.name
+                            val parts = uiState.phone.split(" ")
+                            if (parts.size >= 2) {
+                                countryCode = parts[0]
+                                phoneInput = parts[1]
+                            } else {
+                                phoneInput = uiState.phone
+                            }
+                            showAddDialog = true
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -286,17 +318,22 @@ fun RegulatorScreen(
             }
 
             // ── No Regulator Section (Dotted border-like) ─────────────────
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = if (uiState.hasRegulator) colors.onSurfaceVariant.copy(alpha = 0.2f) else colors.primary.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(24.dp)
-                    ),
-                colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant.copy(alpha = 0.4f)),
-                shape = RoundedCornerShape(24.dp)
+            AnimatedVisibility(
+                visible = !uiState.hasRegulator,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
             ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = 1.dp,
+                            color = colors.primary.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(24.dp)
+                        ),
+                    colors = CardDefaults.cardColors(containerColor = colors.surfaceVariant.copy(alpha = 0.4f)),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -352,6 +389,7 @@ fun RegulatorScreen(
                     }
                 }
             }
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
         }
@@ -359,9 +397,6 @@ fun RegulatorScreen(
 
     // Add Regulator Dialog
     if (showAddDialog) {
-        var nameInput by remember { mutableStateOf("") }
-        var handleInput by remember { mutableStateOf("") }
-
         Dialog(onDismissRequest = { showAddDialog = false }) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -373,7 +408,7 @@ fun RegulatorScreen(
                     modifier = Modifier.padding(24.dp)
                 ) {
                     Text(
-                        text = "Add Regulator",
+                        text = if (uiState.hasRegulator) "Change Regulator" else "Add Regulator",
                         color = colors.onBackground,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
@@ -382,9 +417,20 @@ fun RegulatorScreen(
 
                     OutlinedTextField(
                         value = nameInput,
-                        onValueChange = { nameInput = it },
+                        onValueChange = { 
+                            if (it.length <= 50) {
+                                nameInput = it.filter { char -> char.isLetterOrDigit() || char.isWhitespace() || char == '-' || char == '\'' }
+                            }
+                        },
                         label = { Text("Name") },
                         placeholder = { Text("e.g. Sarah Jenkins") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Person,
+                                contentDescription = "Regulator Name Icon",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -392,13 +438,39 @@ fun RegulatorScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     OutlinedTextField(
-                        value = handleInput,
-                        onValueChange = { handleInput = it },
-                        label = { Text("Handle / Username") },
-                        placeholder = { Text("e.g. @sarah_j") },
+                        value = phoneInput,
+                        onValueChange = { 
+                            val digitsOnly = it.filter { char -> char.isDigit() }
+                            if (digitsOnly.length <= 10) {
+                                phoneInput = digitsOnly
+                            }
+                        },
+                        label = { Text("Phone Number") },
+                        placeholder = { Text("e.g. 9876543210") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        leadingIcon = {
+                            Row(
+                                modifier = Modifier
+                                    .clickable { showCountryDialog = true }
+                                    .padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val selectedCountry = countryList.find { it.code == countryCode }
+                                Text(text = "${selectedCountry?.flag ?: "🌐"} $countryCode", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(
+                        onClick = { contactPickerLauncher.launch(null) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Choose from Contacts", color = colors.primary)
+                    }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -412,24 +484,32 @@ fun RegulatorScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
                             onClick = {
-                                if (nameInput.isNotBlank()) {
-                                    val formattedHandle = if (handleInput.startsWith("@")) handleInput else "@$handleInput"
+                                if (nameInput.isNotBlank() && phoneInput.isNotBlank()) {
                                     viewModel.addRegulator(
                                         name = nameInput,
-                                        handle = if (handleInput.isNotBlank()) formattedHandle else "@regulator"
+                                        phone = "$countryCode $phoneInput"
                                     )
                                     showAddDialog = false
                                 } else {
-                                    Toast.makeText(context, "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
                         ) {
-                            Text("Add", color = Color.White)
+                            Text("Save", color = Color.White)
                         }
                     }
                 }
             }
+        }
+        
+        if (showCountryDialog) {
+            CountryCodePickerDialog(
+                onDismissRequest = { showCountryDialog = false },
+                onCodeSelected = { 
+                    countryCode = it
+                }
+            )
         }
     }
 

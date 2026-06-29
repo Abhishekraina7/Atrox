@@ -41,7 +41,10 @@ class Onboarding4ViewModel @Inject constructor(
     }
 
     fun onRegulatorNameChanged(name: String) {
-        _regulatorName.value = name
+        if (name.length > 50) return
+        
+        val sanitizedName = name.filter { it.isLetterOrDigit() || it.isWhitespace() || it == '-' || it == '\'' }
+        _regulatorName.value = sanitizedName
     }
 
     fun onBackClicked() {
