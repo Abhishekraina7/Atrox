@@ -1,5 +1,7 @@
 package com.example.atrox.ui.main
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.atrox.ui.home.focus.FocusScreen
+import com.example.atrox.ui.home.tasks.FocusSessionScreen
 import com.example.atrox.ui.home.tasks.TaskScreen
 import com.example.atrox.ui.home.dashboard.DashboardScreen
 import com.example.atrox.ui.home.notes.AddNotesScreen
@@ -55,6 +58,7 @@ private val bottomNavRoutes = setOf(
     BottomNavItem.Profile.route
 )
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen(
     rootNavController: NavHostController
@@ -152,6 +156,17 @@ fun MainScreen(
                 arguments = listOf(navArgument("noteId") { type = NavType.StringType; nullable = true; defaultValue = null })
             ) {
                 AddNotesScreen(
+                    onNavigateBack = { bottomNavController.popBackStack() }
+                )
+            }
+
+            // Focus Session screen (active timer)
+            composable(
+                route = FOCUS_ROUTE,
+                arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                FocusSessionScreen(
                     onNavigateBack = { bottomNavController.popBackStack() }
                 )
             }

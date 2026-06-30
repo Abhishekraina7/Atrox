@@ -195,7 +195,7 @@ fun AddTaskOverlay(
 ) {
     var title by remember { mutableStateOf("") }
     var selectedDuration by remember { mutableStateOf(25) }
-    val durations = listOf(15, 25, 45, 60)
+    val durations = listOf(1,15, 25, 45, 60)
     val atroxColors = MaterialTheme.atroxColors
 
     ModalBottomSheet(
