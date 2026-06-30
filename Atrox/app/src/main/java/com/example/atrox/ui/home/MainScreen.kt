@@ -169,6 +169,7 @@ fun MainScreen(
             ) { backStackEntry ->
                 val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
                 FocusSessionScreen(
+                    onNavigateToFocusBreak = {bottomNavController.navigate(FOCUS_BREAK_ROUTE)},
                     onNavigateBack = { bottomNavController.popBackStack() },
                     onSessionFinished = { 
                         bottomNavController.navigate(FOCUS_BREAK_ROUTE) {

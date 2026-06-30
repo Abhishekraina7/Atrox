@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 fun FocusSessionScreen(
     onNavigateBack: () -> Unit,
     onSessionFinished: () -> Unit = onNavigateBack,
+    onNavigateToFocusBreak: () -> Unit,
     viewModel: FocusSessionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -67,13 +68,13 @@ fun FocusSessionScreen(
             TopAppBar(
                 title = { },
                 actions = {
-                    Box(
+                    IconButton(
+                        onClick = onNavigateToFocusBreak,
                         modifier = Modifier
                             .padding(end = 16.dp)
                             .size(40.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                    ){
                         Icon(
                             imageVector = Icons.Rounded.GraphicEq, // Waveform placeholder
                             contentDescription = "Waveform",
