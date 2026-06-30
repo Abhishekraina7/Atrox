@@ -52,6 +52,10 @@ class SettingsViewModel @Inject constructor(
         preferencesRepository.dailySprints.onEach { goal ->
             _uiState.value = _uiState.value.copy(dailySprintGoal = goal)
         }.launchIn(viewModelScope)
+
+        preferencesRepository.autoStartNextSprint.onEach { autoStart ->
+            _uiState.value = _uiState.value.copy(autoStartNextSprint = autoStart)
+        }.launchIn(viewModelScope)
     }
 
     fun updateSprintDuration(duration: Int) {
@@ -73,7 +77,9 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleAutoStartNextSprint() {
-        _uiState.value = _uiState.value.copy(autoStartNextSprint = !_uiState.value.autoStartNextSprint)
+        viewModelScope.launch {
+            preferencesRepository.setAutoStartNextSprint(!_uiState.value.autoStartNextSprint)
+        }
     }
 
     fun toggleBlockNotifications() {

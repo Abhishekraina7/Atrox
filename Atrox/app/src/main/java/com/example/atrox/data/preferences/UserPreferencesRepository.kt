@@ -31,6 +31,7 @@ class UserPreferencesRepository @Inject constructor(
         val FOCUS_GOALS = stringSetPreferencesKey("focus_goals")
         val DISPLAY_NAME = stringPreferencesKey("display_name")
         val AVATAR_ID = stringPreferencesKey("avatar_id")
+        val AUTO_START_NEXT_SPRINT = booleanPreferencesKey("auto_start_next_sprint")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -80,6 +81,10 @@ class UserPreferencesRepository @Inject constructor(
     val avatarId: Flow<String?> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.AVATAR_ID] }
+
+    val autoStartNextSprint: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.AUTO_START_NEXT_SPRINT] ?: true }
 
     //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
@@ -131,5 +136,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setAvatarId(id: String) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.AVATAR_ID] = id }
+    }
+
+    suspend fun setAutoStartNextSprint(autoStart: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.AUTO_START_NEXT_SPRINT] = autoStart }
     }
 }

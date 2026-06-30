@@ -2,7 +2,10 @@ package com.example.atrox.ui.home.tasks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.atrox.data.preferences.UserPreferencesRepository
+import com.example.atrox.data.tasks.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,11 +23,15 @@ data class FocusBreakUiState(
     val focusMinutes: Int = 50,
     val focusSeconds: Int = 0,
     val dailyProgressPercent: Int = 75,
-    val isFinished: Boolean = false
+    val isFinished: Boolean = false,
+    val nextTaskId: String? = null
 )
 
 @HiltViewModel
-class FocusBreakViewModel @Inject constructor() : ViewModel() {
+class FocusBreakViewModel @Inject constructor(
+    private val taskRepository: TaskRepository,
+    private val preferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FocusBreakUiState())
     val uiState: StateFlow<FocusBreakUiState> = _uiState.asStateFlow()
@@ -44,10 +51,24 @@ class FocusBreakViewModel @Inject constructor() : ViewModel() {
                 if (current.remainingSeconds > 0) {
                     _uiState.value = current.copy(remainingSeconds = current.remainingSeconds - 1)
                 } else {
-                    _uiState.value = current.copy(isFinished = true)
+                    finishBreak()
                     break
                 }
             }
+        }
+    }
+
+    private suspend fun finishBreak() {
+        val autoStart = preferencesRepository.autoStartNextSprint.firstOrNull() ?: true
+        if (autoStart) {
+            val tasks = taskRepository.tasks.firstOrNull() ?: emptyList()
+            val nextTask = tasks.firstOrNull { !it.isCompleted }
+            _uiState.value = _uiState.value.copy(
+                isFinished = true,
+                nextTaskId = nextTask?.id
+            )
+        } else {
+            _uiState.value = _uiState.value.copy(isFinished = true, nextTaskId = null)
         }
     }
 
@@ -56,8 +77,10 @@ class FocusBreakViewModel @Inject constructor() : ViewModel() {
     }
 
     fun skipBreak() {
-        _uiState.value = _uiState.value.copy(isFinished = true)
         timerJob?.cancel()
+        viewModelScope.launch {
+            finishBreak()
+        }
     }
 
     override fun onCleared() {

@@ -186,6 +186,12 @@ fun MainScreen(
                             popUpTo(0) { inclusive = true } // Clear stack and go home
                             launchSingleTop = true
                         }
+                    },
+                    onNavigateToNextSprint = { nextTaskId ->
+                        bottomNavController.navigate(focusRoute(nextTaskId)) {
+                            popUpTo(0) { inclusive = true } // Clear stack and go home
+                            launchSingleTop = true
+                        }
                     }
                 )
             }

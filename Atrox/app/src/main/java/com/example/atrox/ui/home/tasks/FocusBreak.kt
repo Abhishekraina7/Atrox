@@ -31,6 +31,7 @@ import com.example.atrox.ui.theme.atroxColors
 @Composable
 fun FocusBreak(
     onNavigateToDashboard: () -> Unit,
+    onNavigateToNextSprint: (String) -> Unit,
     viewModel: FocusBreakViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -38,7 +39,11 @@ fun FocusBreak(
 
     LaunchedEffect(uiState.isFinished) {
         if (uiState.isFinished) {
-            onNavigateToDashboard()
+            if (uiState.nextTaskId != null) {
+                onNavigateToNextSprint(uiState.nextTaskId!!)
+            } else {
+                onNavigateToDashboard()
+            }
         }
     }
 
