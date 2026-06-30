@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FocusSessionScreen(
     onNavigateBack: () -> Unit,
+    onSessionFinished: () -> Unit = onNavigateBack,
     viewModel: FocusSessionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -50,7 +51,7 @@ fun FocusSessionScreen(
                 sheetState.hide()
                 showExitSheet = false
             }
-            onNavigateBack()
+            onSessionFinished()
         }
     }
 

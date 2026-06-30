@@ -28,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.atrox.ui.home.focus.FocusScreen
+import com.example.atrox.ui.home.tasks.FocusBreak
 import com.example.atrox.ui.home.tasks.FocusSessionScreen
 import com.example.atrox.ui.home.tasks.TaskScreen
 import com.example.atrox.ui.home.dashboard.DashboardScreen
@@ -38,9 +39,9 @@ import com.example.atrox.ui.home.profile.RegulatorScreen
 import com.example.atrox.ui.home.profile.SettingsScreen
 import com.example.atrox.ui.home.profile.StreakHistoryScreen
 
-// Focus session route with a required taskId argument
 const val FOCUS_ROUTE = "focus_session/{taskId}"
 fun focusRoute(taskId: String) = "focus_session/$taskId"
+const val FOCUS_BREAK_ROUTE = "focus_break"
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Dashboard : BottomNavItem("dashboard", Icons.Rounded.Home, "HOME")
@@ -55,7 +56,8 @@ private val bottomNavRoutes = setOf(
     BottomNavItem.Tasks.route,
     BottomNavItem.Focus.route,
     BottomNavItem.Notes.route,
-    BottomNavItem.Profile.route
+    BottomNavItem.Profile.route,
+    FOCUS_BREAK_ROUTE
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -167,7 +169,23 @@ fun MainScreen(
             ) { backStackEntry ->
                 val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
                 FocusSessionScreen(
-                    onNavigateBack = { bottomNavController.popBackStack() }
+                    onNavigateBack = { bottomNavController.popBackStack() },
+                    onSessionFinished = { 
+                        bottomNavController.navigate(FOCUS_BREAK_ROUTE) {
+                            popUpTo(FOCUS_ROUTE) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(FOCUS_BREAK_ROUTE) {
+                FocusBreak(
+                    onNavigateToDashboard = {
+                        bottomNavController.navigate(BottomNavItem.Dashboard.route) {
+                            popUpTo(0) { inclusive = true } // Clear stack and go home
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
         }
