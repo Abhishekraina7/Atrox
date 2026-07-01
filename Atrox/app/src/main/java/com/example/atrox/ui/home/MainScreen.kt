@@ -56,8 +56,7 @@ private val bottomNavRoutes = setOf(
     BottomNavItem.Tasks.route,
     BottomNavItem.Focus.route,
     BottomNavItem.Notes.route,
-    BottomNavItem.Profile.route,
-    FOCUS_BREAK_ROUTE
+    BottomNavItem.Profile.route
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
