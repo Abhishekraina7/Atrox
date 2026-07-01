@@ -111,10 +111,20 @@ class FocusSessionViewModel @Inject constructor(
                 if (!currentState.isPaused && currentState.remainingSeconds > 0) {
                     _uiState.value = currentState.copy(remainingSeconds = currentState.remainingSeconds - 1)
                 } else if (currentState.remainingSeconds <= 0) {
+                    completeTask()
                     _uiState.value = currentState.copy(isFinished = true)
                     break
                 }
             }
+        }
+    }
+
+    private suspend fun completeTask() {
+        val tasks = repository.tasks.firstOrNull()?.toMutableList() ?: return
+        val index = tasks.indexOfFirst { it.id == taskId }
+        if (index != -1) {
+            tasks[index] = tasks[index].copy(isCompleted = true)
+            repository.saveTasks(tasks)
         }
     }
 
