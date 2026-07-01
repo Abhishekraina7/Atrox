@@ -24,7 +24,8 @@ data class FocusBreakUiState(
     val focusSeconds: Int = 0,
     val dailyProgressPercent: Int = 75,
     val isFinished: Boolean = false,
-    val nextTaskId: String? = null
+    val nextTaskId: String? = null,
+    val isAutoStartEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -40,6 +41,11 @@ class FocusBreakViewModel @Inject constructor(
 
     init {
         startTimer()
+        viewModelScope.launch {
+            preferencesRepository.autoStartNextSprint.collect { autoStart ->
+                _uiState.value = _uiState.value.copy(isAutoStartEnabled = autoStart)
+            }
+        }
     }
 
     private fun startTimer() {
@@ -74,6 +80,13 @@ class FocusBreakViewModel @Inject constructor(
 
     fun selectAtmosphere(atmosphere: String) {
         _uiState.value = _uiState.value.copy(selectedAtmosphere = atmosphere)
+    }
+
+    fun toggleAutoStart() {
+        val current = _uiState.value.isAutoStartEnabled
+        viewModelScope.launch {
+            preferencesRepository.setAutoStartNextSprint(!current)
+        }
     }
 
     fun skipBreak() {
