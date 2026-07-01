@@ -56,6 +56,10 @@ class SettingsViewModel @Inject constructor(
         preferencesRepository.autoStartNextSprint.onEach { autoStart ->
             _uiState.value = _uiState.value.copy(autoStartNextSprint = autoStart)
         }.launchIn(viewModelScope)
+
+        preferencesRepository.blockNotifications.onEach { block ->
+            _uiState.value = _uiState.value.copy(blockNotifications = block)
+        }.launchIn(viewModelScope)
     }
 
     fun updateSprintDuration(duration: Int) {
@@ -82,8 +86,10 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun toggleBlockNotifications() {
-        _uiState.value = _uiState.value.copy(blockNotifications = !_uiState.value.blockNotifications)
+    fun toggleBlockNotifications(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesRepository.setBlockNotifications(enabled)
+        }
     }
 
     fun toggleBlockSocialApps() {

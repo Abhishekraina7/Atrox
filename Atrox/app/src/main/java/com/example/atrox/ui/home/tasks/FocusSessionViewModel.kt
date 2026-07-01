@@ -10,7 +10,9 @@ import androidx.work.WorkManager
 import com.example.atrox.data.tasks.TaskRepository
 import com.example.atrox.service.regulator.RegulatorManager
 import com.example.atrox.service.regulator.RegulatorRepository
+import com.example.atrox.data.preferences.UserPreferencesRepository
 import com.example.atrox.service.worker.SendSmsWorker
+import android.app.NotificationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -39,6 +41,7 @@ class FocusSessionViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: TaskRepository,
     private val regulatorRepository: RegulatorRepository,
+    private val preferencesRepository: UserPreferencesRepository,
     private val regulatorManager: RegulatorManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -49,6 +52,8 @@ class FocusSessionViewModel @Inject constructor(
     val uiState: StateFlow<FocusSessionUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var originalInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
+    private var dndActivated = false
 
     init {
         loadTask()
@@ -74,6 +79,7 @@ class FocusSessionViewModel @Inject constructor(
                         isFinished = true,
                         approvalMessage = "Regulator approved! Session ended."
                     )
+                    restoreDnd()
                 }
             }
         }
@@ -105,6 +111,10 @@ class FocusSessionViewModel @Inject constructor(
     private fun startTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
+            val shouldBlock = preferencesRepository.blockNotifications.firstOrNull() ?: false
+            if (shouldBlock) {
+                activateDnd()
+            }
             while (true) {
                 delay(1000)
                 val currentState = _uiState.value
@@ -113,6 +123,7 @@ class FocusSessionViewModel @Inject constructor(
                 } else if (currentState.remainingSeconds <= 0) {
                     completeTask()
                     _uiState.value = currentState.copy(isFinished = true)
+                    restoreDnd()
                     break
                 }
             }
@@ -165,5 +176,31 @@ class FocusSessionViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+        restoreDnd()
+    }
+
+    private fun activateDnd() {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            originalInterruptionFilter = notificationManager.currentInterruptionFilter
+            val policy = NotificationManager.Policy(
+                NotificationManager.Policy.PRIORITY_CATEGORY_CALLS,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY
+            )
+            notificationManager.setNotificationPolicy(policy)
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            dndActivated = true
+        }
+    }
+
+    private fun restoreDnd() {
+        if (dndActivated) {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (notificationManager.isNotificationPolicyAccessGranted) {
+                notificationManager.setInterruptionFilter(originalInterruptionFilter)
+            }
+            dndActivated = false
+        }
     }
 }

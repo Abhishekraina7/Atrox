@@ -21,6 +21,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.ui.theme.atroxColors
 
@@ -37,6 +45,25 @@ fun SettingsScreen(
     var showSprintDurationDialog by remember { mutableStateOf(false) }
     var showBreakDurationDialog by remember { mutableStateOf(false) }
     var showDailySprintGoalDialog by remember { mutableStateOf(false) }
+    
+    val context = LocalContext.current
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    var showDndDisclosureDialog by remember { mutableStateOf(false) }
+    var dndPermissionRequested by remember { mutableStateOf(false) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && dndPermissionRequested) {
+                dndPermissionRequested = false
+                if (notificationManager.isNotificationPolicyAccessGranted) {
+                    viewModel.toggleBlockNotifications(true)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         containerColor = colors.background,
@@ -115,7 +142,17 @@ fun SettingsScreen(
                 SettingsSwitchRow(
                     title = "Block notifications",
                     checked = uiState.blockNotifications,
-                    onCheckedChange = { viewModel.toggleBlockNotifications() }
+                    onCheckedChange = { checked ->
+                        if (checked) {
+                            if (notificationManager.isNotificationPolicyAccessGranted) {
+                                viewModel.toggleBlockNotifications(true)
+                            } else {
+                                showDndDisclosureDialog = true
+                            }
+                        } else {
+                            viewModel.toggleBlockNotifications(false)
+                        }
+                    }
                 )
                 SettingsSwitchRow(
                     title = "Block social apps",
@@ -247,6 +284,30 @@ fun SettingsScreen(
                 initialValue = uiState.dailySprintGoal.toString(),
                 onDismiss = { showDailySprintGoalDialog = false },
                 onSave = { viewModel.updateDailySprintGoal(it) }
+            )
+        }
+        if (showDndDisclosureDialog) {
+            AlertDialog(
+                onDismissRequest = { showDndDisclosureDialog = false },
+                title = { Text("Do Not Disturb Access Required", fontWeight = FontWeight.Bold) },
+                text = { Text("To automatically block notifications and silence distractions during a Focus Session (while still allowing important calls), Atrox needs access to your Do Not Disturb settings.\n\nPlease grant this permission on the next screen.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDndDisclosureDialog = false
+                        dndPermissionRequested = true
+                        context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+                    }) {
+                        Text("Grant Permission", color = colors.primary)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDndDisclosureDialog = false }) {
+                        Text("Cancel", color = colors.onSurfaceVariant)
+                    }
+                },
+                containerColor = colors.surfaceVariant,
+                titleContentColor = colors.onSurfaceVariant,
+                textContentColor = colors.onBackground
             )
         }
     }

@@ -32,6 +32,7 @@ class UserPreferencesRepository @Inject constructor(
         val DISPLAY_NAME = stringPreferencesKey("display_name")
         val AVATAR_ID = stringPreferencesKey("avatar_id")
         val AUTO_START_NEXT_SPRINT = booleanPreferencesKey("auto_start_next_sprint")
+        val BLOCK_NOTIFICATIONS = booleanPreferencesKey("block_notifications")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -85,6 +86,10 @@ class UserPreferencesRepository @Inject constructor(
     val autoStartNextSprint: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.AUTO_START_NEXT_SPRINT] ?: true }
+
+    val blockNotifications: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] ?: true }
 
     //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
@@ -140,5 +145,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setAutoStartNextSprint(autoStart: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.AUTO_START_NEXT_SPRINT] = autoStart }
+    }
+
+    suspend fun setBlockNotifications(block: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] = block }
     }
 }
