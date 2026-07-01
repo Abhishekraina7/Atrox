@@ -29,11 +29,12 @@ import com.example.atrox.ui.theme.atroxColors
 @Composable
 fun TaskScreen(
     viewModel: TaskViewModel = hiltViewModel(),
+    initialShowAddOverlay: Boolean = false,
     onStartFocus: (taskId: String) -> Unit = {}
 ) {
     val tasks by viewModel.tasks.collectAsState()
     
-    var showAddOverlay by remember { mutableStateOf(false) }
+    var showAddOverlay by remember { mutableStateOf(initialShowAddOverlay) }
     var selectedTask by remember { mutableStateOf<TaskItem?>(null) }
 
     Scaffold(
@@ -74,11 +75,15 @@ fun TaskScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            val pendingTasks = tasks.filter { !it.isCompleted }
+            val completedTasks = tasks.filter { it.isCompleted }
+
             if (tasks.isEmpty()) {
                 EmptyTaskState(onAddTaskClick = { showAddOverlay = true })
             } else {
-                PendingTasksList(
-                    tasks = tasks,
+                TasksList(
+                    pendingTasks = pendingTasks,
+                    completedTasks = completedTasks,
                     onTaskClick = { task -> selectedTask = task }
                 )
             }
@@ -295,27 +300,46 @@ fun AddTaskOverlay(
 }
 
 @Composable
-fun PendingTasksList(tasks: List<TaskItem>, onTaskClick: (TaskItem) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp)
-            .padding(top = 16.dp)
+fun TasksList(
+    pendingTasks: List<TaskItem>,
+    completedTasks: List<TaskItem>,
+    onTaskClick: (TaskItem) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 100.dp)
     ) {
-        Text(
-            text = stringResource(R.string.tasks_pending_title),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 100.dp)
-        ) {
-            items(tasks) { task ->
+        if (pendingTasks.isNotEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.tasks_pending_title),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
+            items(pendingTasks) { task ->
                 PendingTaskRow(task = task, onClick = { onTaskClick(task) })
+            }
+        }
+        
+        if (completedTasks.isNotEmpty()) {
+            item {
+                if (pendingTasks.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                Text(
+                    text = "Completed",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
+            items(completedTasks) { task ->
+                CompletedTaskRow(task = task)
             }
         }
     }
@@ -360,6 +384,49 @@ fun PendingTaskRow(task: TaskItem, onClick: () -> Unit) {
             imageVector = Icons.Rounded.PlayArrow,
             contentDescription = stringResource(R.string.tasks_start_icon_desc),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+@Composable
+fun CompletedTaskRow(task: TaskItem) {
+    val atroxColors = MaterialTheme.atroxColors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(atroxColors.cardDefault, RoundedCornerShape(16.dp))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Tag/Duration
+        Box(
+            modifier = Modifier
+                .background(atroxColors.cardElevated.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = "${task.durationMin}m",
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Title
+        Text(
+            text = task.title,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            fontSize = 16.sp,
+            modifier = Modifier.weight(1f)
+        )
+
+        Icon(
+            imageVector = Icons.Rounded.CheckCircle,
+            contentDescription = "Completed",
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
             modifier = Modifier.size(20.dp)
         )
     }

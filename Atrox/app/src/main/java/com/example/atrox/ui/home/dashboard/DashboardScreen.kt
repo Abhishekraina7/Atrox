@@ -58,7 +58,8 @@ import java.util.Calendar
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
-    onStartFocus: (taskId: String) -> Unit = {}
+    onStartFocus: (taskId: String) -> Unit = {},
+    onNavigateToAddTask: () -> Unit = {}
 ) {
     val isPhoneBlockActive by viewModel.isPhoneBlockActive.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
@@ -119,7 +120,7 @@ fun DashboardScreen(
             if (nextPendingTask != null) {
                 CurrentSprintCard(task = nextPendingTask!!, onStartFocus = onStartFocus)
             } else {
-                EmptySprintCard()
+                EmptySprintCard(onAddTaskClick = onNavigateToAddTask)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -364,7 +365,7 @@ fun CurrentSprintCard(
 // Empty Sprint Card
 // ----------------------------
 @Composable
-fun EmptySprintCard() {
+fun EmptySprintCard(onAddTaskClick: () -> Unit = {}) {
     val atroxColors = MaterialTheme.atroxColors
     Column(
         modifier = Modifier
@@ -403,7 +404,7 @@ fun EmptySprintCard() {
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = { /* TODO: Navigate to Tasks tab */ },
+            onClick = onAddTaskClick,
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth().height(56.dp)

@@ -70,7 +70,7 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     // Hide the bottom bar when on the FocusScreen
-    val showBottomBar = currentRoute in bottomNavRoutes
+    val showBottomBar = currentRoute?.substringBefore("?") in bottomNavRoutes
 
     Scaffold(
         bottomBar = {
@@ -85,17 +85,27 @@ fun MainScreen(
             startDestination = BottomNavItem.Dashboard.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-
             composable(BottomNavItem.Dashboard.route) {
                 DashboardScreen(
                     onStartFocus = { taskId ->
                         bottomNavController.navigate(focusRoute(taskId))
+                    },
+                    onNavigateToAddTask = {
+                        bottomNavController.navigate("${BottomNavItem.Tasks.route}?showAdd=true") {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }
 
-            composable(BottomNavItem.Tasks.route) {
+            composable(
+                route = "${BottomNavItem.Tasks.route}?showAdd={showAdd}",
+                arguments = listOf(navArgument("showAdd") { type = NavType.BoolType; defaultValue = false })
+            ) { backStackEntry ->
+                val showAdd = backStackEntry.arguments?.getBoolean("showAdd") ?: false
                 TaskScreen(
+                    initialShowAddOverlay = showAdd,
                     onStartFocus = { taskId ->
                         bottomNavController.navigate(focusRoute(taskId))
                     }
@@ -220,7 +230,7 @@ fun BottomNavBar(navController: NavHostController) {
             NavigationBarItem(
                 icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
                 label = { Text(text = item.label, fontSize = 10.sp) },
-                selected = currentRoute == item.route,
+                selected = currentRoute?.substringBefore("?") == item.route,
                 onClick = {
                     navController.navigate(item.route) {
                         navController.graph.startDestinationRoute?.let { route ->
