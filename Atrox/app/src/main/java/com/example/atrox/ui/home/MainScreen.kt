@@ -158,7 +158,13 @@ fun MainScreen(
             composable("settings") {
                 SettingsScreen(
                     onNavigateBack = { bottomNavController.popBackStack() },
-                    onNavigateToRegulator = { bottomNavController.navigate("regulator") }
+                    onNavigateToRegulator = { bottomNavController.navigate("regulator") },
+                    onLogout = {
+                        rootNavController.navigate(com.example.atrox.ui.navigation.LoginDestination.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
             

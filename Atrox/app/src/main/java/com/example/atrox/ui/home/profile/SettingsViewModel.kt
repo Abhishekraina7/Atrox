@@ -139,4 +139,11 @@ class SettingsViewModel @Inject constructor(
             preferencesRepository.setHapticFeedback(!_uiState.value.hapticFeedback)
         }
     }
+
+    fun logout(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            preferencesRepository.setLoggedIn(false)
+            onComplete()
+        }
+    }
 }

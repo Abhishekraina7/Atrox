@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToRegulator: () -> Unit = {},
+    onLogout: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -233,7 +234,7 @@ fun SettingsScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { /* TODO */ }
+                        .clickable { viewModel.logout(onLogout) }
                         .padding(vertical = 16.dp)
                 )
             }
