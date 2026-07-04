@@ -89,6 +89,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.text)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    //check if this is an extra vibe code
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+    
 
     // --- Retrofit + OkHttp ---
     implementation(libs.retrofit)

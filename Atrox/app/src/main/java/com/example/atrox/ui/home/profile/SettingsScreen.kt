@@ -205,10 +205,6 @@ fun SettingsScreen(
                     title = "Edit profile",
                     onClick = { /* TODO */ }
                 )
-                SettingsNavRow(
-                    title = "Change password",
-                    onClick = { /* TODO */ }
-                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

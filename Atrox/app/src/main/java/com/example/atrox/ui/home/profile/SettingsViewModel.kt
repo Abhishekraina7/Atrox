@@ -64,6 +64,14 @@ class SettingsViewModel @Inject constructor(
         preferencesRepository.approvalForEarlyExit.onEach { approval ->
             _uiState.value = _uiState.value.copy(approvalForEarlyExit = approval)
         }.launchIn(viewModelScope)
+
+        preferencesRepository.sprintReminders.onEach { reminders ->
+            _uiState.value = _uiState.value.copy(sprintReminders = reminders)
+        }.launchIn(viewModelScope)
+
+        preferencesRepository.dailyGoalNudge.onEach { nudge ->
+            _uiState.value = _uiState.value.copy(dailyGoalNudge = nudge)
+        }.launchIn(viewModelScope)
     }
 
     fun updateSprintDuration(duration: Int) {
@@ -111,11 +119,15 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleSprintReminders() {
-        _uiState.value = _uiState.value.copy(sprintReminders = !_uiState.value.sprintReminders)
+        viewModelScope.launch {
+            preferencesRepository.setSprintReminders(!_uiState.value.sprintReminders)
+        }
     }
 
     fun toggleDailyGoalNudge() {
-        _uiState.value = _uiState.value.copy(dailyGoalNudge = !_uiState.value.dailyGoalNudge)
+        viewModelScope.launch {
+            preferencesRepository.setDailyGoalNudge(!_uiState.value.dailyGoalNudge)
+        }
     }
 
     fun toggleHapticFeedback() {

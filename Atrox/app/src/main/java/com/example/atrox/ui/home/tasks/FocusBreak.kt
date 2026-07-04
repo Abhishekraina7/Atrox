@@ -43,7 +43,7 @@ fun FocusBreak(
             if (uiState.nextTaskId != null) {
                 onNavigateToNextSprint(uiState.nextTaskId!!)
             } else {
-                onNavigateToDashboard() 
+                onNavigateToDashboard()
             }
         }
     }

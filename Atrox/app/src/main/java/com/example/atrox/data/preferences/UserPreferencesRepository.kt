@@ -34,6 +34,8 @@ class UserPreferencesRepository @Inject constructor(
         val AUTO_START_NEXT_SPRINT = booleanPreferencesKey("auto_start_next_sprint")
         val BLOCK_NOTIFICATIONS = booleanPreferencesKey("block_notifications")
         val APPROVAL_FOR_EARLY_EXIT = booleanPreferencesKey("approval_for_early_exit")
+        val SPRINT_REMINDERS = booleanPreferencesKey("sprint_reminders")
+        val DAILY_GOAL_NUDGE = booleanPreferencesKey("daily_goal_nudge")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -95,6 +97,14 @@ class UserPreferencesRepository @Inject constructor(
     val approvalForEarlyExit: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.APPROVAL_FOR_EARLY_EXIT] ?: false }
+
+    val sprintReminders: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.SPRINT_REMINDERS] ?: true }
+
+    val dailyGoalNudge: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.DAILY_GOAL_NUDGE] ?: true }
 
     //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
@@ -158,5 +168,13 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setApprovalForEarlyExit(approval: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.APPROVAL_FOR_EARLY_EXIT] = approval }
+    }
+
+    suspend fun setSprintReminders(enabled: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.SPRINT_REMINDERS] = enabled }
+    }
+
+    suspend fun setDailyGoalNudge(enabled: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.DAILY_GOAL_NUDGE] = enabled }
     }
 }
