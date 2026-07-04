@@ -33,6 +33,7 @@ class UserPreferencesRepository @Inject constructor(
         val AVATAR_ID = stringPreferencesKey("avatar_id")
         val AUTO_START_NEXT_SPRINT = booleanPreferencesKey("auto_start_next_sprint")
         val BLOCK_NOTIFICATIONS = booleanPreferencesKey("block_notifications")
+        val APPROVAL_FOR_EARLY_EXIT = booleanPreferencesKey("approval_for_early_exit")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -90,6 +91,10 @@ class UserPreferencesRepository @Inject constructor(
     val blockNotifications: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] ?: true }
+
+    val approvalForEarlyExit: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.APPROVAL_FOR_EARLY_EXIT] ?: false }
 
     //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
@@ -149,5 +154,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setBlockNotifications(block: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] = block }
+    }
+
+    suspend fun setApprovalForEarlyExit(approval: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.APPROVAL_FOR_EARLY_EXIT] = approval }
     }
 }

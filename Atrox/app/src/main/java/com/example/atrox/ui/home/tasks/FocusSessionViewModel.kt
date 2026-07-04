@@ -33,7 +33,9 @@ data class FocusSessionUiState(
     val isFinished: Boolean = false,
     val regulatorName: String = "Marcus", // Using Marcus as per design
     val isWaitingForApproval: Boolean = false,
-    val approvalMessage: String = ""
+    val approvalMessage: String = "",
+    val requireApproval: Boolean = false,
+    val navigateToDashboard: Boolean = false
 )
 
 @HiltViewModel
@@ -67,6 +69,8 @@ class FocusSessionViewModel @Inject constructor(
             if (!name.isNullOrBlank()) {
                 _uiState.value = _uiState.value.copy(regulatorName = name)
             }
+            val reqApproval = preferencesRepository.approvalForEarlyExit.firstOrNull() ?: false
+            _uiState.value = _uiState.value.copy(requireApproval = reqApproval)
         }
     }
 
@@ -142,6 +146,29 @@ class FocusSessionViewModel @Inject constructor(
     fun togglePause() {
         val current = _uiState.value
         _uiState.value = current.copy(isPaused = !current.isPaused)
+    }
+
+    fun endSessionEarly() {
+        viewModelScope.launch {
+            val totalSeconds = _uiState.value.durationMin * 60
+            val elapsedSeconds = totalSeconds - _uiState.value.remainingSeconds
+            val percentageCompleted = if (totalSeconds > 0) {
+                (elapsedSeconds.toFloat() / totalSeconds.toFloat()) * 100f
+            } else {
+                0f
+            }
+
+            if (percentageCompleted >= 70f) {
+                completeTask()
+            }
+
+            _uiState.value = _uiState.value.copy(
+                isFinished = true,
+                navigateToDashboard = true
+            )
+            timerJob?.cancel()
+            restoreDnd()
+        }
     }
 
     fun sendExitRequest() {

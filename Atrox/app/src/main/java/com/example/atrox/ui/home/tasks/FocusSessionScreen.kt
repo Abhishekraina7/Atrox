@@ -36,6 +36,7 @@ fun FocusSessionScreen(
     onNavigateBack: () -> Unit,
     onSessionFinished: () -> Unit = onNavigateBack,
     onNavigateToFocusBreak: () -> Unit,
+    onNavigateToDashboard: () -> Unit = {},
     viewModel: FocusSessionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -52,7 +53,11 @@ fun FocusSessionScreen(
                 sheetState.hide()
                 showExitSheet = false
             }
-            onSessionFinished()
+            if (uiState.navigateToDashboard) {
+                onNavigateToDashboard()
+            } else {
+                onSessionFinished()
+            }
         }
     }
 
@@ -205,7 +210,13 @@ fun FocusSessionScreen(
                 }
                 
                 Button(
-                    onClick = { showExitSheet = true },
+                    onClick = { 
+                        if (uiState.requireApproval) {
+                            showExitSheet = true
+                        } else {
+                            viewModel.endSessionEarly()
+                        }
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .height(56.dp),

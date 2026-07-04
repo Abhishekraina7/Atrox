@@ -30,7 +30,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.atrox.ui.theme.atroxColors
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,14 +155,9 @@ fun SettingsScreen(
                     }
                 )
                 SettingsSwitchRow(
-                    title = "Block social apps",
+                    title = "Strict break time",
                     checked = uiState.blockSocialApps,
                     onCheckedChange = { viewModel.toggleBlockSocialApps() }
-                )
-                SettingsSwitchRow(
-                    title = "Allow emergency calls",
-                    checked = uiState.allowEmergencyCalls,
-                    onCheckedChange = { viewModel.toggleAllowEmergencyCalls() }
                 )
             }
 

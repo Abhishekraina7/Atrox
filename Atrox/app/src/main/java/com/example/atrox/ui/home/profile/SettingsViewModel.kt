@@ -60,6 +60,10 @@ class SettingsViewModel @Inject constructor(
         preferencesRepository.blockNotifications.onEach { block ->
             _uiState.value = _uiState.value.copy(blockNotifications = block)
         }.launchIn(viewModelScope)
+
+        preferencesRepository.approvalForEarlyExit.onEach { approval ->
+            _uiState.value = _uiState.value.copy(approvalForEarlyExit = approval)
+        }.launchIn(viewModelScope)
     }
 
     fun updateSprintDuration(duration: Int) {
@@ -101,7 +105,9 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleApprovalForEarlyExit() {
-        _uiState.value = _uiState.value.copy(approvalForEarlyExit = !_uiState.value.approvalForEarlyExit)
+        viewModelScope.launch {
+            preferencesRepository.setApprovalForEarlyExit(!_uiState.value.approvalForEarlyExit)
+        }
     }
 
     fun toggleSprintReminders() {

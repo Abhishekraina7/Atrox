@@ -184,6 +184,12 @@ fun MainScreen(
                         bottomNavController.navigate(FOCUS_BREAK_ROUTE) {
                             popUpTo(FOCUS_ROUTE) { inclusive = true }
                         }
+                    },
+                    onNavigateToDashboard = {
+                        bottomNavController.navigate(BottomNavItem.Dashboard.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
