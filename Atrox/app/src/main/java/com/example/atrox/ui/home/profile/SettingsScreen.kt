@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToRegulator: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -168,7 +169,7 @@ fun SettingsScreen(
                 SettingsNavRow(
                     title = "Configure Regulator",
                     icon = Icons.Rounded.OpenInNew,
-                    onClick = { /* TODO */ }
+                    onClick = onNavigateToRegulator
                 )
                 SettingsSwitchRow(
                     title = "Approval for early exit",

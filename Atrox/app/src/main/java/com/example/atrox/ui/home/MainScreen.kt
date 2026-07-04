@@ -157,7 +157,8 @@ fun MainScreen(
             // Settings screen (hides bottom bar)
             composable("settings") {
                 SettingsScreen(
-                    onNavigateBack = { bottomNavController.popBackStack() }
+                    onNavigateBack = { bottomNavController.popBackStack() },
+                    onNavigateToRegulator = { bottomNavController.navigate("regulator") }
                 )
             }
             
