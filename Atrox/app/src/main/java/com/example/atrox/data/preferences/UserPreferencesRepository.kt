@@ -36,6 +36,7 @@ class UserPreferencesRepository @Inject constructor(
         val APPROVAL_FOR_EARLY_EXIT = booleanPreferencesKey("approval_for_early_exit")
         val SPRINT_REMINDERS = booleanPreferencesKey("sprint_reminders")
         val DAILY_GOAL_NUDGE = booleanPreferencesKey("daily_goal_nudge")
+        val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -105,6 +106,10 @@ class UserPreferencesRepository @Inject constructor(
     val dailyGoalNudge: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.DAILY_GOAL_NUDGE] ?: true }
+
+    val hapticFeedback: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.HAPTIC_FEEDBACK] ?: true }
 
     //functions
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
@@ -176,5 +181,9 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setDailyGoalNudge(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.DAILY_GOAL_NUDGE] = enabled }
+    }
+
+    suspend fun setHapticFeedback(enabled: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.HAPTIC_FEEDBACK] = enabled }
     }
 }

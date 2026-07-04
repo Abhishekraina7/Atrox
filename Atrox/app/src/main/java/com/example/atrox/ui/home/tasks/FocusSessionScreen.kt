@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +48,7 @@ fun FocusSessionScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(uiState.isFinished) {
         if (uiState.isFinished) {
@@ -211,6 +214,9 @@ fun FocusSessionScreen(
                 
                 Button(
                     onClick = { 
+                        if (uiState.hapticFeedbackEnabled) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
                         if (uiState.requireApproval) {
                             showExitSheet = true
                         } else {
@@ -291,6 +297,9 @@ fun FocusSessionScreen(
                 
                 Button(
                     onClick = {
+                        if (uiState.hapticFeedbackEnabled) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
                         if (!uiState.isWaitingForApproval) {
                             viewModel.sendExitRequest()
                         }

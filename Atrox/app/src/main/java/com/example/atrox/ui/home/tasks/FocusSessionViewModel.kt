@@ -35,7 +35,8 @@ data class FocusSessionUiState(
     val isWaitingForApproval: Boolean = false,
     val approvalMessage: String = "",
     val requireApproval: Boolean = false,
-    val navigateToDashboard: Boolean = false
+    val navigateToDashboard: Boolean = false,
+    val hapticFeedbackEnabled: Boolean = true
 )
 
 @HiltViewModel
@@ -71,6 +72,9 @@ class FocusSessionViewModel @Inject constructor(
             }
             val reqApproval = preferencesRepository.approvalForEarlyExit.firstOrNull() ?: false
             _uiState.value = _uiState.value.copy(requireApproval = reqApproval)
+
+            val hapticEnabled = preferencesRepository.hapticFeedback.firstOrNull() ?: true
+            _uiState.value = _uiState.value.copy(hapticFeedbackEnabled = hapticEnabled)
         }
     }
 
@@ -126,6 +130,7 @@ class FocusSessionViewModel @Inject constructor(
                     _uiState.value = currentState.copy(remainingSeconds = currentState.remainingSeconds - 1)
                 } else if (currentState.remainingSeconds <= 0) {
                     completeTask()
+                    triggerTimerCompleteHaptic()
                     _uiState.value = currentState.copy(isFinished = true)
                     restoreDnd()
                     break
@@ -140,6 +145,20 @@ class FocusSessionViewModel @Inject constructor(
         if (index != -1) {
             tasks[index] = tasks[index].copy(isCompleted = true)
             repository.saveTasks(tasks)
+        }
+    }
+
+    private fun triggerTimerCompleteHaptic() {
+        if (_uiState.value.hapticFeedbackEnabled) {
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+            if (vibrator != null && vibrator.hasVibrator()) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    vibrator.vibrate(android.os.VibrationEffect.createOneShot(500, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(1000)
+                }
+            }
         }
     }
 

@@ -72,6 +72,10 @@ class SettingsViewModel @Inject constructor(
         preferencesRepository.dailyGoalNudge.onEach { nudge ->
             _uiState.value = _uiState.value.copy(dailyGoalNudge = nudge)
         }.launchIn(viewModelScope)
+
+        preferencesRepository.hapticFeedback.onEach { haptic ->
+            _uiState.value = _uiState.value.copy(hapticFeedback = haptic)
+        }.launchIn(viewModelScope)
     }
 
     fun updateSprintDuration(duration: Int) {
@@ -131,6 +135,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleHapticFeedback() {
-        _uiState.value = _uiState.value.copy(hapticFeedback = !_uiState.value.hapticFeedback)
+        viewModelScope.launch {
+            preferencesRepository.setHapticFeedback(!_uiState.value.hapticFeedback)
+        }
     }
 }

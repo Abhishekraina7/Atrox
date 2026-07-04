@@ -1,6 +1,5 @@
 package com.example.atrox.ui.home.profile
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -197,18 +196,6 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // ── ACCOUNT ──
-            SettingsHeader("ACCOUNT")
-            SettingsCard {
-                SettingsNavRow(
-                    title = "Edit profile",
-                    onClick = { /* TODO */ }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
             // ── APP ──
             SettingsHeader("APP")
             SettingsCard {
