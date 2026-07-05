@@ -3,7 +3,9 @@ package com.example.atrox.di
 import android.content.Context
 import androidx.room.Room
 import com.example.atrox.data.notes.AppDatabase
+import com.example.atrox.data.notes.MIGRATION_2_3
 import com.example.atrox.data.notes.NoteDao
+import com.example.atrox.data.tasks.TaskDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,12 +24,20 @@ object DatabaseModule {
                 context,
                 AppDatabase::class.java,
                 "atrox_db"
-            ).fallbackToDestructiveMigration(false).build()
+            ).addMigrations(MIGRATION_2_3)
+            .fallbackToDestructiveMigration(false)
+            .build()
     }
 
     @Provides
     @Singleton
     fun provideNoteDao(database: AppDatabase): NoteDao {
         return database.noteDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideTaskDao(database: AppDatabase): TaskDao {
+        return database.taskDao()
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.*
@@ -49,6 +50,9 @@ fun FocusScreen(
     onNavigateToProfile: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val selectedDateTasks by viewModel.selectedDateTasks.collectAsState()
+    var selectedDateForPopup by remember { mutableStateOf<String?>(null) }
+    
     val scrollState = rememberScrollState()
     val atroxColors = MaterialTheme.atroxColors
 
@@ -261,7 +265,10 @@ fun FocusScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            CalendarView()
+            CalendarView(onDayClicked = { dateStr ->
+                viewModel.fetchTasksForDate(dateStr)
+                selectedDateForPopup = dateStr
+            })
             
             Spacer(modifier = Modifier.height(40.dp))
             
@@ -413,6 +420,83 @@ fun FocusScreen(
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
+
+    if (selectedDateForPopup != null) {
+        ModalBottomSheet(
+            onDismissRequest = { selectedDateForPopup = null },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "Completed Tasks",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = selectedDateForPopup ?: "",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                if (selectedDateTasks.isEmpty()) {
+                    Text(
+                        text = "No completed tasks for this day.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
+                } else {
+                    androidx.compose.foundation.lazy.LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(selectedDateTasks) { task ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp))
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "${task.durationMin}m",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = task.title,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Rounded.CheckCircle,
+                                    contentDescription = "Completed",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
+    }
 }
 
 @Composable
@@ -457,7 +541,7 @@ fun PerformanceCard(title: String, value: String, modifier: Modifier = Modifier,
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CalendarView() {
+fun CalendarView(onDayClicked: (String) -> Unit) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     
     val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, LocalLocale.current.platformLocale)
@@ -572,7 +656,11 @@ fun CalendarView() {
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
                                     if (isFocused && isCurrentMonth) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent
-                                ),
+                                )
+                                .clickable(enabled = isCurrentMonth) {
+                                    val dateStr = String.format(java.util.Locale.US, "%04d-%02d-%02d", year, currentMonth.monthValue, day)
+                                    onDayClicked(dateStr)
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(

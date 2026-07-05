@@ -144,7 +144,7 @@ class FocusSessionViewModel @Inject constructor(
         val index = tasks.indexOfFirst { it.id == taskId }
         if (index != -1) {
             tasks[index] = tasks[index].copy(isCompleted = true)
-            repository.saveTasks(tasks)
+            repository.updateTask(tasks[index])
         }
     }
 

@@ -1,34 +1,32 @@
 package com.example.atrox.data.tasks
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class TaskRepository @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    private val taskDao: TaskDao
 ) {
-    private val TASKS_KEY = stringPreferencesKey("pending_tasks")
-
-    val tasks: Flow<List<TaskItem>> = dataStore.data.map { preferences ->
-        val json = preferences[TASKS_KEY] ?: return@map emptyList()
-        try {
-            Json.decodeFromString<List<TaskItem>>(json)
-        } catch (e: Exception) {
-            emptyList()
-        }
+    val tasks: Flow<List<TaskItem>> = taskDao.getAllTasks()
+    
+    fun getTasksForDate(date: String): Flow<List<TaskItem>> {
+        return taskDao.getTasksForDate(date)
     }
 
     suspend fun saveTasks(tasks: List<TaskItem>) {
-        dataStore.edit { preferences ->
-            preferences[TASKS_KEY] = Json.encodeToString(tasks)
-        }
+        taskDao.insertTasks(tasks)
+    }
+    
+    suspend fun insertTask(task: TaskItem) {
+        taskDao.insertTask(task)
+    }
+    
+    suspend fun updateTask(task: TaskItem) {
+        taskDao.updateTask(task)
+    }
+    
+    suspend fun deleteTaskById(taskId: String) {
+        taskDao.deleteTaskById(taskId)
     }
 }

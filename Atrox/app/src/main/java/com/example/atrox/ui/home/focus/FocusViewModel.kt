@@ -10,6 +10,8 @@ import com.example.atrox.data.preferences.BadgeCatalogue
 import com.example.atrox.data.preferences.Avatar
 import com.example.atrox.data.preferences.AvatarCatalogue
 import com.example.atrox.data.preferences.UserPreferencesRepository
+import com.example.atrox.data.tasks.TaskRepository
+import com.example.atrox.data.tasks.TaskItem
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.combine
 import androidx.lifecycle.viewModelScope
@@ -36,10 +38,14 @@ data class FocusDashboardUiState(
 @HiltViewModel
 class FocusViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val taskRepository: TaskRepository,
     private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(FocusDashboardUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _selectedDateTasks = MutableStateFlow<List<TaskItem>>(emptyList())
+    val selectedDateTasks = _selectedDateTasks.asStateFlow()
 
     init {
         loadBadges()
@@ -73,6 +79,14 @@ class FocusViewModel @Inject constructor(
                     avatar = avatar
                 )
             }.collect { }
+        }
+    }
+
+    fun fetchTasksForDate(dateString: String) {
+        viewModelScope.launch {
+            taskRepository.getTasksForDate(dateString).collect { tasks ->
+                _selectedDateTasks.value = tasks.filter { it.isCompleted }
+            }
         }
     }
 }

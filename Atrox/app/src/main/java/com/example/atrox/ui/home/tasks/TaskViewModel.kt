@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
 
@@ -17,7 +18,13 @@ class TaskViewModel @Inject constructor(
     private val repository: TaskRepository
 ) : ViewModel() {
 
-    val tasks: StateFlow<List<TaskItem>> = repository.tasks.stateIn(
+    private val todayString = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        LocalDate.now().toString()
+    } else {
+        java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+    }
+
+    val tasks: StateFlow<List<TaskItem>> = repository.getTasksForDate(todayString).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -25,21 +32,21 @@ class TaskViewModel @Inject constructor(
 
     fun addTask(title: String, durationMin: Int) {
         viewModelScope.launch {
-            val updatedList = tasks.value + TaskItem(
+            val task = TaskItem(
                 id = UUID.randomUUID().toString(),
                 title = title,
                 category = "FOCUS",
                 durationMin = durationMin,
-                isCompleted = false
+                isCompleted = false,
+                dateString = todayString
             )
-            repository.saveTasks(updatedList)
+            repository.insertTask(task)
         }
     }
 
     fun removeTask(taskId: String) {
         viewModelScope.launch {
-            val updatedList = tasks.value.filter { it.id != taskId }
-            repository.saveTasks(updatedList)
+            repository.deleteTaskById(taskId)
         }
     }
 }
