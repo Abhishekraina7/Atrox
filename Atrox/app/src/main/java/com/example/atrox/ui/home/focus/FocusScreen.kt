@@ -51,6 +51,7 @@ fun FocusScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedDateTasks by viewModel.selectedDateTasks.collectAsState()
+    val completedTaskDates by viewModel.completedTaskDates.collectAsState()
     var selectedDateForPopup by remember { mutableStateOf<String?>(null) }
     
     val scrollState = rememberScrollState()
@@ -265,10 +266,13 @@ fun FocusScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            CalendarView(onDayClicked = { dateStr ->
-                viewModel.fetchTasksForDate(dateStr)
-                selectedDateForPopup = dateStr
-            })
+            CalendarView(
+                completedTaskDates = completedTaskDates,
+                onDayClicked = { dateStr ->
+                    viewModel.fetchTasksForDate(dateStr)
+                    selectedDateForPopup = dateStr
+                }
+            )
             
             Spacer(modifier = Modifier.height(40.dp))
             
@@ -541,7 +545,7 @@ fun PerformanceCard(title: String, value: String, modifier: Modifier = Modifier,
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CalendarView(onDayClicked: (String) -> Unit) {
+fun CalendarView(completedTaskDates: Set<String>, onDayClicked: (String) -> Unit) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     
     val monthName = currentMonth.month.getDisplayName(TextStyle.FULL, LocalLocale.current.platformLocale)
@@ -565,8 +569,8 @@ fun CalendarView(onDayClicked: (String) -> Unit) {
     
     // Current month days
     for (i in 1..lengthOfMonth) {
-        // Dummy focused logic for demonstration
-        val isFocused = (i % 3 == 0 || i % 7 == 0) && (i % 2 != 0) 
+        val dateStr = String.format(java.util.Locale.US, "%04d-%02d-%02d", year, currentMonth.monthValue, i)
+        val isFocused = completedTaskDates.contains(dateStr)
         gridDays.add(Triple(i, true, isFocused))
     }
     

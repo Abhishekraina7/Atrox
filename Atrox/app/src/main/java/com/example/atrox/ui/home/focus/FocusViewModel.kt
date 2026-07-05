@@ -47,9 +47,24 @@ class FocusViewModel @Inject constructor(
     private val _selectedDateTasks = MutableStateFlow<List<TaskItem>>(emptyList())
     val selectedDateTasks = _selectedDateTasks.asStateFlow()
 
+    private val _completedTaskDates = MutableStateFlow<Set<String>>(emptySet())
+    val completedTaskDates = _completedTaskDates.asStateFlow()
+
     init {
         loadBadges()
         loadUserProfile()
+        loadCompletedTaskDates()
+    }
+
+    private fun loadCompletedTaskDates() {
+        viewModelScope.launch {
+            taskRepository.tasks.collect { tasks ->
+                val dates = tasks.filter { it.isCompleted && it.dateString.isNotBlank() }
+                                 .map { it.dateString }
+                                 .toSet()
+                _completedTaskDates.value = dates
+            }
+        }
     }
 
     private fun loadBadges() {
