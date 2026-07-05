@@ -33,6 +33,7 @@ class UserPreferencesRepository @Inject constructor(
         val AVATAR_ID = stringPreferencesKey("avatar_id")
         val AUTO_START_NEXT_SPRINT = booleanPreferencesKey("auto_start_next_sprint")
         val BLOCK_NOTIFICATIONS = booleanPreferencesKey("block_notifications")
+        val STRICT_BREAK_TIME = booleanPreferencesKey("strict_break_time")
         val APPROVAL_FOR_EARLY_EXIT = booleanPreferencesKey("approval_for_early_exit")
         val SPRINT_REMINDERS = booleanPreferencesKey("sprint_reminders")
         val DAILY_GOAL_NUDGE = booleanPreferencesKey("daily_goal_nudge")
@@ -94,6 +95,10 @@ class UserPreferencesRepository @Inject constructor(
     val blockNotifications: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] ?: true }
+
+    val strictBreakTime: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.STRICT_BREAK_TIME] ?: false }
 
     val approvalForEarlyExit: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
@@ -169,6 +174,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setBlockNotifications(block: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] = block }
+    }
+
+    suspend fun setStrictBreakTime(enabled: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.STRICT_BREAK_TIME] = enabled }
     }
 
     suspend fun setApprovalForEarlyExit(approval: Boolean) {

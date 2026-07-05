@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.content.Context
+import android.app.NotificationManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 data class FocusBreakUiState(
     val remainingSeconds: Int = 5 * 60, // 5 minutes
@@ -25,19 +28,23 @@ data class FocusBreakUiState(
     val dailyProgressPercent: Int = 75,
     val isFinished: Boolean = false,
     val nextTaskId: String? = null,
-    val isAutoStartEnabled: Boolean = true
+    val isAutoStartEnabled: Boolean = true,
+    val strictBreakTime: Boolean = false
 )
 
 @HiltViewModel
 class FocusBreakViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
-    private val preferencesRepository: UserPreferencesRepository
+    private val preferencesRepository: UserPreferencesRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FocusBreakUiState())
     val uiState: StateFlow<FocusBreakUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var dndActivated = false
+    private var originalInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
 
     init {
         startTimer()
@@ -46,11 +53,20 @@ class FocusBreakViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(isAutoStartEnabled = autoStart)
             }
         }
+        viewModelScope.launch {
+            preferencesRepository.strictBreakTime.collect { strict ->
+                _uiState.value = _uiState.value.copy(strictBreakTime = strict)
+            }
+        }
     }
 
     private fun startTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
+            val isStrict = preferencesRepository.strictBreakTime.firstOrNull() ?: false
+            if (isStrict) {
+                activateDnd()
+            }
             while (true) {
                 delay(1000)
                 val current = _uiState.value
@@ -58,6 +74,7 @@ class FocusBreakViewModel @Inject constructor(
                     _uiState.value = current.copy(remainingSeconds = current.remainingSeconds - 1)
                 } else {
                     finishBreak()
+                    restoreDnd()
                     break
                 }
             }
@@ -93,11 +110,38 @@ class FocusBreakViewModel @Inject constructor(
         timerJob?.cancel()
         viewModelScope.launch {
             finishBreak()
+            restoreDnd()
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+        restoreDnd()
+    }
+
+    private fun activateDnd() {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            originalInterruptionFilter = notificationManager.currentInterruptionFilter
+            val policy = NotificationManager.Policy(
+                NotificationManager.Policy.PRIORITY_CATEGORY_CALLS,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY
+            )
+            notificationManager.setNotificationPolicy(policy)
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            dndActivated = true
+        }
+    }
+
+    private fun restoreDnd() {
+        if (dndActivated) {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (notificationManager.isNotificationPolicyAccessGranted) {
+                notificationManager.setInterruptionFilter(originalInterruptionFilter)
+            }
+            dndActivated = false
+        }
     }
 }

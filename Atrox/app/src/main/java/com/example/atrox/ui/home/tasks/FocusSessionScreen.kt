@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -68,6 +69,10 @@ fun FocusSessionScreen(
         if (uiState.approvalMessage.isNotEmpty()) {
             android.widget.Toast.makeText(context, uiState.approvalMessage, android.widget.Toast.LENGTH_LONG).show()
         }
+    }
+
+    BackHandler(enabled = true) {
+        // Do nothing to prevent back navigation
     }
 
     Scaffold(

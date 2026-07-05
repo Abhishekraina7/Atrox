@@ -20,7 +20,7 @@ data class SettingsUiState(
     val autoStartNextSprint: Boolean = true,
 
     val blockNotifications: Boolean = true,
-    val blockSocialApps: Boolean = false,
+    val strictBreakTime: Boolean = false,
     val allowEmergencyCalls: Boolean = true,
 
     val approvalForEarlyExit: Boolean = false,
@@ -59,6 +59,10 @@ class SettingsViewModel @Inject constructor(
 
         preferencesRepository.blockNotifications.onEach { block ->
             _uiState.value = _uiState.value.copy(blockNotifications = block)
+        }.launchIn(viewModelScope)
+
+        preferencesRepository.strictBreakTime.onEach { strict ->
+            _uiState.value = _uiState.value.copy(strictBreakTime = strict)
         }.launchIn(viewModelScope)
 
         preferencesRepository.approvalForEarlyExit.onEach { approval ->
@@ -108,8 +112,10 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun toggleBlockSocialApps() {
-        _uiState.value = _uiState.value.copy(blockSocialApps = !_uiState.value.blockSocialApps)
+    fun toggleStrictBreakTime() {
+        viewModelScope.launch {
+            preferencesRepository.setStrictBreakTime(!_uiState.value.strictBreakTime)
+        }
     }
 
     fun toggleAllowEmergencyCalls() {

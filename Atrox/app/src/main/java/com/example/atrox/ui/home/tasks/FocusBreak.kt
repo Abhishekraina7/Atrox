@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +47,10 @@ fun FocusBreak(
                 onNavigateToDashboard()
             }
         }
+    }
+
+    BackHandler(enabled = true) {
+        // Do nothing to prevent back navigation
     }
 
     Scaffold(
@@ -231,20 +236,22 @@ fun FocusBreak(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-            OutlinedButton(
-                onClick = { viewModel.skipBreak() },
-                modifier = Modifier
-                    .fillMaxWidth(0.5f)
-                    .height(48.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onBackground
-                )
-            ) {
-                Text("Skip Break", fontWeight = FontWeight.Medium)
+            if (!uiState.strictBreakTime) {
+                OutlinedButton(
+                    onClick = { viewModel.skipBreak() },
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .height(48.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground
+                    )
+                ) {
+                    Text("Skip Break", fontWeight = FontWeight.Medium)
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
             }
-            
-            Spacer(modifier = Modifier.height(32.dp))
             
             // Sprint Summary
             Column(

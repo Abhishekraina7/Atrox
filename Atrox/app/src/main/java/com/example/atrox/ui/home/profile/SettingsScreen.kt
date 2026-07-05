@@ -157,8 +157,8 @@ fun SettingsScreen(
                 )
                 SettingsSwitchRow(
                     title = "Strict break time",
-                    checked = uiState.blockSocialApps,
-                    onCheckedChange = { viewModel.toggleBlockSocialApps() }
+                    checked = uiState.strictBreakTime,
+                    onCheckedChange = { viewModel.toggleStrictBreakTime() }
                 )
             }
 
