@@ -74,7 +74,7 @@ fun DashboardScreen(
     val tasks by viewModel.tasks.collectAsState()
     val nextPendingTask by viewModel.nextPendingTask.collectAsState()
     val atroxColors = MaterialTheme.atroxColors
-    val streakCount by viewModel.maxStreak.collectAsStateWithLifecycle()
+    val streakCount by viewModel.currentStreak.collectAsStateWithLifecycle()
     var showAllTasks by remember { mutableStateOf(false) }
     
     val context = LocalContext.current

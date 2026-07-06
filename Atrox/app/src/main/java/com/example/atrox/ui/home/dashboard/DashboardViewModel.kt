@@ -22,6 +22,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Calendar
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
@@ -36,6 +37,23 @@ class DashboardViewModel @Inject constructor(
         initialValue = false
     )
 
+    val maxStreak = userPreferencesRepository.maxStreak.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = 0
+    )
+
+    val currentStreak: StateFlow<Int> = taskRepository.tasks.map { tasks ->
+        val completedDates = tasks.filter { it.isCompleted && it.dateString.isNotBlank() }
+            .map { it.dateString }
+            .toSet()
+        calculateStreak(completedDates)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 0
+    )
+
     init {
         viewModelScope.launch {
             userPreferencesRepository.isPhoneBlockActive.collect { isActive ->
@@ -46,13 +64,53 @@ class DashboardViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            currentStreak.collect { streak ->
+                if (streak > maxStreak.value) {
+                    userPreferencesRepository.setMaxStreak(streak)
+                }
+            }
+        }
     }
 
-    val maxStreak = userPreferencesRepository.maxStreak.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = 0
-    )
+    private fun calculateStreak(completedDates: Set<String>): Int {
+        if (completedDates.isEmpty()) return 0
+
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val today = Calendar.getInstance()
+
+        var streak = 0
+        val currentDate = today.clone() as Calendar
+
+        val todayStr = dateFormat.format(currentDate.time)
+        
+        if (completedDates.contains(todayStr)) {
+            streak++
+            currentDate.add(Calendar.DAY_OF_YEAR, -1)
+        } else {
+            currentDate.add(Calendar.DAY_OF_YEAR, -1)
+            val yesterdayStr = dateFormat.format(currentDate.time)
+            if (completedDates.contains(yesterdayStr)) {
+                streak++
+                currentDate.add(Calendar.DAY_OF_YEAR, -1)
+            } else {
+                return 0
+            }
+        }
+
+        while (true) {
+            val dateStr = dateFormat.format(currentDate.time)
+            if (completedDates.contains(dateStr)) {
+                streak++
+                currentDate.add(Calendar.DAY_OF_YEAR, -1)
+            } else {
+                break
+            }
+        }
+
+        return streak
+    }
+
     // Today's task rows mapped directly from persistent storage
     val tasks: StateFlow<List<TaskItem>> = taskRepository.tasks.map { list ->
         val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -77,13 +135,7 @@ class DashboardViewModel @Inject constructor(
             initialValue = null
         )
 
-    fun incrementStreak(){
-        viewModelScope.launch {
-            val currentStreak = maxStreak.value
-            userPreferencesRepository.setMaxStreak(currentStreak + 1)
 
-        }
-    }
 
     fun togglePhoneBlock() {
         viewModelScope.launch {
