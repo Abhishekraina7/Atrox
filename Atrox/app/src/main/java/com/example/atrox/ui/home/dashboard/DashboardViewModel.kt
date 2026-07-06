@@ -12,11 +12,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import android.app.NotificationManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
@@ -48,19 +53,24 @@ class DashboardViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(),
         initialValue = 0
     )
-    // Today's task rows (still in-memory for the dashboard list section)
-    private val _tasks = MutableStateFlow(
-        listOf(
-            TaskItem("1", "Email Campaign Review", "WORK", 25, false),
-            TaskItem("2", "UI Component Library Update", "DESIGN", 45, false),
-            TaskItem("3", "Check Slack Messages", "ADMIN", 10, true)
-        )
+    // Today's task rows mapped directly from persistent storage
+    val tasks: StateFlow<List<TaskItem>> = taskRepository.tasks.map { list ->
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val todaysTasks = list.filter { it.dateString == todayStr }
+        val (completed, pending) = todaysTasks.partition { it.isCompleted }
+        pending + completed
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
     )
-    val tasks = _tasks.asStateFlow()
 
-    // Picks the first pending (not completed) task from the persistent TaskRepository
-    val nextPendingTask: kotlinx.coroutines.flow.StateFlow<TaskItem?> = taskRepository.tasks
-        .map { list -> list.firstOrNull { !it.isCompleted } }
+    // Picks the first pending (not completed) task from today's tasks
+    val nextPendingTask: StateFlow<TaskItem?> = taskRepository.tasks
+        .map { list -> 
+            val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            list.firstOrNull { !it.isCompleted && it.dateString == todayStr } 
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -82,8 +92,12 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun toggleTaskCompletion(taskId: String) {
-        _tasks.value = _tasks.value.map {
-            if (it.id == taskId) it.copy(isCompleted = !it.isCompleted) else it
+        viewModelScope.launch {
+            val list = taskRepository.tasks.firstOrNull() ?: return@launch
+            val task = list.find { it.id == taskId }
+            if (task != null) {
+                taskRepository.updateTask(task.copy(isCompleted = !task.isCompleted))
+            }
         }
     }
 
