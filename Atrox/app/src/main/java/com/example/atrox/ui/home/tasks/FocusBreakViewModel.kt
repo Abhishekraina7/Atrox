@@ -16,13 +16,15 @@ import javax.inject.Inject
 import android.content.Context
 import android.app.NotificationManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class FocusBreakUiState(
     val remainingSeconds: Int = 5 * 60, // 5 minutes
     val selectedAtmosphere: String = "Rain",
     val completedSprints: Int = 2,
     val totalSprints: Int = 4,
-    val tasksCompleted: Int = 12,
     val focusMinutes: Int = 50,
     val focusSeconds: Int = 0,
     val dailyProgressPercent: Int = 75,
@@ -57,6 +59,25 @@ class FocusBreakViewModel @Inject constructor(
         viewModelScope.launch {
             preferencesRepository.strictBreakTime.collect { strict ->
                 _uiState.value = _uiState.value.copy(strictBreakTime = strict)
+            }
+        }
+        viewModelScope.launch {
+            taskRepository.tasks.collect { tasks ->
+                val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val todaysTasks = tasks.filter { it.dateString == todayStr }
+                val completed = todaysTasks.count { it.isCompleted }
+                val total = todaysTasks.size
+                
+                val totalFocusMin = todaysTasks.filter { it.isCompleted }.sumOf { it.durationMin }
+                val progressPercent = if (total > 0) ((completed.toFloat() / total.toFloat()) * 100).toInt() else 0
+                
+                _uiState.value = _uiState.value.copy(
+                    completedSprints = completed,
+                    totalSprints = total,
+                    focusMinutes = totalFocusMin,
+                    focusSeconds = 0,
+                    dailyProgressPercent = progressPercent
+                )
             }
         }
     }

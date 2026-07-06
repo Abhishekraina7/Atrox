@@ -266,7 +266,7 @@ fun FocusBreak(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Sprint Summary",
+                        text = "Focus Summary",
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -305,7 +305,7 @@ fun FocusBreak(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text("Tasks", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                            Text("${uiState.tasksCompleted} Completed", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("${uiState.completedSprints} Completed", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                     
