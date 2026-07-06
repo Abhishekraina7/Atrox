@@ -55,8 +55,9 @@ class FocusSessionViewModel @Inject constructor(
     val uiState: StateFlow<FocusSessionUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
-    private var originalInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
     private var dndActivated = false
+    private var isPhoneBlockEnabled = false
+    private var originalInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
 
     init {
         loadTask()
@@ -120,7 +121,9 @@ class FocusSessionViewModel @Inject constructor(
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             val shouldBlock = preferencesRepository.blockNotifications.firstOrNull() ?: false
-            if (shouldBlock) {
+            isPhoneBlockEnabled = preferencesRepository.isPhoneBlockActive.firstOrNull() ?: false
+            
+            if (shouldBlock && !isPhoneBlockEnabled) {
                 activateDnd()
             }
             while (true) {
@@ -226,6 +229,8 @@ class FocusSessionViewModel @Inject constructor(
     }
 
     private fun activateDnd() {
+        if (isPhoneBlockEnabled) return
+        
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (notificationManager.isNotificationPolicyAccessGranted) {
             originalInterruptionFilter = notificationManager.currentInterruptionFilter
@@ -241,6 +246,8 @@ class FocusSessionViewModel @Inject constructor(
     }
 
     private fun restoreDnd() {
+        if (isPhoneBlockEnabled) return
+        
         if (dndActivated) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (notificationManager.isNotificationPolicyAccessGranted) {

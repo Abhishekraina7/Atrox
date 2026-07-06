@@ -33,6 +33,7 @@ class UserPreferencesRepository @Inject constructor(
         val AVATAR_ID = stringPreferencesKey("avatar_id")
         val AUTO_START_NEXT_SPRINT = booleanPreferencesKey("auto_start_next_sprint")
         val BLOCK_NOTIFICATIONS = booleanPreferencesKey("block_notifications")
+        val PHONE_BLOCK_ACTIVE = booleanPreferencesKey("phone_block_active")
         val STRICT_BREAK_TIME = booleanPreferencesKey("strict_break_time")
         val APPROVAL_FOR_EARLY_EXIT = booleanPreferencesKey("approval_for_early_exit")
         val SPRINT_REMINDERS = booleanPreferencesKey("sprint_reminders")
@@ -95,6 +96,10 @@ class UserPreferencesRepository @Inject constructor(
     val blockNotifications: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] ?: true }
+
+    val isPhoneBlockActive: Flow<Boolean> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.PHONE_BLOCK_ACTIVE] ?: false }
 
     val strictBreakTime: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
@@ -174,6 +179,10 @@ class UserPreferencesRepository @Inject constructor(
 
     suspend fun setBlockNotifications(block: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] = block }
+    }
+
+    suspend fun setPhoneBlockActive(active: Boolean) {
+        dataStore.edit { preferences -> preferences[PreferencesKeys.PHONE_BLOCK_ACTIVE] = active }
     }
 
     suspend fun setStrictBreakTime(enabled: Boolean) {

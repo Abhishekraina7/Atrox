@@ -11,17 +11,37 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.content.Context
+import android.app.NotificationManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val _isPhoneBlockActive = MutableStateFlow(true)
-    val isPhoneBlockActive = _isPhoneBlockActive.asStateFlow()
+    val isPhoneBlockActive = userPreferencesRepository.isPhoneBlockActive.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = false
+    )
+
+    init {
+        viewModelScope.launch {
+            userPreferencesRepository.isPhoneBlockActive.collect { isActive ->
+                if (isActive) {
+                    activateDnd()
+                } else {
+                    restoreDnd()
+                }
+            }
+        }
+    }
 
     val maxStreak = userPreferencesRepository.maxStreak.stateIn(
         scope = viewModelScope,
@@ -56,12 +76,34 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun togglePhoneBlock() {
-        _isPhoneBlockActive.value = !_isPhoneBlockActive.value
+        viewModelScope.launch {
+            userPreferencesRepository.setPhoneBlockActive(!isPhoneBlockActive.value)
+        }
     }
 
     fun toggleTaskCompletion(taskId: String) {
         _tasks.value = _tasks.value.map {
             if (it.id == taskId) it.copy(isCompleted = !it.isCompleted) else it
+        }
+    }
+
+    private fun activateDnd() {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            val policy = NotificationManager.Policy(
+                NotificationManager.Policy.PRIORITY_CATEGORY_CALLS,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY
+            )
+            notificationManager.setNotificationPolicy(policy)
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+        }
+    }
+
+    private fun restoreDnd() {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
         }
     }
 }

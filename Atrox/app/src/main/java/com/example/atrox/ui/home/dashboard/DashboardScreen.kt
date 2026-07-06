@@ -26,6 +26,15 @@ import androidx.compose.material.icons.rounded.AddTask
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +77,25 @@ fun DashboardScreen(
     val streakCount by viewModel.maxStreak.collectAsStateWithLifecycle()
     var showAllTasks by remember { mutableStateOf(false) }
     
+    val context = LocalContext.current
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    var showDndDisclosureDialog by remember { mutableStateOf(false) }
+    var dndPermissionRequested by remember { mutableStateOf(false) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && dndPermissionRequested) {
+                dndPermissionRequested = false
+                if (notificationManager.isNotificationPolicyAccessGranted) {
+                    viewModel.togglePhoneBlock()
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -161,7 +189,13 @@ fun DashboardScreen(
                 }
                 Switch(
                     checked = isPhoneBlockActive,
-                    onCheckedChange = { viewModel.togglePhoneBlock() },
+                    onCheckedChange = { 
+                        if (!isPhoneBlockActive && !notificationManager.isNotificationPolicyAccessGranted) {
+                            showDndDisclosureDialog = true
+                        } else {
+                            viewModel.togglePhoneBlock()
+                        }
+                    },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                         checkedTrackColor = MaterialTheme.colorScheme.primary,
@@ -211,6 +245,31 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+
+    if (showDndDisclosureDialog) {
+        AlertDialog(
+            onDismissRequest = { showDndDisclosureDialog = false },
+            title = { Text("Do Not Disturb Access Required", fontWeight = FontWeight.Bold) },
+            text = { Text("To turn on Phone Block, Atrox needs access to your Do Not Disturb settings.\n\nPlease grant this permission on the next screen.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDndDisclosureDialog = false
+                    dndPermissionRequested = true
+                    context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+                }) {
+                    Text("Grant Permission", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDndDisclosureDialog = false }) {
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            textContentColor = MaterialTheme.colorScheme.onBackground
+        )
     }
 }
 

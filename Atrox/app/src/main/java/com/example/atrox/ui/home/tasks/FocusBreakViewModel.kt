@@ -44,6 +44,7 @@ class FocusBreakViewModel @Inject constructor(
 
     private var timerJob: Job? = null
     private var dndActivated = false
+    private var isPhoneBlockEnabled = false
     private var originalInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
 
     init {
@@ -64,7 +65,9 @@ class FocusBreakViewModel @Inject constructor(
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             val isStrict = preferencesRepository.strictBreakTime.firstOrNull() ?: false
-            if (isStrict) {
+            isPhoneBlockEnabled = preferencesRepository.isPhoneBlockActive.firstOrNull() ?: false
+            
+            if (isStrict && !isPhoneBlockEnabled) {
                 activateDnd()
             }
             while (true) {
@@ -121,6 +124,8 @@ class FocusBreakViewModel @Inject constructor(
     }
 
     private fun activateDnd() {
+        if (isPhoneBlockEnabled) return
+        
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (notificationManager.isNotificationPolicyAccessGranted) {
             originalInterruptionFilter = notificationManager.currentInterruptionFilter
@@ -136,6 +141,8 @@ class FocusBreakViewModel @Inject constructor(
     }
 
     private fun restoreDnd() {
+        if (isPhoneBlockEnabled) return
+        
         if (dndActivated) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (notificationManager.isNotificationPolicyAccessGranted) {
