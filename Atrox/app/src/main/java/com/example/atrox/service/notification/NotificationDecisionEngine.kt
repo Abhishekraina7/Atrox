@@ -2,8 +2,8 @@ package com.example.atrox.service.notification
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.example.atrox.data.preferences.UserPreferencesRepository
-import com.example.atrox.data.tasks.TaskRepository
+import com.example.atrox.data.local.preferences.UserPreferencesRepository
+import com.example.atrox.data.repository.TaskRepository
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit

@@ -7,8 +7,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.atrox.data.notes.NoteEntity
-import com.example.atrox.data.notes.NoteRepository
+import com.example.atrox.data.local.db.NoteEntity
+import com.example.atrox.data.repository.NoteRepository
 import com.example.atrox.utils.SpeechRecognitionManager
 import com.example.atrox.utils.SpeechState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,6 +51,7 @@ data class AddNoteUiState(
 class AddNotesViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val noteRepository: NoteRepository,
+    private val networkChecker: com.example.atrox.utils.NetworkChecker,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -106,17 +107,7 @@ class AddNotesViewModel @Inject constructor(
     fun isSpeechAvailable(): Boolean = speechManager.isAvailable()
 
     /** Check if device has an active internet connection */
-    fun isNetworkAvailable(): Boolean {
-        val connectivityManager = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork ?: return false
-        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return when {
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-            else -> false
-        }
-    }
+    fun isNetworkAvailable(): Boolean = networkChecker.isNetworkConnected()
 
     /**
      * Start speech recognition. Must be called from the Main thread
@@ -305,7 +296,7 @@ class AddNotesViewModel @Inject constructor(
                     timestamp = System.currentTimeMillis(),
                     hasAudio = current.speechState !is SpeechState.Idle,
                     isSpanning = current.attachedImages.isNotEmpty(),
-                    category = com.example.atrox.ui.home.notes.NoteCategory.PERSONAL,
+                    category = com.example.atrox.domain.model.NoteCategory.PERSONAL,
                     attachedImages = current.attachedImages.joinToString(","),
                     isPinned = current.isPinned
                 )

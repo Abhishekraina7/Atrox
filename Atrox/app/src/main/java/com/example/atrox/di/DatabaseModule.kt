@@ -2,10 +2,10 @@ package com.example.atrox.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.atrox.data.notes.AppDatabase
-import com.example.atrox.data.notes.MIGRATION_2_3
-import com.example.atrox.data.notes.NoteDao
-import com.example.atrox.data.tasks.TaskDao
+import com.example.atrox.data.local.db.AppDatabase
+import com.example.atrox.data.local.db.MIGRATION_2_3
+import com.example.atrox.data.local.db.NoteDao
+import com.example.atrox.data.local.db.TaskDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

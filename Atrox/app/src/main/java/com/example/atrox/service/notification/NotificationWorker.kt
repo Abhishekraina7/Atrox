@@ -1,6 +1,8 @@
 package com.example.atrox.service.notification
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -14,6 +16,7 @@ class NotificationWorker @AssistedInject constructor(
     private val decisionEngine: NotificationDecisionEngine
 ) : CoroutineWorker(context, workerParams) {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun doWork(): Result {
         val state = decisionEngine.evaluateScenario()
         

@@ -9,12 +9,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewModelScope
-import com.example.atrox.data.preferences.AppBadge
-import com.example.atrox.data.preferences.FocusGoalCatalogue
-import com.example.atrox.data.preferences.UserPreferencesRepository
-import com.example.atrox.data.preferences.Avatar
-import com.example.atrox.data.preferences.AvatarCatalogue
-import com.example.atrox.data.preferences.BadgeCatalogue
+import com.example.atrox.domain.model.AppBadge
+import com.example.atrox.domain.model.FocusGoalCatalogue
+import com.example.atrox.data.local.preferences.UserPreferencesRepository
+import com.example.atrox.domain.model.Avatar
+import com.example.atrox.domain.model.AvatarCatalogue
+import com.example.atrox.domain.model.BadgeCatalogue
+import com.example.atrox.domain.model.FocusGoal
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -35,11 +36,6 @@ data class SettingsItem(
     val subtitle: String,
     val iconEmoji: String,
     val iconColor: Color
-)
-
-data class FocusGoal(
-    val label: String,
-    val emoji: String
 )
 
 data class ProfileUiState(

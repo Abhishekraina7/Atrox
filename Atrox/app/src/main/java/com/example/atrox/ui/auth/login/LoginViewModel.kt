@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.example.atrox.service.auth.AuthRepository
-import com.example.atrox.data.preferences.UserPreferencesRepository
-import com.example.atrox.service.auth.UserRepository
-import com.example.atrox.service.internet_check.Internet_Check_Service
+import com.example.atrox.data.remote.auth.AuthRepository
+import com.example.atrox.data.local.preferences.UserPreferencesRepository
+import com.example.atrox.data.remote.auth.UserRepository
+import com.example.atrox.utils.NetworkChecker
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,7 +22,7 @@ class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val networkHelper: Internet_Check_Service
+    private val networkHelper: NetworkChecker
 ) : ViewModel() {
 
     private val _events = MutableSharedFlow<LoginEvent>()

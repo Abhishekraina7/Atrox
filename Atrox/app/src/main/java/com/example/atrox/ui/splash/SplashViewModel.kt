@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-import com.example.atrox.data.preferences.UserPreferencesRepository
+import com.example.atrox.data.local.preferences.UserPreferencesRepository
 import kotlinx.coroutines.flow.first
 
 @HiltViewModel

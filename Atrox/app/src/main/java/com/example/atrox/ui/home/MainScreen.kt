@@ -1,4 +1,4 @@
-package com.example.atrox.ui.main
+package com.example.atrox.ui.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi

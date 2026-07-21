@@ -11,32 +11,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import androidx.lifecycle.viewModelScope
-import com.example.atrox.data.notes.NoteRepository
+import com.example.atrox.data.repository.NoteRepository
+import com.example.atrox.domain.model.NoteCategory
+import com.example.atrox.domain.model.NoteItem
+import com.example.atrox.domain.model.SortOption
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-
-enum class NoteCategory {
-    ALL, PERSONAL, JOURNAL, WORK
-}
-
-enum class SortOption {
-    TIME_CREATED_DESC,
-    TIME_CREATED_ASC
-}
-
-data class NoteItem(
-    val id: String,
-    val title: String,
-    val content: String,
-    val timestamp: String,
-    val rawTimestamp: Long,
-    val hasAudio: Boolean = false,
-    val isSpanning: Boolean = false, // for the full-width card with image
-    val category: NoteCategory = NoteCategory.PERSONAL,
-    val isPinned: Boolean = false
-)
 
 @HiltViewModel
 class NotesViewModel @Inject constructor(

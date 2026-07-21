@@ -1,7 +1,7 @@
 package com.example.atrox.data.notes
 
 import androidx.room.TypeConverter
-import com.example.atrox.ui.home.notes.NoteCategory
+import com.example.atrox.domain.model.NoteCategory
 
 class NoteConverters {
     @TypeConverter

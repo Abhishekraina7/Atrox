@@ -2,8 +2,8 @@ package com.example.atrox.ui.home.tasks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.atrox.data.preferences.UserPreferencesRepository
-import com.example.atrox.data.tasks.TaskRepository
+import com.example.atrox.data.local.preferences.UserPreferencesRepository
+import com.example.atrox.data.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.Job

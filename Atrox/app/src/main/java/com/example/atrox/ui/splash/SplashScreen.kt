@@ -86,7 +86,6 @@ fun SplashScreenContent() {
         animationSpec = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
         label = "progress_anim"
     )
-
     // Trigger the animation upon launch
     LaunchedEffect(Unit) {
         startProgressAnim = true

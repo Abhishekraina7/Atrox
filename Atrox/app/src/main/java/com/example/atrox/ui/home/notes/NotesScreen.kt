@@ -37,6 +37,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalFocusManager
+import com.example.atrox.domain.model.NoteCategory
+import com.example.atrox.domain.model.NoteItem
+import com.example.atrox.domain.model.SortOption
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +63,7 @@ fun NotesScreen(
         }
     }
 
-    val categories = NoteCategory.values().toList()
+    val categories = NoteCategory.entries
 
     val filteredNotes = notes.filter {
         (selectedCategory == NoteCategory.ALL || it.category == selectedCategory)

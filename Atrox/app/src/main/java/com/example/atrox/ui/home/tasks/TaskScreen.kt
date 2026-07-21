@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.R
-import com.example.atrox.data.tasks.TaskItem
+import com.example.atrox.data.local.db.TaskItem
 import com.example.atrox.ui.theme.atroxColors
 
 @OptIn(ExperimentalMaterial3Api::class)

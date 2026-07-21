@@ -1,6 +1,7 @@
 package com.example.atrox.data.preferences
 
-import com.example.atrox.ui.home.profile.FocusGoal
+import com.example.atrox.domain.model.FocusGoal
+
 
 object FocusGoalCatalogue {
     val goals = listOf(
