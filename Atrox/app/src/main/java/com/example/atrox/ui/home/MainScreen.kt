@@ -15,6 +15,9 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -68,8 +71,11 @@ fun MainScreen(
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Hide the bottom bar when on the FocusScreen
-    val showBottomBar = currentRoute?.substringBefore("?") in bottomNavRoutes
+    // Track whether a child screen has a modal overlay (e.g., ModalBottomSheet) active
+    var isOverlayActive by remember { mutableStateOf(false) }
+
+    // Hide the bottom bar on non-tab routes OR when a modal overlay is blocking interaction
+    val showBottomBar = currentRoute?.substringBefore("?") in bottomNavRoutes && !isOverlayActive
 
     Scaffold(
         bottomBar = {
@@ -91,8 +97,10 @@ fun MainScreen(
                     },
                     onNavigateToAddTask = {
                         bottomNavController.navigate("${BottomNavItem.Tasks.route}?showAdd=true") {
+                            bottomNavController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) { saveState = true }
+                            }
                             launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )
@@ -107,7 +115,8 @@ fun MainScreen(
                     initialShowAddOverlay = showAdd,
                     onStartFocus = { taskId ->
                         bottomNavController.navigate(focusRoute(taskId))
-                    }
+                    },
+                    onOverlayVisibilityChanged = { isOverlayActive = it }
                 )
             }
 

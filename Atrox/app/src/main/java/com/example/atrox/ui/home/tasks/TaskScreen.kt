@@ -30,12 +30,29 @@ import com.example.atrox.ui.theme.atroxColors
 fun TaskScreen(
     viewModel: TaskViewModel = hiltViewModel(),
     initialShowAddOverlay: Boolean = false,
-    onStartFocus: (taskId: String) -> Unit = {}
+    onStartFocus: (taskId: String) -> Unit = {},
+    onOverlayVisibilityChanged: (Boolean) -> Unit = {}
 ) {
     val tasks by viewModel.tasks.collectAsState()
     
-    var showAddOverlay by remember { mutableStateOf(initialShowAddOverlay) }
+    var showAddOverlay by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<TaskItem?>(null) }
+
+    LaunchedEffect(initialShowAddOverlay) {
+        if (initialShowAddOverlay) {
+            // Small delay ensures the screen is composed before the bottom sheet tries to animate in
+            kotlinx.coroutines.delay(50)
+            showAddOverlay = true
+        }
+    }
+
+    // Notify parent when a modal overlay (ModalBottomSheet) is active so it can hide the bottom nav
+    LaunchedEffect(showAddOverlay, selectedTask) {
+        onOverlayVisibilityChanged(showAddOverlay || selectedTask != null)
+    }
+    DisposableEffect(Unit) {
+        onDispose { onOverlayVisibilityChanged(false) }
+    }
 
     Scaffold(
         topBar = {
