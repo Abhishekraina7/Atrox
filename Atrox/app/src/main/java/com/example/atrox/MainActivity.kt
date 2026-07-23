@@ -40,7 +40,6 @@ class MainActivity : ComponentActivity() {
                     com.example.atrox.service.notification.NotificationScheduler.scheduleExactAlarms(this@MainActivity)
                 }
             }
-
             AtroxTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AtroxApp(modifier = Modifier.padding(innerPadding))

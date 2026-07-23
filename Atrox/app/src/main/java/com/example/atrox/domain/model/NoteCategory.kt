@@ -1,5 +1,5 @@
 package com.example.atrox.domain.model
 
 enum class NoteCategory {
-    ALL, PERSONAL, JOURNAL, WORK
+    ALL, PERSONAL, DELETED
 }

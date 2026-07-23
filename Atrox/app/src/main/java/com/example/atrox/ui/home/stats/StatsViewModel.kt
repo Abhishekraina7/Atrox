@@ -1,4 +1,4 @@
-package com.example.atrox.ui.home.focus
+package com.example.atrox.ui.home.stats
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

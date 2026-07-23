@@ -170,7 +170,7 @@ fun NotesScreen(
                         cursorBrush = SolidColor(colors.primary),
                         decorationBox = { innerTextField ->
                             if (searchQuery.isEmpty()) {
-                                Text("Search entries...", color = colors.onSurfaceVariant, fontSize = 16.sp)
+                                Text("Search notes...", color = colors.onSurfaceVariant, fontSize = 16.sp)
                             }
                             innerTextField()
                         },
@@ -200,8 +200,7 @@ fun NotesScreen(
                             val text = when (category) {
                                 NoteCategory.ALL -> "All"
                                 NoteCategory.PERSONAL -> "Personal"
-                                NoteCategory.JOURNAL -> "Journal"
-                                NoteCategory.WORK -> "Work"
+                                NoteCategory.DELETED -> "Recently Deleted"
                             }
                             Text(
                                 text = text,

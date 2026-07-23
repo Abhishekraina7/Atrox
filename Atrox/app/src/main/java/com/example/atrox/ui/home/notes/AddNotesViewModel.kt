@@ -56,7 +56,6 @@ class AddNotesViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val initialNoteId: String? = savedStateHandle["noteId"]
-
     private val _uiState = MutableStateFlow(AddNoteUiState(noteId = initialNoteId))
     val uiState: StateFlow<AddNoteUiState> = _uiState.asStateFlow()
     // To optimize for memory we limit the redo/undo feature to a upper limit of 50
@@ -67,7 +66,6 @@ class AddNotesViewModel @Inject constructor(
     // ── Speech Recognition ──────────────────────────────────────────
 
     private val speechManager = SpeechRecognitionManager(appContext)
-
     init {
         // Observe the speech manager's state and react accordingly
         viewModelScope.launch {
