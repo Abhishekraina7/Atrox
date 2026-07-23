@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Redo
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.StopCircle
 import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -905,7 +906,7 @@ private fun SpeechRecognitionOverlay(
                             Text("Retry", fontWeight = FontWeight.SemiBold)
                         }
                     } else if (speechState is SpeechState.Listening) {
-                        // Done listening
+                        // Stop listening
                         Button(
                             onClick = onFinish,
                             modifier = Modifier.weight(1f),
@@ -915,12 +916,12 @@ private fun SpeechRecognitionOverlay(
                             )
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.CheckCircleOutline,
+                                imageVector = Icons.Rounded.StopCircle,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Done", fontWeight = FontWeight.SemiBold)
+                            Text("Stop", fontWeight = FontWeight.SemiBold)
                         }
                     } else if (speechState is SpeechState.Processing) {
                         // Disabled Done button
