@@ -9,5 +9,7 @@ data class NoteItem(
     val hasAudio: Boolean = false,
     val isSpanning: Boolean = false,
     val category: NoteCategory = NoteCategory.PERSONAL,
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false,
+    val isDeleted: Boolean = false,
+    val deletedTimestamp: Long? = null
 )

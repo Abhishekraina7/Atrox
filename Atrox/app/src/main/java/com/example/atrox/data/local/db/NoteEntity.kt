@@ -17,5 +17,8 @@ data class NoteEntity(
     val category: NoteCategory,
     val attachedImages: String, // comma separated list of internal paths
     @ColumnInfo(defaultValue = "0")
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val isDeleted: Boolean = false,
+    val deletedTimestamp: Long? = null
 )

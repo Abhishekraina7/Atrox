@@ -307,7 +307,7 @@ class AddNotesViewModel @Inject constructor(
         val idToDelete = _uiState.value.noteId
         if (idToDelete != null) {
             viewModelScope.launch {
-                noteRepository.deleteNoteById(idToDelete)
+                noteRepository.moveToTrash(idToDelete, System.currentTimeMillis())
             }
         }
     }

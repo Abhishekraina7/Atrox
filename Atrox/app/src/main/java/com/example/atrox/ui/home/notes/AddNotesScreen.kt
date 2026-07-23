@@ -75,6 +75,7 @@ fun AddNotesScreen(
     var showAttachmentSheet by remember { mutableStateOf(false) }
     var showExitDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
 
     val colors = MaterialTheme.colorScheme
 
@@ -144,9 +145,7 @@ fun AddNotesScreen(
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
     // ── Camera capture flow ──
-    // ══════════════════════════════════════════════════════════════════
 
     // Holds the file path of the image the camera is about to write to
     var pendingCameraPath by remember { mutableStateOf<String?>(null) }
@@ -195,6 +194,7 @@ fun AddNotesScreen(
     }
 
     val shareNote = {
+        focusManager.clearFocus()
         val title = uiState.title.ifBlank { "Untitled Note" }
         val body = uiState.body
         val shareContent = if (body.isNotBlank()) "$title\n\n$body" else title
@@ -212,7 +212,6 @@ fun AddNotesScreen(
     }
 
     BackHandler(onBack = handleExit)
-
     Scaffold(
         containerColor = colors.background,
         topBar = {
@@ -344,7 +343,10 @@ fun AddNotesScreen(
                     )
                 }
                 // Add attachment
-                IconButton(onClick = { showAttachmentSheet = true }) {
+                IconButton(onClick = { 
+                    focusManager.clearFocus()
+                    showAttachmentSheet = true 
+                }) {
                     Icon(
                         imageVector = Icons.Rounded.AddCircleOutline,
                         contentDescription = "Add",

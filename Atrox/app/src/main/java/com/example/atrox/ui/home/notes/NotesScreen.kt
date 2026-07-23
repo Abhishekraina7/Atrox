@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -37,6 +39,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
 import com.example.atrox.domain.model.NoteCategory
 import com.example.atrox.domain.model.NoteItem
 import com.example.atrox.domain.model.SortOption
@@ -65,8 +68,12 @@ fun NotesScreen(
 
     val categories = NoteCategory.entries
 
-    val filteredNotes = notes.filter {
-        (selectedCategory == NoteCategory.ALL || it.category == selectedCategory)
+    val filteredNotes = notes.filter { note ->
+        if (selectedCategory == NoteCategory.DELETED) {
+            true // The ViewModel already provides only deleted notes via getDeletedNotes()
+        } else {
+            (selectedCategory == NoteCategory.ALL || note.category == selectedCategory)
+        }
     }.sortedWith(Comparator { a, b ->
         if (a.isPinned && !b.isPinned) return@Comparator -1
         if (!a.isPinned && b.isPinned) return@Comparator 1
@@ -222,16 +229,54 @@ fun NotesScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(filteredNotes, span = { note ->
+                    items(filteredNotes, key = { it.id }, span = { note ->
                         if (isListView) GridItemSpan(1)
                         else if (note.isSpanning) GridItemSpan(2)
                         else GridItemSpan(1)
                     }) { note ->
-                        Box(modifier = Modifier.clickable { onNoteClick(note.id) }) {
+                        var showContextMenu by remember { mutableStateOf(false) }
+                        val context = LocalContext.current
+                        
+                        Box(
+                            modifier = Modifier.combinedClickable(
+                                onClick = { 
+                                    if (note.isDeleted) {
+                                        android.widget.Toast.makeText(context, "Restore note to view or edit", android.widget.Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        onNoteClick(note.id) 
+                                    }
+                                },
+                                onLongClick = {
+                                    if (note.isDeleted) {
+                                        showContextMenu = true
+                                    }
+                                }
+                            )
+                        ) {
                             if (note.isSpanning) {
                                 SpanningNoteCard(note)
                             } else {
                                 NoteCard(note)
+                            }
+                            
+                            DropdownMenu(
+                                expanded = showContextMenu,
+                                onDismissRequest = { showContextMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Restore") },
+                                    onClick = {
+                                        viewModel.restoreNote(note.id)
+                                        showContextMenu = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Permanently Delete", color = MaterialTheme.colorScheme.error) },
+                                    onClick = {
+                                        viewModel.permanentlyDeleteNote(note.id)
+                                        showContextMenu = false
+                                    }
+                                )
                             }
                         }
                     }

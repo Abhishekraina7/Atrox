@@ -10,6 +10,8 @@ class NoteRepository @Inject constructor(
     private val noteDao: NoteDao
 ) : INoteRepository {
     override fun getAllNotes(): Flow<List<NoteEntity>> = noteDao.getAllNotes()
+    
+    override fun getDeletedNotes(): Flow<List<NoteEntity>> = noteDao.getDeletedNotes()
 
     override fun searchNotesByTitle(query: String): Flow<List<NoteEntity>> = noteDao.searchNotesByTitle(query)
 
@@ -19,7 +21,19 @@ class NoteRepository @Inject constructor(
         noteDao.insertNote(note)
     }
 
-    override suspend fun deleteNoteById(id: String) {
-        noteDao.deleteNoteById(id)
+    override suspend fun moveToTrash(id: String, timestamp: Long) {
+        noteDao.moveToTrash(id, timestamp)
+    }
+
+    override suspend fun restoreNote(id: String) {
+        noteDao.restoreNote(id)
+    }
+
+    override suspend fun permanentlyDeleteNoteById(id: String) {
+        noteDao.permanentlyDeleteNoteById(id)
+    }
+
+    override suspend fun deleteExpiredNotes(expirationTimestamp: Long) {
+        noteDao.deleteExpiredNotes(expirationTimestamp)
     }
 }

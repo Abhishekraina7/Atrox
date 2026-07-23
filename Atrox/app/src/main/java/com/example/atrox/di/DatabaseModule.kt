@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.atrox.data.local.db.AppDatabase
 import com.example.atrox.data.local.db.MIGRATION_2_3
+import com.example.atrox.data.local.db.MIGRATION_3_4
 import com.example.atrox.data.local.db.NoteDao
 import com.example.atrox.data.local.db.TaskDao
 import dagger.Module
@@ -24,7 +25,7 @@ object DatabaseModule {
                 context,
                 AppDatabase::class.java,
                 "atrox_db"
-            ).addMigrations(MIGRATION_2_3)
+            ).addMigrations(MIGRATION_2_3, MIGRATION_3_4)
             .fallbackToDestructiveMigration(false)
             .build()
     }
