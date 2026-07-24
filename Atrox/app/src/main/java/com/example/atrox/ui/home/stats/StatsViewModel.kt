@@ -23,6 +23,9 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import com.example.atrox.utils.DeviceUsageTracker
 
 data class FocusDashboardUiState(
     val avatar: Avatar? = null,
@@ -34,10 +37,12 @@ data class FocusDashboardUiState(
     val longestStreak: Int = 0,
     val consistencyScore: Int = 0,
     val unlockedBadges: List<BadgeState> = emptyList(),
-    val todayFocusWorkHours: Int = 6,
-    val todayFocusWorkMinutes: Int = 12,
-    val todayPhoneUseHours: Int = 2,
-    val todayPhoneUseMinutes: Int = 24,
+    val todayFocusWorkHours: Int = 0,
+    val todayFocusWorkMinutes: Int = 0,
+    val todayPhoneUseHours: Int = 0,
+    val todayPhoneUseMinutes: Int = 0,
+    val hasUsagePermission: Boolean = false,
+    val isLoadingDigitalBalance: Boolean = false,
     val moreFocusedPercentage: Int = 22,
     val insightText: String = "Afternoon focus sessions are proving to be your peak performance window."
 )
@@ -133,15 +138,51 @@ class FocusViewModel @Inject constructor(
                 val activeDaysInLast30 = completedDates.count { it in last30Days }
                 val consistencyScore = ((activeDaysInLast30 / 30.0) * 100).toInt()
                 
+                val todayStr = dateFormat.format(today.time)
+                val todayTasks = completedTasks.filter { it.dateString == todayStr }
+                val todayTotalMins = todayTasks.sumOf { it.durationMin }
+                val todayFocusHours = todayTotalMins / 60
+                val todayFocusMins = todayTotalMins % 60
+                
                 _uiState.value = _uiState.value.copy(
                     weeklyTotalHours = totalHours,
                     weeklyAverageHours = averageHours,
                     weeklyBestHours = bestHours,
                     currentStreak = currentStreak,
                     longestStreak = maxStreak,
-                    consistencyScore = consistencyScore
+                    consistencyScore = consistencyScore,
+                    todayFocusWorkHours = todayFocusHours,
+                    todayFocusWorkMinutes = todayFocusMins
                 )
             }.collect { }
+        }
+    }
+    
+    fun checkUsagePermissionAndLoadData(context: Context) {
+        val hasPermission = DeviceUsageTracker.hasUsageStatsPermission(context)
+        _uiState.value = _uiState.value.copy(
+            hasUsagePermission = hasPermission,
+            isLoadingDigitalBalance = true
+        )
+        
+        if (hasPermission) {
+            viewModelScope.launch(Dispatchers.IO) {
+                val phoneMins = DeviceUsageTracker.getPhoneUsageMinutesToday(context)
+                val hours = phoneMins / 60
+                val mins = phoneMins % 60
+                
+                _uiState.value = _uiState.value.copy(
+                    todayPhoneUseHours = hours,
+                    todayPhoneUseMinutes = mins,
+                    isLoadingDigitalBalance = false
+                )
+            }
+        } else {
+            _uiState.value = _uiState.value.copy(
+                isLoadingDigitalBalance = false,
+                todayPhoneUseHours = 0,
+                todayPhoneUseMinutes = 0
+            )
         }
     }
     
