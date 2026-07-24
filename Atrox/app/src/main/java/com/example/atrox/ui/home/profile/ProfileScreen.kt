@@ -162,31 +162,6 @@ fun ProfileScreen(
                 color = colors.onSurfaceVariant,
                 fontSize = 13.sp
             )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // ── Stats Row ────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatCard(
-                    label = "SPRINTS",
-                    value = uiState.sprints.toString(),
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    label = "FOCUS HRS",
-                    value = uiState.focusHours.toString(),
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    label = "STREAK",
-                    value = "${uiState.streakDays}d",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
             Spacer(modifier = Modifier.height(36.dp))
 
             // ── Focus Goals ──────────────────────────
