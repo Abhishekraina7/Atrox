@@ -143,7 +143,7 @@ fun StatsScreen(
             }
             
             Spacer(modifier = Modifier.height(24.dp))
-            
+            //Performance Cards 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

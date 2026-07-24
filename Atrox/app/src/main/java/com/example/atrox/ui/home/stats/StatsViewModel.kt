@@ -16,16 +16,19 @@ import kotlinx.coroutines.flow.combine
 import androidx.lifecycle.viewModelScope
 import com.example.atrox.ui.home.profile.BadgeState
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 data class FocusDashboardUiState(
     val avatar: Avatar? = null,
     val avatarInitial: String = "U",
-    val weeklyTotalHours: Double = 42.5,
-    val weeklyAverageHours: Double = 6.1,
-    val weeklyBestHours: Double = 8.4,
-    val currentStreak: Int = 14,
-    val longestStreak: Int = 28,
-    val consistencyScore: Int = 94,
+    val weeklyTotalHours: Double = 0.0,
+    val weeklyAverageHours: Double = 0.0,
+    val weeklyBestHours: Double = 0.0,
+    val currentStreak: Int = 0,
+    val longestStreak: Int = 0,
+    val consistencyScore: Int = 0,
     val unlockedBadges: List<BadgeState> = emptyList(),
     val todayFocusWorkHours: Int = 6,
     val todayFocusWorkMinutes: Int = 12,
@@ -54,6 +57,41 @@ class FocusViewModel @Inject constructor(
         loadBadges()
         loadUserProfile()
         loadCompletedTaskDates()
+        loadPerformanceStats()
+    }
+
+    private fun loadPerformanceStats() {
+        viewModelScope.launch {
+            taskRepository.tasks.collect { tasks ->
+                val completedTasks = tasks.filter { it.isCompleted && it.dateString.isNotBlank() }
+                
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val today = Calendar.getInstance()
+                
+                val last7Days = (0..6).map { i ->
+                    val cal = today.clone() as Calendar
+                    cal.add(Calendar.DAY_OF_YEAR, -i)
+                    dateFormat.format(cal.time)
+                }.toSet()
+                
+                val recentTasks = completedTasks.filter { it.dateString in last7Days }
+                val totalMins = recentTasks.sumOf { it.durationMin }
+                val totalHours = Math.round((totalMins / 60.0) * 10.0) / 10.0
+                val averageHours = Math.round((totalHours / 7.0) * 10.0) / 10.0
+                
+                val groupedByDate = completedTasks.groupBy { it.dateString }
+                val bestMins = groupedByDate.maxOfOrNull { (_, dailyTasks) ->
+                    dailyTasks.sumOf { it.durationMin }
+                } ?: 0
+                val bestHours = Math.round((bestMins / 60.0) * 10.0) / 10.0
+                
+                _uiState.value = _uiState.value.copy(
+                    weeklyTotalHours = totalHours,
+                    weeklyAverageHours = averageHours,
+                    weeklyBestHours = bestHours
+                )
+            }
+        }
     }
 
     private fun loadCompletedTaskDates() {
