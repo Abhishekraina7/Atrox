@@ -2,8 +2,8 @@ package com.example.atrox.ui.home.tasks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.atrox.data.tasks.TaskItem
-import com.example.atrox.data.tasks.TaskRepository
+import com.example.atrox.data.local.db.TaskItem
+import com.example.atrox.data.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

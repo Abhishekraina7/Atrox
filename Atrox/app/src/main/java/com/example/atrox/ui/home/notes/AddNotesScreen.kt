@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.Redo
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.StopCircle
 import androidx.compose.material.icons.rounded.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -75,6 +76,7 @@ fun AddNotesScreen(
     var showAttachmentSheet by remember { mutableStateOf(false) }
     var showExitDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
 
     val colors = MaterialTheme.colorScheme
 
@@ -144,9 +146,7 @@ fun AddNotesScreen(
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════
     // ── Camera capture flow ──
-    // ══════════════════════════════════════════════════════════════════
 
     // Holds the file path of the image the camera is about to write to
     var pendingCameraPath by remember { mutableStateOf<String?>(null) }
@@ -195,6 +195,7 @@ fun AddNotesScreen(
     }
 
     val shareNote = {
+        focusManager.clearFocus()
         val title = uiState.title.ifBlank { "Untitled Note" }
         val body = uiState.body
         val shareContent = if (body.isNotBlank()) "$title\n\n$body" else title
@@ -212,7 +213,6 @@ fun AddNotesScreen(
     }
 
     BackHandler(onBack = handleExit)
-
     Scaffold(
         containerColor = colors.background,
         topBar = {
@@ -344,7 +344,10 @@ fun AddNotesScreen(
                     )
                 }
                 // Add attachment
-                IconButton(onClick = { showAttachmentSheet = true }) {
+                IconButton(onClick = { 
+                    focusManager.clearFocus()
+                    showAttachmentSheet = true 
+                }) {
                     Icon(
                         imageVector = Icons.Rounded.AddCircleOutline,
                         contentDescription = "Add",
@@ -903,7 +906,7 @@ private fun SpeechRecognitionOverlay(
                             Text("Retry", fontWeight = FontWeight.SemiBold)
                         }
                     } else if (speechState is SpeechState.Listening) {
-                        // Done listening
+                        // Stop listening
                         Button(
                             onClick = onFinish,
                             modifier = Modifier.weight(1f),
@@ -913,12 +916,12 @@ private fun SpeechRecognitionOverlay(
                             )
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.CheckCircleOutline,
+                                imageVector = Icons.Rounded.StopCircle,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Done", fontWeight = FontWeight.SemiBold)
+                            Text("Stop", fontWeight = FontWeight.SemiBold)
                         }
                     } else if (speechState is SpeechState.Processing) {
                         // Disabled Done button

@@ -8,35 +8,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import androidx.lifecycle.viewModelScope
-import com.example.atrox.data.notes.NoteRepository
+import kotlinx.coroutines.launch
+import com.example.atrox.data.repository.NoteRepository
+import com.example.atrox.domain.model.NoteCategory
+import com.example.atrox.domain.model.NoteItem
+import com.example.atrox.domain.model.SortOption
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-
-enum class NoteCategory {
-    ALL, PERSONAL, JOURNAL, WORK
-}
-
-enum class SortOption {
-    TIME_CREATED_DESC,
-    TIME_CREATED_ASC
-}
-
-data class NoteItem(
-    val id: String,
-    val title: String,
-    val content: String,
-    val timestamp: String,
-    val rawTimestamp: Long,
-    val hasAudio: Boolean = false,
-    val isSpanning: Boolean = false, // for the full-width card with image
-    val category: NoteCategory = NoteCategory.PERSONAL,
-    val isPinned: Boolean = false
-)
 
 @HiltViewModel
 class NotesViewModel @Inject constructor(
@@ -56,34 +40,64 @@ class NotesViewModel @Inject constructor(
 
     private val dateFormat = SimpleDateFormat("dd MMM • HH:mm", Locale.getDefault())
 
+    init {
+        deleteExpiredNotes()
+    }
+
+    private fun deleteExpiredNotes() {
+        viewModelScope.launch {
+            val thirtyDaysInMillis = 30L * 24 * 60 * 60 * 1000
+            val expirationTimestamp = System.currentTimeMillis() - thirtyDaysInMillis
+            noteRepository.deleteExpiredNotes(expirationTimestamp)
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val notes: StateFlow<List<NoteItem>> = _submittedQuery
-        .flatMapLatest { query ->
+    val notes: StateFlow<List<NoteItem>> = combine(_submittedQuery, _selectedCategory) { query, category ->
+        Pair(query, category)
+    }.flatMapLatest { (query, category) ->
+        if (category == NoteCategory.DELETED) {
+            noteRepository.getDeletedNotes()
+        } else {
             if (query.isBlank()) {
                 noteRepository.getAllNotes()
             } else {
                 noteRepository.searchNotesByTitle(query)
             }
         }
-        .map { entities ->
-            entities.map { entity ->
-                NoteItem(
-                    id = entity.id,
-                    title = entity.title,
-                    content = entity.content,
-                    timestamp = dateFormat.format(Date(entity.timestamp)).uppercase(),
-                    rawTimestamp = entity.timestamp,
-                    hasAudio = entity.hasAudio,
-                    isSpanning = entity.isSpanning,
-                    category = entity.category,
-                    isPinned = entity.isPinned
-                )
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    }.map { entities ->
+        entities.map { entity ->
+            NoteItem(
+                id = entity.id,
+                title = entity.title,
+                content = entity.content,
+                timestamp = dateFormat.format(Date(entity.timestamp)).uppercase(),
+                rawTimestamp = entity.timestamp,
+                hasAudio = entity.hasAudio,
+                isSpanning = entity.isSpanning,
+                category = entity.category,
+                isPinned = entity.isPinned,
+                isDeleted = entity.isDeleted,
+                deletedTimestamp = entity.deletedTimestamp
+            )
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    fun restoreNote(id: String) {
+        viewModelScope.launch {
+            noteRepository.restoreNote(id)
+        }
+    }
+
+    fun permanentlyDeleteNote(id: String) {
+        viewModelScope.launch {
+            noteRepository.permanentlyDeleteNoteById(id)
+        }
+    }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query

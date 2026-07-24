@@ -7,10 +7,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.example.atrox.data.tasks.TaskRepository
+import com.example.atrox.data.repository.TaskRepository
 import com.example.atrox.service.regulator.RegulatorManager
-import com.example.atrox.service.regulator.RegulatorRepository
-import com.example.atrox.data.preferences.UserPreferencesRepository
+import com.example.atrox.data.repository.RegulatorRepository
+import com.example.atrox.data.local.preferences.UserPreferencesRepository
 import com.example.atrox.service.worker.SendSmsWorker
 import android.app.NotificationManager
 import dagger.hilt.android.lifecycle.HiltViewModel

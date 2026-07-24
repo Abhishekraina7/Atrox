@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.example.atrox.data.preferences.UserPreferencesRepository
+import com.example.atrox.data.local.preferences.UserPreferencesRepository
 import javax.inject.Inject
 
 @HiltViewModel

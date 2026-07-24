@@ -1,4 +1,4 @@
-package com.example.atrox.ui.home.focus
+package com.example.atrox.ui.home.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -45,7 +45,7 @@ import androidx.compose.ui.platform.LocalLocale
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FocusScreen(
+fun StatsScreen(
     viewModel: FocusViewModel = hiltViewModel(),
     onNavigateToProfile: () -> Unit = {}
 ) {

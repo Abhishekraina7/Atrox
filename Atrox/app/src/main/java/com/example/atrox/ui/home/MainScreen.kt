@@ -1,4 +1,4 @@
-package com.example.atrox.ui.main
+package com.example.atrox.ui.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.TaskAlt
-import androidx.compose.material.icons.rounded.GpsFixed
 import androidx.compose.material.icons.rounded.Assignment
+import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,7 +30,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.atrox.ui.home.focus.FocusScreen
+import com.example.atrox.ui.home.stats.StatsScreen
 import com.example.atrox.ui.home.tasks.FocusBreak
 import com.example.atrox.ui.home.tasks.FocusSessionScreen
 import com.example.atrox.ui.home.tasks.TaskScreen
@@ -46,7 +49,7 @@ const val FOCUS_BREAK_ROUTE = "focus_break"
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Dashboard : BottomNavItem("dashboard", Icons.Rounded.Home, "HOME")
     object Tasks : BottomNavItem("tasks", Icons.Rounded.TaskAlt, "TASKS")
-    object Focus : BottomNavItem("activity", Icons.Rounded.GpsFixed, "FOCUS")
+    object Focus : BottomNavItem("activity", Icons.Rounded.BarChart, "STATS")
     object Notes : BottomNavItem("notes", Icons.Rounded.Assignment, "NOTES")
     object Profile : BottomNavItem("profile", Icons.Rounded.Person, "PROFILE")
 }
@@ -68,8 +71,11 @@ fun MainScreen(
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Hide the bottom bar when on the FocusScreen
-    val showBottomBar = currentRoute?.substringBefore("?") in bottomNavRoutes
+    // Track whether a child screen has a modal overlay (e.g., ModalBottomSheet) active
+    var isOverlayActive by remember { mutableStateOf(false) }
+
+    // Hide the bottom bar on non-tab routes OR when a modal overlay is blocking interaction
+    val showBottomBar = currentRoute?.substringBefore("?") in bottomNavRoutes && !isOverlayActive
 
     Scaffold(
         bottomBar = {
@@ -91,8 +97,10 @@ fun MainScreen(
                     },
                     onNavigateToAddTask = {
                         bottomNavController.navigate("${BottomNavItem.Tasks.route}?showAdd=true") {
+                            bottomNavController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) { saveState = true }
+                            }
                             launchSingleTop = true
-                            restoreState = true
                         }
                     }
                 )
@@ -107,12 +115,13 @@ fun MainScreen(
                     initialShowAddOverlay = showAdd,
                     onStartFocus = { taskId ->
                         bottomNavController.navigate(focusRoute(taskId))
-                    }
+                    },
+                    onOverlayVisibilityChanged = { isOverlayActive = it }
                 )
             }
 
             composable(BottomNavItem.Focus.route) {
-                FocusScreen(
+                StatsScreen(
                     onNavigateToProfile = {
                         bottomNavController.navigate(BottomNavItem.Profile.route) {
                             bottomNavController.graph.startDestinationRoute?.let { route ->

@@ -10,7 +10,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.atrox.ui.theme.AtroxTheme
 import dagger.hilt.android.AndroidEntryPoint
-
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -40,7 +39,6 @@ class MainActivity : ComponentActivity() {
                     com.example.atrox.service.notification.NotificationScheduler.scheduleExactAlarms(this@MainActivity)
                 }
             }
-
             AtroxTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AtroxApp(modifier = Modifier.padding(innerPadding))

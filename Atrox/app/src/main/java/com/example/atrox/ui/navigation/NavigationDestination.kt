@@ -1,4 +1,4 @@
-package com.example.atrox.navigation
+package com.example.atrox.ui.navigation
 
 /**
  * Interface to describe the navigation destinations for the app

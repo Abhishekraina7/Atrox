@@ -1,9 +1,9 @@
-package com.example.atrox.data.notes
+package com.example.atrox.data.local.db
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.atrox.ui.home.notes.NoteCategory
+import com.example.atrox.domain.model.NoteCategory
 
 @Entity(tableName = "notes")
 data class NoteEntity(
@@ -17,5 +17,8 @@ data class NoteEntity(
     val category: NoteCategory,
     val attachedImages: String, // comma separated list of internal paths
     @ColumnInfo(defaultValue = "0")
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val isDeleted: Boolean = false,
+    val deletedTimestamp: Long? = null
 )

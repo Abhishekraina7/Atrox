@@ -1,4 +1,4 @@
-package com.example.atrox.data.tasks
+package com.example.atrox.data.local.db
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow

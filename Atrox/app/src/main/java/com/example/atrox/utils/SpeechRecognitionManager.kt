@@ -6,24 +6,29 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-/**
- * Describes the current state of the speech recognition session.
- */
+
 sealed interface SpeechState {
-    /** Idle — not listening. */
+    //idle — not listening.
     data object Idle : SpeechState
 
-    /** The recognizer is initialized and actively listening for speech. */
+    // The recognizer is initialized and actively listening for speech.
     data class Listening(val rmsDb: Float = 0f, val partialText: String = "") : SpeechState
 
-    /** Speech was detected; the recognizer is processing audio. */
+    //Speech was detected; the recognizer is processing audio.
     data class Processing(val partialText: String = "") : SpeechState
 
-    /** Recognition completed — [text] is the final transcription result. */
+    // Recognition completed — [text] is the final transcription result.
     data class Result(val text: String) : SpeechState
 
     /**
@@ -34,26 +39,6 @@ sealed interface SpeechState {
     data class Error(val message: String, val isRecoverable: Boolean = false) : SpeechState
 }
 
-/**
- * Lifecycle-aware wrapper around Android's [SpeechRecognizer] that provides
- * robust online/offline speech-to-text for the note editor.
- *
- * **Strategy:**
- * 1. First attempt uses `EXTRA_PREFER_OFFLINE = true` for fast, private, on-device recognition.
- * 2. If the offline attempt fails with a network/server error (which paradoxically means the
- *    device *cannot* do it offline), a second attempt is made **without** the offline flag,
- *    letting the system route to cloud servers.
- * 3. If both attempts fail, the error is surfaced to the UI.
- *
- * Usage:
- * ```
- * val manager = SpeechRecognitionManager(context)
- * manager.startListening()       // call from Main thread
- * manager.state.collect { ... }  // observe in ViewModel / Composable
- * manager.stopListening()
- * manager.destroy()              // call when ViewModel clears
- * ```
- */
 class SpeechRecognitionManager(private val context: Context) {
 
     private val _state = MutableStateFlow<SpeechState>(SpeechState.Idle)
@@ -61,24 +46,25 @@ class SpeechRecognitionManager(private val context: Context) {
 
     private var speechRecognizer: SpeechRecognizer? = null
 
-    /** Whether we are currently in the first (offline-preferred) attempt. */
+    // Whether we are currently in the first (offline-preferred) attempt.
     private var isOfflineAttempt = true
 
-    /** True when the user has explicitly asked us to stop. */
+    // True when the user has explicitly canceled.
     private var isCanceledByUser = false
+    
+    // True when the user manually stopped recording to get the result.
+    private var isFinishing = false
+
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var silenceTimeoutJob: Job? = null
+    
+    private var accumulatedText = ""
+    private var currentPartialText = ""
 
     // ── Public API ──────────────────────────────────────────────────
 
-    /**
-     * Returns `true` if the device has any speech recognition service available.
-     * This does **not** guarantee offline support — only that the system can route
-     * recognition requests somewhere.
-     */
     fun isAvailable(): Boolean = SpeechRecognizer.isRecognitionAvailable(context)
 
-    /**
-     * Start listening for speech.  Must be called on the **Main thread**.
-     */
     fun startListening() {
         if (!isAvailable()) {
             _state.value = SpeechState.Error(
@@ -89,28 +75,30 @@ class SpeechRecognitionManager(private val context: Context) {
         }
 
         isCanceledByUser = false
+        isFinishing = false
         isOfflineAttempt = true
+        accumulatedText = ""
+        currentPartialText = ""
         beginRecognition(preferOffline = true)
+        resetSilenceWatchdog()
     }
 
-    /**
-     * Stop listening and force the recognizer to process the audio it has so far.
-     */
     fun finishListening() {
+        isCanceledByUser = true
+        isFinishing = true
+        silenceTimeoutJob?.cancel()
         try {
             speechRecognizer?.stopListening()
         } catch (_: Exception) { /* already destroyed */ }
         
-        val currentState = _state.value
-        val partial = if (currentState is SpeechState.Listening) currentState.partialText else ""
-        _state.value = SpeechState.Processing(partial)
+        val fullText = getFullText(currentPartialText)
+        _state.value = SpeechState.Processing(fullText)
     }
 
-    /**
-     * Stop listening and cancel any in-progress recognition.
-     */
     fun cancelListening() {
         isCanceledByUser = true
+        isFinishing = false
+        silenceTimeoutJob?.cancel()
         try {
             speechRecognizer?.stopListening()
             speechRecognizer?.cancel()
@@ -118,12 +106,9 @@ class SpeechRecognitionManager(private val context: Context) {
         _state.value = SpeechState.Idle
     }
 
-    /**
-     * Release the underlying [SpeechRecognizer].  Call this from
-     * `ViewModel.onCleared()` or equivalent.
-     */
     fun destroy() {
         isCanceledByUser = true
+        scope.cancel()
         try {
             speechRecognizer?.destroy()
         } catch (_: Exception) { /* no-op */ }
@@ -133,8 +118,22 @@ class SpeechRecognitionManager(private val context: Context) {
 
     // ── Internals ───────────────────────────────────────────────────
 
+    private fun getFullText(partial: String): String {
+        return (accumulatedText + partial).trim()
+    }
+
+    private fun resetSilenceWatchdog() {
+        silenceTimeoutJob?.cancel()
+        silenceTimeoutJob = scope.launch {
+            delay(10000L) // 10 seconds of absolute silence
+            if (!isCanceledByUser) {
+                // Time's up! Automatically stop and finalize.
+                finishListening()
+            }
+        }
+    }
+
     private fun beginRecognition(preferOffline: Boolean) {
-        // Tear down any previous instance to avoid leaking listeners
         speechRecognizer?.destroy()
 
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).also { recognizer ->
@@ -142,40 +141,32 @@ class SpeechRecognitionManager(private val context: Context) {
             recognizer.startListening(buildIntent(preferOffline))
         }
 
-        _state.value = SpeechState.Listening()
+        _state.value = SpeechState.Listening(rmsDb = 0f, partialText = getFullText(currentPartialText))
     }
 
     private fun buildIntent(preferOffline: Boolean): Intent {
         return Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(
-                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-            )
-            // Use the device's current locale
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-            // Allow partial (streaming) results so the user gets real-time feedback
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            // Prefer offline when requested
-            if (preferOffline) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-                }
+            if (preferOffline && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
             }
-            // Give a generous silence timeout — useful for note-taking where the user
-            // may pause to think
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3000L)
-            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 5000L)
+            // Use longer internal timeouts to reduce the frequency of automatic restarts
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 5000L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 8000L)
         }
     }
 
     private fun createListener(): RecognitionListener = object : RecognitionListener {
 
         override fun onReadyForSpeech(params: Bundle?) {
-            _state.value = SpeechState.Listening(rmsDb = 0f, partialText = "")
+            _state.value = SpeechState.Listening(rmsDb = 0f, partialText = getFullText(currentPartialText))
+            resetSilenceWatchdog()
         }
 
         override fun onBeginningOfSpeech() {
-            // Still listening — no state change needed
+            resetSilenceWatchdog()
         }
 
         override fun onRmsChanged(rmsdB: Float) {
@@ -188,17 +179,23 @@ class SpeechRecognitionManager(private val context: Context) {
         override fun onBufferReceived(buffer: ByteArray?) { /* unused */ }
 
         override fun onEndOfSpeech() {
-            val currentState = _state.value
-            val partial = if (currentState is SpeechState.Listening) currentState.partialText else ""
+            val partial = getFullText(currentPartialText)
             _state.value = SpeechState.Processing(partial)
         }
 
         override fun onError(error: Int) {
-            if (isCanceledByUser) return
+            if (isCanceledByUser) {
+                if (isFinishing) {
+                    val fallback = getFullText(currentPartialText)
+                    if (fallback.isNotEmpty()) {
+                        _state.value = SpeechState.Result(fallback)
+                    } else {
+                        _state.value = SpeechState.Error("Could not understand speech.", true)
+                    }
+                }
+                return
+            }
 
-            val errorMsg = errorCodeToMessage(error)
-
-            // 13 = ERROR_LANGUAGE_UNAVAILABLE, 12 = ERROR_LANGUAGE_NOT_SUPPORTED, 14 = ERROR_CANNOT_CHECK_SUPPORT
             val isOfflineRelated = error in setOf(
                 SpeechRecognizer.ERROR_SERVER,
                 SpeechRecognizer.ERROR_SERVER_DISCONNECTED,
@@ -208,50 +205,67 @@ class SpeechRecognitionManager(private val context: Context) {
             )
 
             if (isOfflineAttempt && isOfflineRelated) {
-                // Fallback: retry without the offline flag
                 isOfflineAttempt = false
                 beginRecognition(preferOffline = false)
                 return
             }
 
-            // For ERROR_NO_MATCH or ERROR_SPEECH_TIMEOUT, the user simply didn't
-            // say anything — this is recoverable by tapping the mic again.
             val isRecoverable = error in setOf(
                 SpeechRecognizer.ERROR_NO_MATCH,
                 SpeechRecognizer.ERROR_SPEECH_TIMEOUT
             )
 
-            _state.value = SpeechState.Error(
-                message = errorMsg,
-                isRecoverable = isRecoverable
-            )
+            if (isRecoverable) {
+                // Continuous Mode: OS recognizer timed out, but our 10s watchdog hasn't. Restart!
+                beginRecognition(isOfflineAttempt)
+                return
+            }
+
+            _state.value = SpeechState.Error(errorCodeToMessage(error), isRecoverable = false)
         }
 
         override fun onResults(results: Bundle?) {
-            val matches = results
-                ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             val bestMatch = matches?.firstOrNull().orEmpty()
 
-            if (bestMatch.isNotEmpty()) {
-                _state.value = SpeechState.Result(bestMatch)
-            } else {
-                _state.value = SpeechState.Error(
-                    message = "Could not understand speech. Please try again.",
-                    isRecoverable = true
-                )
+            if (isCanceledByUser) {
+                if (isFinishing) {
+                    val finalResult = getFullText(bestMatch)
+                    if (finalResult.isNotEmpty()) {
+                        _state.value = SpeechState.Result(finalResult)
+                    } else {
+                        val fallback = getFullText(currentPartialText)
+                        if (fallback.isNotEmpty()) {
+                            _state.value = SpeechState.Result(fallback)
+                        } else {
+                            _state.value = SpeechState.Error("Could not understand speech.", true)
+                        }
+                    }
+                }
+                return
             }
+
+            // Continuous Mode: Append and Restart!
+            if (bestMatch.isNotBlank()) {
+                accumulatedText = getFullText(bestMatch) + " "
+                currentPartialText = ""
+            }
+            
+            beginRecognition(isOfflineAttempt)
         }
 
         override fun onPartialResults(partialResults: Bundle?) {
-            val partial = partialResults
-                ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                ?.firstOrNull()
+            val partial = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
             if (!partial.isNullOrBlank()) {
+                currentPartialText = partial
+                resetSilenceWatchdog()
+                val full = getFullText(currentPartialText)
+                
                 val currentState = _state.value
                 if (currentState is SpeechState.Listening) {
-                    _state.value = currentState.copy(partialText = partial)
+                    _state.value = currentState.copy(partialText = full)
                 } else if (currentState is SpeechState.Processing) {
-                    _state.value = currentState.copy(partialText = partial)
+                    _state.value = currentState.copy(partialText = full)
                 }
             }
         }

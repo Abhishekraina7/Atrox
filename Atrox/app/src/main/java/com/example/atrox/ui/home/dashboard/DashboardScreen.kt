@@ -58,8 +58,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.atrox.R
-import com.example.atrox.data.tasks.TaskItem
-import com.example.atrox.ui.main.dashboard.DashboardViewModel
+import com.example.atrox.data.local.db.TaskItem
+import com.example.atrox.ui.home.dashboard.DashboardViewModel
 import com.example.atrox.ui.theme.atroxColors
 import java.util.Calendar
 
@@ -478,7 +478,6 @@ fun EmptySprintCard(onAddTaskClick: () -> Unit = {}) {
 enum class TimeOfDay {
     MORNING, AFTERNOON, EVENING, NIGHT, LATE_NIGHT, EARLY_MORNING
 }
-
 @Composable
 fun getGreetingAndTimeOfDay(): Pair<String, TimeOfDay> {
     val calendar = Calendar.getInstance()
@@ -497,7 +496,6 @@ fun getGreetingAndTimeOfDay(): Pair<String, TimeOfDay> {
 @Composable
 fun AnimatedGreeting() {
     val (greetingText, timeOfDay) = getGreetingAndTimeOfDay()
-    
     val infiniteTransition = rememberInfiniteTransition(label = "GreetingAnimation")
     
     // Bobbing animation for the celestial body

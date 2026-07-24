@@ -1,5 +1,6 @@
-package com.example.atrox.service.auth
+package com.example.atrox.data.remote.auth
 
+import com.example.atrox.domain.repository.IUserRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -7,8 +8,8 @@ import javax.inject.Inject
 // Create a new account using email - username - password and save it to firestore
 class UserRepository @Inject constructor(
     private val firestore: FirebaseFirestore
-) {
-    suspend fun saveUserToDatabase(uid: String, email: String, username: String): Result<Unit> {
+) : IUserRepository {
+    override suspend fun saveUserToDatabase(uid: String, email: String, username: String): Result<Unit> {
         return try {
             val userMap = hashMapOf(
                 "uid" to uid,

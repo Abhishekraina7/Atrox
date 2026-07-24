@@ -37,9 +37,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.atrox.data.preferences.FocusGoalCatalogue
-import com.example.atrox.data.preferences.Avatar
-import com.example.atrox.data.preferences.AvatarCatalogue
+import com.example.atrox.domain.model.FocusGoalCatalogue
+import com.example.atrox.domain.model.Avatar
+import com.example.atrox.domain.model.AvatarCatalogue
 import com.example.atrox.ui.theme.atroxColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)

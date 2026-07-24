@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-import com.example.atrox.service.regulator.RegulatorRepository
+import com.example.atrox.data.repository.RegulatorRepository
 
 @HiltViewModel
 class Onboarding4ViewModel @Inject constructor(

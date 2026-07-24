@@ -1,5 +1,6 @@
-package com.example.atrox.service.auth
+package com.example.atrox.data.remote.auth
 
+import com.example.atrox.domain.repository.IAuthRepository
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -9,9 +10,9 @@ import javax.inject.Inject
 //Login using Google via Firebase OAuth and email-password
 class AuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth
-) {
+) : IAuthRepository {
 
-    suspend fun signInWithGoogleCredential(idToken: String): Result<AuthResult> {
+    override suspend fun signInWithGoogleCredential(idToken: String): Result<AuthResult> {
         return try {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val authResult = firebaseAuth.signInWithCredential(credential).await()
@@ -20,7 +21,7 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
-    suspend fun signInWithEmailAndPassword(email: String, password: String): Result<AuthResult> {
+    override suspend fun signInWithEmailAndPassword(email: String, password: String): Result<AuthResult> {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             Result.success(authResult)
@@ -29,7 +30,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    suspend fun createUserWithEmailAndPassword(email: String, password: String): Result<AuthResult> {
+    override suspend fun createUserWithEmailAndPassword(email: String, password: String): Result<AuthResult> {
         return try {
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             Result.success(authResult)

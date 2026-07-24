@@ -1,4 +1,4 @@
-package com.example.atrox.data.preferences
+package com.example.atrox.data.local.preferences
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -9,7 +9,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.preferencesOf
+import com.example.atrox.domain.repository.IUserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 class UserPreferencesRepository @Inject constructor(
     private val dataStore: DataStore<Preferences>
-) {
+) : IUserPreferencesRepository {
 
     private object PreferencesKeys {
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
@@ -41,7 +41,7 @@ class UserPreferencesRepository @Inject constructor(
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback")
     }
 
-    val isLoggedIn: Flow<Boolean> = dataStore.data
+    override val isLoggedIn: Flow<Boolean> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
                 emit(emptyPreferences())
@@ -53,155 +53,155 @@ class UserPreferencesRepository @Inject constructor(
             preferences[PreferencesKeys.IS_LOGGED_IN] ?: false
         }
         
-    val primaryGoal: Flow<String> = dataStore.data
+    override val primaryGoal: Flow<String> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.PRIMARY_GOAL] ?: "Deep Work" }
 
-    val targetHours: Flow<Float> = dataStore.data
+    override val targetHours: Flow<Float> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.TARGET_HOURS] ?: 2f }
 
-    val sprintDuration: Flow<Int> = dataStore.data
+    override val sprintDuration: Flow<Int> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.SPRINT_DURATION] ?: 25 }
 
-    val breakDuration: Flow<Int> = dataStore.data
+    override val breakDuration: Flow<Int> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.BREAK_DURATION] ?: 10 }
 
-    val dailySprints: Flow<Int> = dataStore.data
+    override val dailySprints: Flow<Int> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.DAILY_SPRINTS] ?: 2 }
 
-    val maxStreak: Flow<Int> = dataStore.data
+    override val maxStreak: Flow<Int> = dataStore.data
         .catch{emit(emptyPreferences())}
         .map{preferences -> preferences[PreferencesKeys.STREAK_DAYS] ?: 0}
 
-    val focusGoals: Flow<Set<String>> = dataStore.data
+    override val focusGoals: Flow<Set<String>> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.FOCUS_GOALS] ?: emptySet() }
 
-    val displayName: Flow<String?> = dataStore.data
+    override val displayName: Flow<String?> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.DISPLAY_NAME] }
 
-    val avatarId: Flow<String?> = dataStore.data
+    override val avatarId: Flow<String?> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.AVATAR_ID] }
 
-    val autoStartNextSprint: Flow<Boolean> = dataStore.data
+    override val autoStartNextSprint: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.AUTO_START_NEXT_SPRINT] ?: true }
 
-    val blockNotifications: Flow<Boolean> = dataStore.data
+    override val blockNotifications: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] ?: true }
 
-    val isPhoneBlockActive: Flow<Boolean> = dataStore.data
+    override val isPhoneBlockActive: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.PHONE_BLOCK_ACTIVE] ?: false }
 
-    val strictBreakTime: Flow<Boolean> = dataStore.data
+    override val strictBreakTime: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.STRICT_BREAK_TIME] ?: false }
 
-    val approvalForEarlyExit: Flow<Boolean> = dataStore.data
+    override val approvalForEarlyExit: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.APPROVAL_FOR_EARLY_EXIT] ?: false }
 
-    val sprintReminders: Flow<Boolean> = dataStore.data
+    override val sprintReminders: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.SPRINT_REMINDERS] ?: true }
 
-    val dailyGoalNudge: Flow<Boolean> = dataStore.data
+    override val dailyGoalNudge: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.DAILY_GOAL_NUDGE] ?: true }
 
-    val hapticFeedback: Flow<Boolean> = dataStore.data
+    override val hapticFeedback: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.HAPTIC_FEEDBACK] ?: true }
 
     //functions
-    suspend fun setLoggedIn(isLoggedIn: Boolean) {
+    override suspend fun setLoggedIn(isLoggedIn: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_LOGGED_IN] = isLoggedIn
         }
     }
 
-    suspend fun setPrimaryGoal(goal: String) {
+    override suspend fun setPrimaryGoal(goal: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.PRIMARY_GOAL] = goal
         }
     }
 
-    suspend fun setFocusGoals(goals: Set<String>) {
+    override suspend fun setFocusGoals(goals: Set<String>) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.FOCUS_GOALS] = goals
         }
     }
 
-    suspend fun setTargetHours(hours: Float) {
+    override suspend fun setTargetHours(hours: Float) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.TARGET_HOURS] = hours
         }
     }
 
-    suspend fun setSprintDuration(duration: Int){
+    override suspend fun setSprintDuration(duration: Int){
         dataStore.edit { preferences -> preferences[PreferencesKeys.SPRINT_DURATION] = duration
         }
     }
 
-    suspend fun setBreakDuration(breakDuration: Int){
+    override suspend fun setBreakDuration(breakDuration: Int){
         dataStore.edit { preferences -> preferences[PreferencesKeys.BREAK_DURATION] = breakDuration
         }
     }
 
-    suspend fun setSprintGoal(sprints: Int){
+    override suspend fun setSprintGoal(sprints: Int){
         dataStore.edit { preferences -> preferences[PreferencesKeys.DAILY_SPRINTS] = sprints
         }
     }
 
-    suspend fun setMaxStreak(streak: Int){
+    override suspend fun setMaxStreak(streak: Int){
         dataStore.edit{preferences -> preferences[PreferencesKeys.STREAK_DAYS] = streak}
     }
 
-    suspend fun setDisplayName(name: String) {
+    override suspend fun setDisplayName(name: String) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.DISPLAY_NAME] = name }
     }
 
-    suspend fun setAvatarId(id: String) {
+    override suspend fun setAvatarId(id: String) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.AVATAR_ID] = id }
     }
 
-    suspend fun setAutoStartNextSprint(autoStart: Boolean) {
+    override suspend fun setAutoStartNextSprint(autoStart: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.AUTO_START_NEXT_SPRINT] = autoStart }
     }
 
-    suspend fun setBlockNotifications(block: Boolean) {
+    override suspend fun setBlockNotifications(block: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.BLOCK_NOTIFICATIONS] = block }
     }
 
-    suspend fun setPhoneBlockActive(active: Boolean) {
+    override suspend fun setPhoneBlockActive(active: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.PHONE_BLOCK_ACTIVE] = active }
     }
 
-    suspend fun setStrictBreakTime(enabled: Boolean) {
+    override suspend fun setStrictBreakTime(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.STRICT_BREAK_TIME] = enabled }
     }
 
-    suspend fun setApprovalForEarlyExit(approval: Boolean) {
+    override suspend fun setApprovalForEarlyExit(approval: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.APPROVAL_FOR_EARLY_EXIT] = approval }
     }
 
-    suspend fun setSprintReminders(enabled: Boolean) {
+    override suspend fun setSprintReminders(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.SPRINT_REMINDERS] = enabled }
     }
 
-    suspend fun setDailyGoalNudge(enabled: Boolean) {
+    override suspend fun setDailyGoalNudge(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.DAILY_GOAL_NUDGE] = enabled }
     }
 
-    suspend fun setHapticFeedback(enabled: Boolean) {
+    override suspend fun setHapticFeedback(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.HAPTIC_FEEDBACK] = enabled }
     }
 }
