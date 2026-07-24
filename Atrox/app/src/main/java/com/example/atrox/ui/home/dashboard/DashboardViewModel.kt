@@ -123,6 +123,34 @@ class DashboardViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
+    data class TodayStats(
+        val focusStr: String = "0h",
+        val sprintsCompleted: Int = 0,
+        val completionRate: String = "0%"
+    )
+
+    val todayStats: StateFlow<TodayStats> = tasks.map { todaysTasks ->
+        val completed = todaysTasks.filter { it.isCompleted }
+        val totalMins = completed.sumOf { it.durationMin }
+        
+        val hours = totalMins / 60
+        val mins = totalMins % 60
+        val focusStr = if (hours > 0) {
+            if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
+        } else {
+            if (mins > 0) "${mins}m" else "0h"
+        }
+        
+        val sprints = completed.size
+        val rate = if (todaysTasks.isNotEmpty()) (sprints * 100) / todaysTasks.size else 0
+        
+        TodayStats(focusStr, sprints, "$rate%")
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TodayStats()
+    )
+
     // Picks the first pending (not completed) task from today's tasks
     val nextPendingTask: StateFlow<TaskItem?> = taskRepository.tasks
         .map { list -> 

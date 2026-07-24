@@ -72,6 +72,7 @@ fun DashboardScreen(
 ) {
     val isPhoneBlockActive by viewModel.isPhoneBlockActive.collectAsState()
     val tasks by viewModel.tasks.collectAsState()
+    val todayStats by viewModel.todayStats.collectAsState()
     val nextPendingTask by viewModel.nextPendingTask.collectAsState()
     val atroxColors = MaterialTheme.atroxColors
     val streakCount by viewModel.currentStreak.collectAsStateWithLifecycle()
@@ -158,9 +159,9 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatCard(title = stringResource(R.string.dashboard_stat_focus), value = "4.5h", modifier = Modifier.weight(1f))
-                StatCard(title = stringResource(R.string.dashboard_stat_tasks), value = "12", modifier = Modifier.weight(1f))
-                StatCard(title = stringResource(R.string.dashboard_stat_saved), value = "1.2h", modifier = Modifier.weight(1f))
+                StatCard(title = stringResource(R.string.dashboard_stat_focus), value = todayStats.focusStr, modifier = Modifier.weight(1f))
+                StatCard(title = stringResource(R.string.dashboard_stat_tasks), value = todayStats.sprintsCompleted.toString(), modifier = Modifier.weight(1f))
+                StatCard(title = stringResource(R.string.dashboard_stat_completion), value = todayStats.completionRate, modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(24.dp))

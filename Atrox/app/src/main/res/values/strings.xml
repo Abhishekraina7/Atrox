@@ -59,7 +59,7 @@
     <string name="dashboard_streak_days">%1$d DAYS</string>
     <string name="dashboard_stat_focus">FOCUS</string>
     <string name="dashboard_stat_tasks">TASKS</string>
-    <string name="dashboard_stat_saved">SAVED</string>
+    <string name="dashboard_stat_completion">COMPLETION</string>
     <string name="dashboard_phone_block_title">Phone Block</string>
     <string name="dashboard_phone_block_desc">Strict mode is currently active</string>
     <string name="dashboard_tasks_title">Today\'s Tasks</string>
