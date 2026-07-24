@@ -23,6 +23,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -187,52 +191,8 @@ fun FocusBreak(
             
             Spacer(modifier = Modifier.height(40.dp))
             
-            // Ambient Atmosphere
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = "AMBIENT ATMOSPHERE",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp,
-                    fontFamily = FontFamily.Monospace
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    AtmosphereCard(
-                        icon = Icons.Rounded.WaterDrop,
-                        label = "Rain",
-                        isSelected = uiState.selectedAtmosphere == "Rain",
-                        onClick = { viewModel.selectAtmosphere("Rain") }
-                    )
-                    AtmosphereCard(
-                        icon = Icons.Rounded.Park,
-                        label = "Forest",
-                        isSelected = uiState.selectedAtmosphere == "Forest",
-                        onClick = { viewModel.selectAtmosphere("Forest") }
-                    )
-                    AtmosphereCard(
-                        icon = Icons.Rounded.Waves,
-                        label = "Waves",
-                        isSelected = uiState.selectedAtmosphere == "Waves",
-                        onClick = { viewModel.selectAtmosphere("Waves") }
-                    )
-                    AtmosphereCard(
-                        icon = Icons.Rounded.LocalCafe,
-                        label = "Cafe",
-                        isSelected = uiState.selectedAtmosphere == "Cafe",
-                        onClick = { viewModel.selectAtmosphere("Cafe") }
-                    )
-                }
-            }
+            // Box Breathing
+            BoxBreathingComponent()
             
             Spacer(modifier = Modifier.height(32.dp))
             
@@ -362,36 +322,88 @@ fun FocusBreak(
 }
 
 @Composable
-fun AtmosphereCard(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val bgColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+fun BoxBreathingComponent() {
+    val colors = MaterialTheme.colorScheme
+    
+    var phase by remember { mutableStateOf("Inhale") }
+    var scaleTarget by remember { mutableFloatStateOf(1.2f) }
+    
+    val scale by animateFloatAsState(
+        targetValue = scaleTarget,
+        animationSpec = tween(durationMillis = 4000, easing = LinearEasing),
+        label = "breathing_scale"
+    )
+
+    LaunchedEffect(Unit) {
+        while(true) {
+            phase = "Inhale"
+            scaleTarget = 1.3f
+            delay(4000)
+            
+            phase = "Hold"
+            delay(4000)
+            
+            phase = "Exhale"
+            scaleTarget = 0.7f
+            delay(4000)
+            
+            phase = "Hold"
+            delay(4000)
+        }
+    }
 
     Column(
         modifier = Modifier
-            .size(72.dp)
-            .background(bgColor, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick() },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .fillMaxWidth()
+            .background(colors.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = contentColor,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = label,
-            color = contentColor,
+            text = "MINDFUL BREATHING",
+            color = colors.primary,
             fontSize = 12.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp,
+            fontFamily = FontFamily.Monospace
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Box(
+            modifier = Modifier
+                .size(140.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .scale(scale)
+                    .background(colors.primary.copy(alpha = 0.2f), CircleShape)
+            )
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(colors.primary, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Air,
+                    contentDescription = null,
+                    tint = colors.onPrimary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Text(
+            text = phase,
+            color = colors.onSurface,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
         )
     }
 }
