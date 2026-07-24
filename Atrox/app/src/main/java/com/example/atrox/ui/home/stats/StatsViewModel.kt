@@ -96,7 +96,10 @@ class FocusViewModel @Inject constructor(
 
     private fun loadPerformanceStats() {
         viewModelScope.launch {
-            taskRepository.tasks.collect { tasks ->
+            combine(
+                taskRepository.tasks,
+                userPreferencesRepository.maxStreak
+            ) { tasks, maxStreak ->
                 val completedTasks = tasks.filter { it.isCompleted && it.dateString.isNotBlank() }
                 
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -119,13 +122,65 @@ class FocusViewModel @Inject constructor(
                 } ?: 0
                 val bestHours = Math.round((bestMins / 60.0) * 10.0) / 10.0
                 
+                val completedDates = groupedByDate.keys
+                val currentStreak = calculateStreak(completedDates)
+                
+                val last30Days = (0..29).map { i ->
+                    val cal = today.clone() as Calendar
+                    cal.add(Calendar.DAY_OF_YEAR, -i)
+                    dateFormat.format(cal.time)
+                }.toSet()
+                val activeDaysInLast30 = completedDates.count { it in last30Days }
+                val consistencyScore = ((activeDaysInLast30 / 30.0) * 100).toInt()
+                
                 _uiState.value = _uiState.value.copy(
                     weeklyTotalHours = totalHours,
                     weeklyAverageHours = averageHours,
-                    weeklyBestHours = bestHours
+                    weeklyBestHours = bestHours,
+                    currentStreak = currentStreak,
+                    longestStreak = maxStreak,
+                    consistencyScore = consistencyScore
                 )
+            }.collect { }
+        }
+    }
+    
+    private fun calculateStreak(completedDates: Set<String>): Int {
+        if (completedDates.isEmpty()) return 0
+
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val today = Calendar.getInstance()
+
+        var streak = 0
+        val currentDate = today.clone() as Calendar
+
+        val todayStr = dateFormat.format(currentDate.time)
+        
+        if (completedDates.contains(todayStr)) {
+            streak++
+            currentDate.add(Calendar.DAY_OF_YEAR, -1)
+        } else {
+            currentDate.add(Calendar.DAY_OF_YEAR, -1)
+            val yesterdayStr = dateFormat.format(currentDate.time)
+            if (completedDates.contains(yesterdayStr)) {
+                streak++
+                currentDate.add(Calendar.DAY_OF_YEAR, -1)
+            } else {
+                return 0
             }
         }
+
+        while (true) {
+            val dateStr = dateFormat.format(currentDate.time)
+            if (completedDates.contains(dateStr)) {
+                streak++
+                currentDate.add(Calendar.DAY_OF_YEAR, -1)
+            } else {
+                break
+            }
+        }
+
+        return streak
     }
 
     private fun loadCompletedTaskDates() {
