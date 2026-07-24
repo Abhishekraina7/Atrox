@@ -13,6 +13,10 @@ import com.example.atrox.data.repository.TaskRepository
 import com.example.atrox.data.local.db.TaskItem
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.viewModelScope
 import com.example.atrox.ui.home.profile.BadgeState
 import kotlinx.coroutines.launch
@@ -52,6 +56,36 @@ class FocusViewModel @Inject constructor(
 
     private val _completedTaskDates = MutableStateFlow<Set<String>>(emptySet())
     val completedTaskDates = _completedTaskDates.asStateFlow()
+
+    val chartData: StateFlow<List<List<Float>>> = taskRepository.tasks.map { tasks ->
+        val completed = tasks.filter { it.isCompleted && it.dateString.isNotBlank() }
+        
+        val cal = Calendar.getInstance()
+        cal.firstDayOfWeek = Calendar.MONDAY
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        val currentMonday = cal.clone() as Calendar
+        
+        val weeksData = mutableListOf<List<Float>>()
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        
+        for (weekOffset in -2..0) {
+            val weekMonday = currentMonday.clone() as Calendar
+            weekMonday.add(Calendar.WEEK_OF_YEAR, weekOffset)
+            
+            val weekFloats = mutableListOf<Float>()
+            for (dayOffset in 0..6) {
+                val dayCal = weekMonday.clone() as Calendar
+                dayCal.add(Calendar.DAY_OF_YEAR, dayOffset)
+                val dateStr = dateFormat.format(dayCal.time)
+                
+                val dailyMins = completed.filter { it.dateString == dateStr }.sumOf { it.durationMin }
+                val dailyHours = Math.round((dailyMins / 60.0) * 10.0) / 10f
+                weekFloats.add(dailyHours)
+            }
+            weeksData.add(weekFloats)
+        }
+        weeksData
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         loadBadges()

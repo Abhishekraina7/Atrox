@@ -52,6 +52,7 @@ fun StatsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val selectedDateTasks by viewModel.selectedDateTasks.collectAsState()
     val completedTaskDates by viewModel.completedTaskDates.collectAsState()
+    val chartData by viewModel.chartData.collectAsState()
     var selectedDateForPopup by remember { mutableStateOf<String?>(null) }
     
     val scrollState = rememberScrollState()
@@ -168,7 +169,7 @@ fun StatsScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            WeeklyFocusChart()
+            WeeklyFocusChart(chartData = chartData)
             
             Spacer(modifier = Modifier.height(40.dp))
             
@@ -689,15 +690,17 @@ fun CalendarView(completedTaskDates: Set<String>, onDayClicked: (String) -> Unit
 }
 
 @Composable
-fun WeeklyFocusChart() {
+fun WeeklyFocusChart(chartData: List<List<Float>>) {
     val days = listOf("M", "T", "W", "T", "F", "S", "S")
-    // Creating historical dummy data for horizontal scrolling demonstration
-    val pastWeek2 = listOf(2.5f, 3.0f, 5.0f, 4.5f, 2.0f, 1.0f, 4.0f)
-    val pastWeek1 = listOf(4.0f, 5.5f, 3.5f, 6.0f, 7.5f, 3.0f, 4.5f)
-    val currentWeek = listOf(5.2f, 6.5f, 4.0f, 7.1f, 8.4f, 2.0f, 3.5f)
     
-    val allWeeks = listOf(pastWeek2, pastWeek1, currentWeek)
-    val maxValue = 8.4f
+    // Fallback to dummy data if chartData is empty or not yet loaded properly
+    val allWeeks = if (chartData.size == 3) chartData else listOf(
+        listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f),
+        listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f),
+        listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f)
+    )
+    
+    val maxValue = allWeeks.flatten().maxOrNull()?.coerceAtLeast(1f) ?: 1f
     val atroxColors = MaterialTheme.atroxColors
     
     var selectedWeekIndex by remember { mutableStateOf(2) }
