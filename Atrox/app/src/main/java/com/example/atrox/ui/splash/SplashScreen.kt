@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +65,8 @@ fun SplashScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToHome: () -> Unit,
 ) {
+    val loadingProgress by viewModel.progress.collectAsState()
+
     // Collect the 1-shot navigation events from the ViewModel
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -74,22 +77,17 @@ fun SplashScreen(
             }
         }
     }
-    SplashScreenContent()
+    SplashScreenContent(targetProgress = loadingProgress)
 }
 
 @Composable
-fun SplashScreenContent() {
+fun SplashScreenContent(targetProgress: Float = 0.3f) {
     // State for the progress bar animation at the bottom
-    var startProgressAnim by remember { mutableStateOf(false) }
     val progress by animateFloatAsState(
-        targetValue = if (startProgressAnim) 0.3f else 0f,
-        animationSpec = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
+        targetValue = targetProgress,
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
         label = "progress_anim"
     )
-    // Trigger the animation upon launch
-    LaunchedEffect(Unit) {
-        startProgressAnim = true
-    }
 
     Box(
         modifier = Modifier

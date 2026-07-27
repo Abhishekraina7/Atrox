@@ -15,10 +15,16 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -26,8 +32,10 @@ class MainActivity : ComponentActivity() {
                 ActivityResultContracts.RequestPermission()
             ) { isGranted ->
                 if (isGranted) {
-                    com.example.atrox.service.notification.NotificationScheduler.schedulePeriodicChecks(this@MainActivity)
-                    com.example.atrox.service.notification.NotificationScheduler.scheduleExactAlarms(this@MainActivity)
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        com.example.atrox.service.notification.NotificationScheduler.schedulePeriodicChecks(this@MainActivity)
+                        com.example.atrox.service.notification.NotificationScheduler.scheduleExactAlarms(this@MainActivity)
+                    }
                 }
             }
             
@@ -35,8 +43,10 @@ class MainActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 } else {
-                    com.example.atrox.service.notification.NotificationScheduler.schedulePeriodicChecks(this@MainActivity)
-                    com.example.atrox.service.notification.NotificationScheduler.scheduleExactAlarms(this@MainActivity)
+                    withContext(Dispatchers.IO) {
+                        com.example.atrox.service.notification.NotificationScheduler.schedulePeriodicChecks(this@MainActivity)
+                        com.example.atrox.service.notification.NotificationScheduler.scheduleExactAlarms(this@MainActivity)
+                    }
                 }
             }
             AtroxTheme {

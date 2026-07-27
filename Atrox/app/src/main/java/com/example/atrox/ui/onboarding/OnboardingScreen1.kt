@@ -64,12 +64,12 @@ fun OnboardingScreen1(
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp))
         ) {
-             Image(
-                 painter = painterResource(id = R.drawable.img_onboarding_1),
-                 contentDescription = stringResource(R.string.onboarding_graphic_desc),
-                 contentScale = ContentScale.Crop,
-                 modifier = Modifier.fillMaxSize()
-             )
+//             Image(
+//                 painter = painterResource(id = R.drawable.img_onboarding_1),
+//                 contentDescription = stringResource(R.string.onboarding_graphic_desc),
+//                 contentScale = ContentScale.Crop,
+//                 modifier = Modifier.fillMaxSize()
+//             )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
