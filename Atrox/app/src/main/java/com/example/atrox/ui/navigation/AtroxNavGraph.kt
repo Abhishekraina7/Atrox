@@ -1,5 +1,7 @@
 package com.example.atrox.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -52,6 +54,7 @@ object HomeDestination : NavigationDestination {
     override val titleRes = 0 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AtroxNavHost(
     navController: NavHostController,

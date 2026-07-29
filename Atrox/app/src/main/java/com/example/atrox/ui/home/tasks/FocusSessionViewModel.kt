@@ -126,17 +126,36 @@ class FocusSessionViewModel @Inject constructor(
             if (shouldBlock && !isPhoneBlockEnabled) {
                 activateDnd()
             }
+            
+            var lastUpdateTime = android.os.SystemClock.elapsedRealtime()
+            var accumulatedMillis = 0L
+            
             while (true) {
-                delay(1000)
+                delay(100)
+                val currentTime = android.os.SystemClock.elapsedRealtime()
+                val delta = currentTime - lastUpdateTime
+                lastUpdateTime = currentTime
+
                 val currentState = _uiState.value
-                if (!currentState.isPaused && currentState.remainingSeconds > 0) {
-                    _uiState.value = currentState.copy(remainingSeconds = currentState.remainingSeconds - 1)
-                } else if (currentState.remainingSeconds <= 0) {
-                    completeTask()
-                    triggerTimerCompleteHaptic()
-                    _uiState.value = currentState.copy(isFinished = true)
-                    restoreDnd()
-                    break
+                if (!currentState.isPaused) {
+                    accumulatedMillis += delta
+                    if (accumulatedMillis >= 1000L) {
+                        val secondsPassed = (accumulatedMillis / 1000L).toInt()
+                        accumulatedMillis %= 1000L
+                        
+                        val newRemaining = currentState.remainingSeconds - secondsPassed
+                        
+                        if (newRemaining > 0) {
+                            _uiState.value = currentState.copy(remainingSeconds = newRemaining)
+                        } else {
+                            _uiState.value = currentState.copy(remainingSeconds = 0)
+                            completeTask()
+                            triggerTimerCompleteHaptic()
+                            _uiState.value = _uiState.value.copy(isFinished = true)
+                            restoreDnd()
+                            break
+                        }
+                    }
                 }
             }
         }

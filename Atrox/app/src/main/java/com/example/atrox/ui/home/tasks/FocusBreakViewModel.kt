@@ -91,15 +91,32 @@ class FocusBreakViewModel @Inject constructor(
             if (isStrict && !isPhoneBlockEnabled) {
                 activateDnd()
             }
+            
+            var lastUpdateTime = android.os.SystemClock.elapsedRealtime()
+            var accumulatedMillis = 0L
+            
             while (true) {
-                delay(1000)
-                val current = _uiState.value
-                if (current.remainingSeconds > 0) {
-                    _uiState.value = current.copy(remainingSeconds = current.remainingSeconds - 1)
-                } else {
-                    finishBreak()
-                    restoreDnd()
-                    break
+                delay(100)
+                val currentTime = android.os.SystemClock.elapsedRealtime()
+                val delta = currentTime - lastUpdateTime
+                lastUpdateTime = currentTime
+                
+                accumulatedMillis += delta
+                if (accumulatedMillis >= 1000L) {
+                    val secondsPassed = (accumulatedMillis / 1000L).toInt()
+                    accumulatedMillis %= 1000L
+                    
+                    val current = _uiState.value
+                    val newRemaining = current.remainingSeconds - secondsPassed
+                    
+                    if (newRemaining > 0) {
+                        _uiState.value = current.copy(remainingSeconds = newRemaining)
+                    } else {
+                        _uiState.value = current.copy(remainingSeconds = 0)
+                        finishBreak()
+                        restoreDnd()
+                        break
+                    }
                 }
             }
         }
