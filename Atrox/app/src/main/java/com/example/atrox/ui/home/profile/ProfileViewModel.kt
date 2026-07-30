@@ -35,7 +35,8 @@ data class SettingsItem(
     val title: String,
     val subtitle: String,
     val iconEmoji: String,
-    val iconColor: Color
+    val iconColor: Color,
+    val isComingSoon: Boolean = false
 )
 
 data class ProfileUiState(
@@ -61,8 +62,8 @@ data class ProfileUiState(
     val allBadges: List<BadgeState> = emptyList(),
     val settingsItems: List<SettingsItem> = listOf(
         SettingsItem("My Regulator", "Manage productivity thresholds", "🛡️", Color(0xFF42A5F5)),
-        SettingsItem("Streak History", "View performance timeline", "🔥", Color(0xFFFF9800)),
-        SettingsItem("Export Data", "Download focus logs (CSV/JSON)", "📦", Color(0xFF9C27B0))
+        SettingsItem("Streak History", "View performance timeline", "🔥", Color(0xFFFF9800), isComingSoon = true),
+        SettingsItem("Export Data", "Download focus logs (CSV/JSON)", "📦", Color(0xFF9C27B0), isComingSoon = true)
     )
 )
 

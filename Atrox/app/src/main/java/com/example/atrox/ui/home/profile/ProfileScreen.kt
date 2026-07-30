@@ -486,12 +486,15 @@ private fun BadgeCard(badge: Badge, modifier: Modifier = Modifier) {
 private fun SettingsRow(item: SettingsItem, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
 
+    val itemAlpha = if (item.isComingSoon) 0.5f else 1f
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer(alpha = itemAlpha)
             .clip(RoundedCornerShape(16.dp))
             .background(colors.surfaceVariant)
-            .clickable(onClick = onClick)
+            .clickable(enabled = !item.isComingSoon, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -518,12 +521,26 @@ private fun SettingsRow(item: SettingsItem, onClick: () -> Unit) {
                 fontFamily = FontFamily.Monospace
             )
         }
-        Icon(
-            imageVector = Icons.Rounded.ChevronRight,
-            contentDescription = null,
-            tint = colors.onSurfaceVariant,
-            modifier = Modifier.size(24.dp)
-        )
+        
+        if (item.isComingSoon) {
+            Text(
+                text = "Coming Soon",
+                color = colors.onSurfaceVariant,
+                fontSize = 10.sp,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(colors.onSurface.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = colors.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
