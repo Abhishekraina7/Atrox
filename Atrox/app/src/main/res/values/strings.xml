@@ -41,14 +41,15 @@
     <string name="onboarding3_total_focus_time">TOTAL FOCUS TIME: %1$d MIN / DAY</string>
 
     <!-- Onboarding Screen 4 -->
-    <string name="onboarding_add_regulator_title">Add Your Regulator</string>
-    <string name="onboarding_choose_regulator">Choose your Regulator</string>
-    <string name="onboarding_regulator_description">A Regulator is someone you trust to hold you accountable to your goals at Atrox. They will receive updates on your progress.</string>
+    <string name="onboarding_add_regulator_title">Add Your Guardian</string>
+    <string name="onboarding_choose_regulator">Choose your Gurdian</string>
+    <string name="onboarding_regulator_description">Guardian is someone you trust to hold you accountable to your goals at Atrox. They will receive updates on your progress.</string>
     <string name="onboarding_guardian_phone_label">GUARDIAN PHONE</string>
     <string name="onboarding_guardian_phone_placeholder">Guardian\'s Phone Number</string>
     <string name="onboarding_search_icon_desc">Search</string>
     <string name="onboarding_contacts_filter">Contacts</string>
     <string name="onboarding_complete_setup">Complete Setup</string>
+    <string name="onboarding_name_text_field_label">NAME OF THE GUARDIAN</string>">
 
     <!-- Splash Screen -->
     <string name="splash_tagline">TRAIN YOUR FOCUS LIKE A MUSCLE</string>
