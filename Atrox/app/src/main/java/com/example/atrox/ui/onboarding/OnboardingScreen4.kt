@@ -213,7 +213,7 @@ fun OnboardingScreen4(
 
         // --- 4.5 Regulator Name field ---
         Text(
-            text = "Name of the regulator",
+            text = stringResource(R.string.onboarding_name_text_field_label),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,

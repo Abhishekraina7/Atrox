@@ -64,7 +64,7 @@ private val bottomNavRoutes = setOf(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MainScreen(
+fun BottomNavigation(
     rootNavController: NavHostController
 ) {
     val bottomNavController = rememberNavController()
@@ -270,12 +270,5 @@ fun BottomNavBar(navController: NavHostController) {
                 )
             )
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(title: String) {
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
-        Text(title, color = MaterialTheme.colorScheme.onBackground)
     }
 }
