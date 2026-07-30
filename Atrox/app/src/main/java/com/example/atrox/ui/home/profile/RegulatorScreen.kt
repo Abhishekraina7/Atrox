@@ -121,7 +121,7 @@ fun RegulatorScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Your Regulator",
+                        text = "Your Guardian",
                         color = colors.onBackground,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold

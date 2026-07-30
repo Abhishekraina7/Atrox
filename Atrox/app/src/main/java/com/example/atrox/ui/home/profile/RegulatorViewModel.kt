@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class RegulatorUiState(
     val hasRegulator: Boolean = false,
@@ -30,17 +33,25 @@ class RegulatorViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 regulatorRepository.guardianName,
-                regulatorRepository.guardianPhone
-            ) { name, phone ->
-                Pair(name, phone)
-            }.collect { (name, phone) ->
+                regulatorRepository.guardianPhone,
+                regulatorRepository.guardianConnectedSince
+            ) { name, phone, connectedSince ->
+                Triple(name, phone, connectedSince)
+            }.collect { (name, phone, connectedSince) ->
                 val isValidRegulator = !name.isNullOrBlank() || !phone.isNullOrBlank()
+                
+                val formattedDate = if (isValidRegulator && connectedSince != null) {
+                    SimpleDateFormat("MMM yyyy", Locale.getDefault()).format(Date(connectedSince)).uppercase(Locale.getDefault())
+                } else {
+                    "N/A"
+                }
+
                 _uiState.value = RegulatorUiState(
                     hasRegulator = isValidRegulator,
                     name = name ?: "Unknown",
                     phone = phone ?: "Unknown",
                     status = if (isValidRegulator) "Monitoring" else "Inactive",
-                    connectedSince = "OCT 2023"
+                    connectedSince = formattedDate
                 )
             }
         }
@@ -50,6 +61,7 @@ class RegulatorViewModel @Inject constructor(
         viewModelScope.launch {
             regulatorRepository.saveGuardianName(name)
             regulatorRepository.saveGuardianPhone(phone)
+            regulatorRepository.saveGuardianConnectedSince(System.currentTimeMillis())
         }
     }
 

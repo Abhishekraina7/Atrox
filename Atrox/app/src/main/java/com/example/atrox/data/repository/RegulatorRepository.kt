@@ -3,6 +3,7 @@ package com.example.atrox.data.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.atrox.domain.repository.IRegulatorRepository
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +17,7 @@ class RegulatorRepository @Inject constructor(
 ) : IRegulatorRepository {
     private val GUARDIAN_PHONE_KEY = stringPreferencesKey("guardian_phone")
     private val GUARDIAN_NAME_KEY = stringPreferencesKey("guardian_name")
+    private val GUARDIAN_CONNECTED_SINCE_KEY = longPreferencesKey("guardian_connected_since")
 
     override val guardianPhone: Flow<String?> = dataStore.data.map { preferences ->
         preferences[GUARDIAN_PHONE_KEY]
@@ -23,6 +25,10 @@ class RegulatorRepository @Inject constructor(
 
     override val guardianName: Flow<String?> = dataStore.data.map { preferences ->
         preferences[GUARDIAN_NAME_KEY]
+    }
+
+    override val guardianConnectedSince: Flow<Long?> = dataStore.data.map { preferences ->
+        preferences[GUARDIAN_CONNECTED_SINCE_KEY]
     }
 
     override suspend fun saveGuardianPhone(phone: String) {
@@ -37,10 +43,17 @@ class RegulatorRepository @Inject constructor(
         }
     }
 
+    override suspend fun saveGuardianConnectedSince(timestamp: Long) {
+        dataStore.edit { preferences ->
+            preferences[GUARDIAN_CONNECTED_SINCE_KEY] = timestamp
+        }
+    }
+
     override suspend fun clearGuardian() {
         dataStore.edit { preferences ->
             preferences.remove(GUARDIAN_PHONE_KEY)
             preferences.remove(GUARDIAN_NAME_KEY)
+            preferences.remove(GUARDIAN_CONNECTED_SINCE_KEY)
         }
     }
 }
