@@ -42,6 +42,8 @@ object NotificationHelper {
     }
 
     fun sendNotification(context: Context, notificationId: Int, title: String, message: String, channelId: String = CHANNEL_ID_GOALS) {
+        createNotificationChannels(context) // Bulletproof JIT channel creation
+        
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -51,7 +53,7 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher_round) // Replace with a transparent status bar icon later if available
+            .setSmallIcon(R.drawable.ic_notifications) // Replace with a transparent status bar icon later if available
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(if (channelId == CHANNEL_ID_GOALS) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_DEFAULT)

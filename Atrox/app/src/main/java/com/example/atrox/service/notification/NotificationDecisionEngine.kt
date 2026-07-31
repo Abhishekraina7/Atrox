@@ -68,7 +68,7 @@ class NotificationDecisionEngine @Inject constructor(
         }
 
         // 2. Mid-day Slump (Behavioral)
-        if (sprintRemindersEnabled && hour in 13..16 && hoursSinceLastActive >= 3) {
+        if (sprintRemindersEnabled && hour in 12..16 && hoursSinceLastActive >= 3) {
             return NotificationState.ShouldSend(
                 scenarioId = 6,
                 title = "Mid-day Slump?",
@@ -77,7 +77,7 @@ class NotificationDecisionEngine @Inject constructor(
         }
 
         // 3. Evening Rescue (Time-Based)
-        if (dailyGoalNudgeEnabled && hour == 18 && completedSprintsToday < dailyGoal / 2) {
+        if (dailyGoalNudgeEnabled && hour in 17..19 && completedSprintsToday < dailyGoal / 2) {
             return NotificationState.ShouldSend(
                 scenarioId = 2,
                 title = "The day isn't over yet",
