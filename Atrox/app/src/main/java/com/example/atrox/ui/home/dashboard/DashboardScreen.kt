@@ -344,8 +344,6 @@ fun TaskItemRow(task: TaskItem, onToggle: () -> Unit) {
                 textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
             )
         }
-
-        Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

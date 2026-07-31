@@ -2,7 +2,9 @@ package com.example.atrox.ui.home.stats
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -62,6 +64,9 @@ fun StatsScreen(
     val chartData by viewModel.chartData.collectAsState()
     var selectedDateForPopup by remember { mutableStateOf<String?>(null) }
     
+    val currentMonthYear = remember {
+        LocalDate.now().format(DateTimeFormatter.ofPattern("MM-yy"))
+    }
     val scrollState = rememberScrollState()
     val atroxColors = MaterialTheme.atroxColors
     val context = LocalContext.current
@@ -154,7 +159,7 @@ fun StatsScreen(
                         .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "MAR 18-24",
+                        text = currentMonthYear,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize =10.sp,
                         fontWeight = FontWeight.Bold,
