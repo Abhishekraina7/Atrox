@@ -143,6 +143,15 @@ class ProfileViewModel @Inject constructor(
         val fbName = user?.displayName?.takeIf { it.isNotBlank() } ?: emailPrefix.replaceFirstChar { it.uppercase() }
         val handle = if (emailPrefix.isNotBlank()) "@$emailPrefix" else ""
 
+        val creationTimestamp = user?.metadata?.creationTimestamp
+        val memberSinceText = if (creationTimestamp != null) {
+            val date = java.util.Date(creationTimestamp)
+            val format = java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.getDefault())
+            "Member since ${format.format(date)}"
+        } else {
+            "Member since October 2023"
+        }
+
         viewModelScope.launch {
             combine(
                 userPreferencesRepository.displayName,
@@ -155,6 +164,7 @@ class ProfileViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     name = finalName.ifBlank { "User" },
                     handle = handle,
+                    memberSince = memberSinceText,
                     avatarInitial = finalAvatarInitial,
                     avatar = avatar
                 )
