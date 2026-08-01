@@ -61,7 +61,7 @@ data class ProfileUiState(
     ),
     val allBadges: List<BadgeState> = emptyList(),
     val settingsItems: List<SettingsItem> = listOf(
-        SettingsItem("My Regulator", "Manage productivity thresholds", "🛡️", Color(0xFF42A5F5)),
+        SettingsItem("My Guardian", "Manage productivity thresholds", "🛡️", Color(0xFF42A5F5)),
         SettingsItem("Streak History", "View performance timeline", "🔥", Color(0xFFFF9800), isComingSoon = true),
         SettingsItem("Export Data", "Download focus logs (CSV/JSON)", "📦", Color(0xFF9C27B0), isComingSoon = true)
     )
@@ -82,24 +82,15 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun updateBadges() {
-        val state = _uiState.value
-        val badges = BadgeCatalogue.badges.map { badge ->
-            val unlocked = when (badge.id) {
-                "b1" -> state.sprints >= 1
-                "b2" -> state.focusHours >= 2.0
-                "b3" -> state.streakDays >= 3
-                "b4" -> true
-                "b5" -> true
-                "b6" -> state.focusHours >= 10.0
-                "b7" -> state.streakDays >= 7
-                "b8" -> true
-                "b9" -> true
-                "b10" -> state.sprints >= 100
-                else -> false
+        viewModelScope.launch {
+            userPreferencesRepository.unlockedBadges.collect { unlockedIds ->
+                val state = _uiState.value
+                val badges = BadgeCatalogue.badges.map { badge ->
+                    BadgeState(badge, badge.id in unlockedIds)
+                }
+                _uiState.value = state.copy(allBadges = badges)
             }
-            BadgeState(badge, unlocked)
         }
-        _uiState.value = state.copy(allBadges = badges)
     }
 
     private fun loadPreferences() {

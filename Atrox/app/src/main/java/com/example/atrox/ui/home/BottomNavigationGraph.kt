@@ -41,6 +41,7 @@ import com.example.atrox.ui.home.profile.ProfileScreen
 import com.example.atrox.ui.home.profile.RegulatorScreen
 import com.example.atrox.ui.home.profile.SettingsScreen
 import com.example.atrox.ui.home.profile.StreakHistoryScreen
+import com.example.atrox.ui.components.GlobalBadgePopup
 
 const val FOCUS_ROUTE = "focus_session/{taskId}"
 fun focusRoute(taskId: String) = "focus_session/$taskId"
@@ -227,6 +228,10 @@ fun BottomNavigation(
                 )
             }
         }
+        
+        // --- GLOBAL BADGE POPUP ---
+        val isBlocked = currentRoute?.startsWith("focus_session") == true || currentRoute == FOCUS_BREAK_ROUTE
+        GlobalBadgePopup(isBlocked = isBlocked)
     }
 }
 

@@ -39,6 +39,7 @@ class UserPreferencesRepository @Inject constructor(
         val SPRINT_REMINDERS = booleanPreferencesKey("sprint_reminders")
         val DAILY_GOAL_NUDGE = booleanPreferencesKey("daily_goal_nudge")
         val HAPTIC_FEEDBACK = booleanPreferencesKey("haptic_feedback")
+        val UNLOCKED_BADGES = stringSetPreferencesKey("unlocked_badges")
     }
 
     override val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -120,6 +121,10 @@ class UserPreferencesRepository @Inject constructor(
     override val hapticFeedback: Flow<Boolean> = dataStore.data
         .catch { emit(emptyPreferences()) }
         .map { preferences -> preferences[PreferencesKeys.HAPTIC_FEEDBACK] ?: true }
+
+    override val unlockedBadges: Flow<Set<String>> = dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { preferences -> preferences[PreferencesKeys.UNLOCKED_BADGES] ?: emptySet() }
 
     //functions
     override suspend fun setLoggedIn(isLoggedIn: Boolean) {
@@ -203,5 +208,12 @@ class UserPreferencesRepository @Inject constructor(
 
     override suspend fun setHapticFeedback(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[PreferencesKeys.HAPTIC_FEEDBACK] = enabled }
+    }
+
+    override suspend fun addUnlockedBadge(badgeId: String) {
+        dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.UNLOCKED_BADGES] ?: emptySet()
+            preferences[PreferencesKeys.UNLOCKED_BADGES] = current + badgeId
+        }
     }
 }

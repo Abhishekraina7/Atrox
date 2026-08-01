@@ -21,8 +21,9 @@ interface IUserPreferencesRepository {
     val sprintReminders: Flow<Boolean>
     val dailyGoalNudge: Flow<Boolean>
     val hapticFeedback: Flow<Boolean>
+    val unlockedBadges: Flow<Set<String>>
 
-    suspend fun setLoggedIn(isLoggedIn: Boolean)
+    suspend fun addUnlockedBadge(badgeId: String)    suspend fun setLoggedIn(isLoggedIn: Boolean)
     suspend fun setPrimaryGoal(goal: String)
     suspend fun setFocusGoals(goals: Set<String>)
     suspend fun setTargetHours(hours: Float)

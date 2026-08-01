@@ -236,10 +236,14 @@ class FocusViewModel @Inject constructor(
     }
 
     private fun loadBadges() {
-        val badges = BadgeCatalogue.badges.mapIndexed { index, badge ->
-            BadgeState(badge, isUnlocked = index < 5)
+        viewModelScope.launch {
+            userPreferencesRepository.unlockedBadges.collect { unlockedIds ->
+                val badges = BadgeCatalogue.badges.map { badge ->
+                    BadgeState(badge, isUnlocked = badge.id in unlockedIds)
+                }
+                _uiState.value = _uiState.value.copy(unlockedBadges = badges)
+            }
         }
-        _uiState.value = _uiState.value.copy(unlockedBadges = badges)
     }
 
     private fun loadUserProfile() {
