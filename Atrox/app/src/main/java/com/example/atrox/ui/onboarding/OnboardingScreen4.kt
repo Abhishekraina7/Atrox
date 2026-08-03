@@ -1,6 +1,8 @@
 package com.example.atrox.ui.onboarding
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,22 +10,20 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +37,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import kotlinx.coroutines.delay
 
 data class CountryInfo(val code: String, val name: String, val flag: String)
 val countryList = listOf(
@@ -162,44 +163,10 @@ fun OnboardingScreen4(
             )
         }
 
-        // --- 3. Image Card with TextOverlay ---
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
-                .padding(bottom = 24.dp)
-        ) {
-            // Gradient Overlay
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
-                            startY = 100f
-                        )
-                    )
-            )
+        // --- 3. Trust Indicator Strip ---
+        GuardianTrustStrip()
 
-            // Text on Image
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.onboarding_choose_regulator),
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = (-0.5).sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp)) // ensure gap
+        Spacer(modifier = Modifier.height(24.dp))
 
         // --- 4. Description Section ---
         Text(
@@ -410,4 +377,78 @@ fun CountryCodePickerDialog(
             }
         }
     )
+}
+
+private data class GuardianFeature(val emoji: String, val title: String, val subtitle: String, val accentColor: Color)
+
+private val guardianFeatures = listOf(
+    GuardianFeature("📊", "Progress Reports", "Weekly updates on focus habits", Color(0xFF42A5F5)),
+    GuardianFeature("🔔", "Smart Alerts", "Notified when goals are missed", Color(0xFFFF9800)),
+    GuardianFeature("🛡️", "Accountability", "Trusted oversight of your journey", Color(0xFF6C63FF)),
+)
+
+@Composable
+fun GuardianTrustStrip() {
+    val animations = remember { guardianFeatures.map { Animatable(0f) } }
+    LaunchedEffect(Unit) {
+        animations.forEachIndexed { index, anim ->
+            delay(index * 200L)
+            anim.animateTo(1f, animationSpec = tween(500, easing = EaseInOutCubic))
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        guardianFeatures.forEachIndexed { index, feature ->
+            val progress = animations[index].value
+            GuardianFeatureCard(
+                feature = feature,
+                modifier = Modifier
+                    .weight(1f)
+                    .graphicsLayer {
+                        alpha = progress
+                        translationY = (1f - progress) * 30f
+                    }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GuardianFeatureCard(feature: GuardianFeature, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+            .padding(vertical = 16.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(feature.accentColor.copy(alpha = 0.15f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = feature.emoji, fontSize = 20.sp)
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = feature.title,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = feature.subtitle,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center,
+            lineHeight = 14.sp
+        )
+    }
 }

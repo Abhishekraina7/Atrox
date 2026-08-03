@@ -51,7 +51,7 @@ fun OnboardingScreen2(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(top = 20.dp, bottom = 32.dp)
+            .padding(top = 24.dp, bottom = 32.dp)
     ) {
         // --- 1. Top Bar (Back Button + Progress) ---
         Box(
@@ -66,16 +66,24 @@ fun OnboardingScreen2(
                     .size(24.dp)
                     .clickable { viewModel.onBackClicked() }
             )
+            Text(
+                text = stringResource(R.string.onboarding2_topbar_title),
+                color = MaterialTheme.colorScheme.onBackground,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
 
         // --- 2. Title Section ---
         Text(
             text = stringResource(R.string.onboarding2_title),
             color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 32.sp,
+            fontSize = 28.sp,
             fontWeight = FontWeight.ExtraBold,
             lineHeight = 36.sp,
             letterSpacing = (-1).sp,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 12.dp)
         )
         Text(
@@ -83,6 +91,7 @@ fun OnboardingScreen2(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 15.sp,
             lineHeight = 22.sp,
+            textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
