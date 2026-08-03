@@ -6,4 +6,5 @@ interface IAuthRepository {
     suspend fun signInWithGoogleCredential(idToken: String): Result<AuthResult>
     suspend fun signInWithEmailAndPassword(email: String, password: String): Result<AuthResult>
     suspend fun createUserWithEmailAndPassword(email: String, password: String): Result<AuthResult>
+    suspend fun signOut()
 }

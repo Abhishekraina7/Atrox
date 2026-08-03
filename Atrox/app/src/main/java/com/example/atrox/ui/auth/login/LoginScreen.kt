@@ -350,8 +350,9 @@ fun LoginScreen(
                     iconText = "G",
                     isLoading = isGoogleLoading,
                     onClick = {
-                        coroutineScope.launch {
-                            try {
+                        if (viewModel.onGoogleSignInClicked()) {
+                            coroutineScope.launch {
+                                try {
                                 viewModel.setGoogleLoading(true)
 
                                 // Uses the WEB_CLIENT_ID from BuildConfig which is pulled from local.properties
@@ -399,6 +400,7 @@ fun LoginScreen(
                             } finally {
                                 viewModel.setGoogleLoading(false)
                             }
+                        }
                         }
                     },
                     modifier = Modifier.weight(1f)

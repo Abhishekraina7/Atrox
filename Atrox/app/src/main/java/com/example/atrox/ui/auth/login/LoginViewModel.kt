@@ -142,9 +142,12 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun onGoogleSignInClicked() {
-        // This acts as a trigger fallback or UI state toggle if needed, 
-        // but actual login flow is initiated from Compose UI since it requires Context.
+    fun onGoogleSignInClicked(): Boolean {
+        if(!networkHelper.isNetworkConnected()){
+            showTemporaryError("No Internet Connection. Please check your settings.")
+            return false
+        }
+        return true
     }
 
     fun onAppleSignInClicked() {

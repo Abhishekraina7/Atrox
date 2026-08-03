@@ -38,4 +38,7 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
+    override suspend fun signOut() {
+        firebaseAuth.signOut()
+    }
 }
