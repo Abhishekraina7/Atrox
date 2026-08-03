@@ -18,6 +18,7 @@
     <string name="onboarding1_begin_button">Let\'s begin</string>
 
     <!-- Onboarding Screen 2 -->
+    <string name="onboarding2_topbar_title">Sprint Preferences</string>
     <string name="onboarding2_title">What do you want to achieve?</string>
     <string name="onboarding2_subtitle">Select your primary focus goal to personalize your experience.</string>
     <string name="onboarding2_target_title">Daily focus target</string>
