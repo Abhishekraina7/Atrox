@@ -25,4 +25,11 @@ interface TaskDao {
     
     @Query("DELETE FROM task_table WHERE id = :taskId")
     suspend fun deleteTaskById(taskId: String)
+
+    // Sync queries
+    @Query("SELECT * FROM task_table WHERE isSynced = 0 AND userId = :userId")
+    suspend fun getUnsyncedTasks(userId: String): List<TaskItem>
+
+    @Query("SELECT * FROM task_table WHERE userId = :userId")
+    suspend fun getAllTasksForUser(userId: String): List<TaskItem>
 }

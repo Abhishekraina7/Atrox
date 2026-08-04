@@ -8,10 +8,18 @@ import kotlinx.serialization.Serializable
 @Entity(tableName = "task_table")
 data class TaskItem(
     @PrimaryKey
-    val id: String,
-    val title: String,
-    val category: String,
-    val durationMin: Int,
-    val isCompleted: Boolean,
-    val dateString: String = ""
+    val id: String = "",
+    val title: String = "",
+    val category: String = "",
+    val durationMin: Int = 0,
+    val isCompleted: Boolean = false,
+    val dateString: String = "",
+    
+    // Cloud Sync fields
+    @androidx.room.ColumnInfo(defaultValue = "0")
+    val updatedAt: Long = System.currentTimeMillis(),
+    @androidx.room.ColumnInfo(defaultValue = "0")
+    val isSynced: Boolean = false,
+    @androidx.room.ColumnInfo(defaultValue = "''")
+    val userId: String = ""
 )

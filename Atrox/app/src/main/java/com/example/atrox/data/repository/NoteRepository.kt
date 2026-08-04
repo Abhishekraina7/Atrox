@@ -6,8 +6,12 @@ import com.example.atrox.domain.repository.INoteRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+import com.google.firebase.auth.FirebaseAuth
+import dagger.Lazy
+
 class NoteRepository @Inject constructor(
-    private val noteDao: NoteDao
+    private val noteDao: NoteDao,
+    private val firebaseAuth: Lazy<FirebaseAuth>
 ) : INoteRepository {
     override fun getAllNotes(): Flow<List<NoteEntity>> = noteDao.getAllNotes()
     
@@ -18,7 +22,13 @@ class NoteRepository @Inject constructor(
     override fun getNoteById(id: String): Flow<NoteEntity?> = noteDao.getNoteById(id)
 
     override suspend fun insertNote(note: NoteEntity) {
-        noteDao.insertNote(note)
+        val uid = firebaseAuth.get().currentUser?.uid ?: ""
+        val updatedNote = note.copy(
+            userId = uid,
+            updatedAt = System.currentTimeMillis(),
+            isSynced = false
+        )
+        noteDao.insertNote(updatedNote)
     }
 
     override suspend fun moveToTrash(id: String, timestamp: Long) {
@@ -26,7 +36,7 @@ class NoteRepository @Inject constructor(
     }
 
     override suspend fun restoreNote(id: String) {
-        noteDao.restoreNote(id)
+        noteDao.restoreNote(id, System.currentTimeMillis())
     }
 
     override suspend fun permanentlyDeleteNoteById(id: String) {

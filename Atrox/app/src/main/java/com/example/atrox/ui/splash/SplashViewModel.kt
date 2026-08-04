@@ -16,10 +16,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.atrox.data.local.preferences.UserPreferencesRepository
 import kotlinx.coroutines.flow.first
 
+import com.example.atrox.domain.sync.CloudSyncManager
+
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val preferences: UserPreferencesRepository,
-    private val firebaseAuth: Lazy<FirebaseAuth>
+    private val firebaseAuth: Lazy<FirebaseAuth>,
+    private val cloudSyncManager: CloudSyncManager
 ) : ViewModel() {
 
     // MutableSharedFlow is used over StateFlow because navigation is a "one-shot" event.
@@ -56,9 +59,11 @@ class SplashViewModel @Inject constructor(
                 _events.emit(SplashEvent.NavigateToLogin)
             } else if (primaryGoal.isEmpty()) {
                 // Authenticated, but hasn't completed onboarding profile
+                cloudSyncManager.sync()
                 _events.emit(SplashEvent.NavigateToOnboarding)
             } else {
                 // Authenticated and fully set up
+                cloudSyncManager.sync()
                 _events.emit(SplashEvent.NavigateToHome)
             }
         }

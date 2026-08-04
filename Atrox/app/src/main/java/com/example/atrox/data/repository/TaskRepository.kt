@@ -7,9 +7,13 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import com.google.firebase.auth.FirebaseAuth
+import dagger.Lazy
+
 @Singleton
 class TaskRepository @Inject constructor(
-    private val taskDao: TaskDao
+    private val taskDao: TaskDao,
+    private val firebaseAuth: Lazy<FirebaseAuth>
 ) : ITaskRepository {
     override val tasks: Flow<List<TaskItem>> = taskDao.getAllTasks()
     
@@ -18,18 +22,36 @@ class TaskRepository @Inject constructor(
     }
 
     override suspend fun saveTasks(tasks: List<TaskItem>) {
-        taskDao.insertTasks(tasks)
+        val uid = firebaseAuth.get().currentUser?.uid ?: ""
+        val updatedTasks = tasks.map { 
+            it.copy(userId = uid, updatedAt = System.currentTimeMillis(), isSynced = false) 
+        }
+        taskDao.insertTasks(updatedTasks)
     }
     
     override suspend fun insertTask(task: TaskItem) {
-        taskDao.insertTask(task)
+        val uid = firebaseAuth.get().currentUser?.uid ?: ""
+        val updatedTask = task.copy(
+            userId = uid, 
+            updatedAt = System.currentTimeMillis(), 
+            isSynced = false
+        )
+        taskDao.insertTask(updatedTask)
     }
     
     override suspend fun updateTask(task: TaskItem) {
-        taskDao.updateTask(task)
+        val uid = firebaseAuth.get().currentUser?.uid ?: ""
+        val updatedTask = task.copy(
+            userId = uid, 
+            updatedAt = System.currentTimeMillis(), 
+            isSynced = false
+        )
+        taskDao.updateTask(updatedTask)
     }
     
     override suspend fun deleteTaskById(taskId: String) {
+        // Hard deletes won't sync offline well without a tombstone,
+        // but for now we execute the local delete.
         taskDao.deleteTaskById(taskId)
     }
 }

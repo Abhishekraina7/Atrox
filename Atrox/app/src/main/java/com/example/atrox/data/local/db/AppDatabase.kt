@@ -19,7 +19,20 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
-@Database(entities = [NoteEntity::class, TaskItem::class], version = 4, exportSchema = false)
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // Notes
+        database.execSQL("ALTER TABLE `notes` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE `notes` ADD COLUMN `isSynced` INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE `notes` ADD COLUMN `userId` TEXT NOT NULL DEFAULT ''")
+        // Tasks
+        database.execSQL("ALTER TABLE `task_table` ADD COLUMN `updatedAt` INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE `task_table` ADD COLUMN `isSynced` INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE `task_table` ADD COLUMN `userId` TEXT NOT NULL DEFAULT ''")
+    }
+}
+
+@Database(entities = [NoteEntity::class, TaskItem::class], version = 5, exportSchema = false)
 @TypeConverters(NoteConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao

@@ -123,7 +123,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     //--- firebase ---
-    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    implementation(platform(libs.firebase.bom))
     implementation("com.google.firebase:firebase-analytics")
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
@@ -146,3 +146,4 @@ dependencies {
     // --- LeakCanary ---
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
 }
+

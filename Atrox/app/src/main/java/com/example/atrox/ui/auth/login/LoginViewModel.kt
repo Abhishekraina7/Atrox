@@ -15,6 +15,7 @@ import com.example.atrox.data.remote.auth.AuthRepository
 import com.example.atrox.data.local.preferences.UserPreferencesRepository
 import com.example.atrox.data.remote.auth.UserRepository
 import com.example.atrox.utils.NetworkChecker
+import com.example.atrox.domain.sync.CloudSyncManager
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,7 +23,8 @@ class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val networkHelper: NetworkChecker
+    private val networkHelper: NetworkChecker,
+    private val cloudSyncManager: CloudSyncManager
 ) : ViewModel() {
 
     private val _events = MutableSharedFlow<LoginEvent>()
@@ -95,6 +97,7 @@ class LoginViewModel @Inject constructor(
                             username = _username.value
                         )
                     }
+                    cloudSyncManager.sync()
                     userPreferencesRepository.setLoggedIn(true)
                     _events.emit(LoginEvent.NavigateToOnboarding)
                 }.onFailure { exception ->
@@ -104,6 +107,7 @@ class LoginViewModel @Inject constructor(
                 // Sign In Flow
                 val result = authRepository.signInWithEmailAndPassword(_email.value, _password.value)
                 result.onSuccess {
+                    cloudSyncManager.sync()
                     userPreferencesRepository.setLoggedIn(true)
                     _events.emit(LoginEvent.NavigateToOnboarding)
                 }.onFailure { exception ->
@@ -133,6 +137,7 @@ class LoginViewModel @Inject constructor(
                 }
                 
                 // Save session local state
+                cloudSyncManager.sync()
                 userPreferencesRepository.setLoggedIn(true)
                 _events.emit(LoginEvent.NavigateToOnboarding)
             }.onFailure { exception ->

@@ -23,15 +23,25 @@ interface NoteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(note: NoteEntity)
 
-    @Query("UPDATE notes SET isDeleted = 1, deletedTimestamp = :timestamp WHERE id = :id")
+    @Query("UPDATE notes SET isDeleted = 1, deletedTimestamp = :timestamp, isSynced = 0, updatedAt = :timestamp WHERE id = :id")
     suspend fun moveToTrash(id: String, timestamp: Long)
 
-    @Query("UPDATE notes SET isDeleted = 0, deletedTimestamp = null WHERE id = :id")
-    suspend fun restoreNote(id: String)
+    @Query("UPDATE notes SET isDeleted = 0, deletedTimestamp = null, isSynced = 0, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun restoreNote(id: String, updatedAt: Long)
 
     @Query("DELETE FROM notes WHERE id = :id")
     suspend fun permanentlyDeleteNoteById(id: String)
 
     @Query("DELETE FROM notes WHERE isDeleted = 1 AND deletedTimestamp < :expirationTimestamp")
     suspend fun deleteExpiredNotes(expirationTimestamp: Long)
+
+    // Sync queries
+    @Query("SELECT * FROM notes WHERE isSynced = 0 AND userId = :userId")
+    suspend fun getUnsyncedNotes(userId: String): List<NoteEntity>
+
+    @Query("SELECT * FROM notes WHERE userId = :userId")
+    suspend fun getAllNotesForUser(userId: String): List<NoteEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertNotes(notes: List<NoteEntity>)
 }
