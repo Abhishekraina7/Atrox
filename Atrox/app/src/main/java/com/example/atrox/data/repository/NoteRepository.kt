@@ -9,9 +9,20 @@ import javax.inject.Inject
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Lazy
 
+import android.content.Context
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.atrox.domain.sync.CloudSyncManager
+import com.example.atrox.worker.SyncWorker
+import dagger.hilt.android.qualifiers.ApplicationContext
+
 class NoteRepository @Inject constructor(
     private val noteDao: NoteDao,
-    private val firebaseAuth: Lazy<FirebaseAuth>
+    private val firebaseAuth: Lazy<FirebaseAuth>,
+    @ApplicationContext private val context: Context,
+    private val cloudSyncManager: CloudSyncManager
 ) : INoteRepository {
     override fun getAllNotes(): Flow<List<NoteEntity>> = noteDao.getAllNotes()
     
@@ -21,6 +32,13 @@ class NoteRepository @Inject constructor(
 
     override fun getNoteById(id: String): Flow<NoteEntity?> = noteDao.getNoteById(id)
 
+    private fun triggerSync() {
+        cloudSyncManager.syncPushOnlyAsync()
+        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        val workRequest = OneTimeWorkRequestBuilder<SyncWorker>().setConstraints(constraints).build()
+        WorkManager.getInstance(context).enqueue(workRequest)
+    }
+
     override suspend fun insertNote(note: NoteEntity) {
         val uid = firebaseAuth.get().currentUser?.uid ?: ""
         val updatedNote = note.copy(
@@ -29,14 +47,17 @@ class NoteRepository @Inject constructor(
             isSynced = false
         )
         noteDao.insertNote(updatedNote)
+        triggerSync()
     }
 
     override suspend fun moveToTrash(id: String, timestamp: Long) {
         noteDao.moveToTrash(id, timestamp)
+        triggerSync()
     }
 
     override suspend fun restoreNote(id: String) {
         noteDao.restoreNote(id, System.currentTimeMillis())
+        triggerSync()
     }
 
     override suspend fun permanentlyDeleteNoteById(id: String) {
