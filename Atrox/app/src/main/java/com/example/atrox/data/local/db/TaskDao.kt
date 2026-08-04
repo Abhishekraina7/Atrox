@@ -32,4 +32,7 @@ interface TaskDao {
 
     @Query("SELECT * FROM task_table WHERE userId = :userId")
     suspend fun getAllTasksForUser(userId: String): List<TaskItem>
+
+    @Query("UPDATE task_table SET isSynced = 1 WHERE id = :id AND updatedAt = :updatedAt")
+    suspend fun markTaskAsSynced(id: String, updatedAt: Long)
 }

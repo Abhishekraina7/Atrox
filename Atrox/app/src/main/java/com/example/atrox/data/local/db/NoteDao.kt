@@ -44,4 +44,7 @@ interface NoteDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNotes(notes: List<NoteEntity>)
+
+    @Query("UPDATE notes SET isSynced = 1 WHERE id = :id AND updatedAt = :updatedAt")
+    suspend fun markNoteAsSynced(id: String, updatedAt: Long)
 }

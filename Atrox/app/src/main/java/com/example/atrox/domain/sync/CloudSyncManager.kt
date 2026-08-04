@@ -33,9 +33,9 @@ class CloudSyncManager @Inject constructor(
             val userId = currentUser.uid
             Log.d("CloudSyncManager", "sync: Starting sync for user $userId")
 
-        // 1. PULL REMOTE CHANGES
-        pullNotes(userId)
-        pullTasks(userId)
+            // 1. PULL REMOTE CHANGES
+            pullNotes(userId)
+            pullTasks(userId)
 
             // 2. PUSH LOCAL CHANGES
             pushNotes(userId)
@@ -105,8 +105,9 @@ class CloudSyncManager @Inject constructor(
         Log.d("CloudSyncManager", "pushNotes: Pushing ${unsyncedNotes.size} notes to Firestore...")
         firestoreRepository.syncNotes(userId, unsyncedNotes).onSuccess {
             Log.d("CloudSyncManager", "pushNotes: Successfully pushed notes. Marking as synced locally.")
-            val syncedNotes = unsyncedNotes.map { it.copy(isSynced = true) }
-            noteDao.insertNotes(syncedNotes)
+            unsyncedNotes.forEach { note ->
+                noteDao.markNoteAsSynced(note.id, note.updatedAt)
+            }
         }.onFailure {
             Log.e("CloudSyncManager", "pushNotes: Failed to push notes to Firestore", it)
         }
@@ -150,8 +151,9 @@ class CloudSyncManager @Inject constructor(
         Log.d("CloudSyncManager", "pushTasks: Pushing ${unsyncedTasks.size} tasks to Firestore...")
         firestoreRepository.syncTasks(userId, unsyncedTasks).onSuccess {
             Log.d("CloudSyncManager", "pushTasks: Successfully pushed tasks. Marking as synced locally.")
-            val syncedTasks = unsyncedTasks.map { it.copy(isSynced = true) }
-            taskDao.insertTasks(syncedTasks)
+            unsyncedTasks.forEach { task ->
+                taskDao.markTaskAsSynced(task.id, task.updatedAt)
+            }
         }.onFailure {
             Log.e("CloudSyncManager", "pushTasks: Failed to push tasks to Firestore", it)
         }
