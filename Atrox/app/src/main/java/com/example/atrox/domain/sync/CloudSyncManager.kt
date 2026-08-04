@@ -9,6 +9,11 @@ import dagger.Lazy
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+
 @Singleton
 class CloudSyncManager @Inject constructor(
     private val firestoreRepository: IFirestoreRepository,
@@ -16,25 +21,28 @@ class CloudSyncManager @Inject constructor(
     private val taskDao: TaskDao,
     private val firebaseAuth: Lazy<FirebaseAuth>
 ) {
+    private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    suspend fun sync() {
-        val currentUser = firebaseAuth.get().currentUser
-        if (currentUser == null) {
-            Log.d("CloudSyncManager", "sync: User is null, aborting sync.")
-            return
-        }
-        val userId = currentUser.uid
-        Log.d("CloudSyncManager", "sync: Starting sync for user $userId")
+    fun sync() {
+        syncScope.launch {
+            val currentUser = firebaseAuth.get().currentUser
+            if (currentUser == null) {
+                Log.d("CloudSyncManager", "sync: User is null, aborting sync.")
+                return@launch
+            }
+            val userId = currentUser.uid
+            Log.d("CloudSyncManager", "sync: Starting sync for user $userId")
 
         // 1. PULL REMOTE CHANGES
         pullNotes(userId)
         pullTasks(userId)
 
-        // 2. PUSH LOCAL CHANGES
-        pushNotes(userId)
-        pushTasks(userId)
-        
-        Log.d("CloudSyncManager", "sync: Finished sync for user $userId")
+            // 2. PUSH LOCAL CHANGES
+            pushNotes(userId)
+            pushTasks(userId)
+            
+            Log.d("CloudSyncManager", "sync: Finished sync for user $userId")
+        }
     }
 
     private suspend fun pullNotes(userId: String) {
