@@ -58,4 +58,28 @@ class FirestoreRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun deleteNote(userId: String, noteId: String): Result<Unit> {
+        return try {
+            firestore.collection("users").document(userId)
+                .collection("notes").document(noteId)
+                .delete()
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteTask(userId: String, taskId: String): Result<Unit> {
+        return try {
+            firestore.collection("users").document(userId)
+                .collection("tasks").document(taskId)
+                .delete()
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

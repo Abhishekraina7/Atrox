@@ -32,9 +32,16 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
     }
 }
 
-@Database(entities = [NoteEntity::class, TaskItem::class], version = 5, exportSchema = false)
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("CREATE TABLE IF NOT EXISTS `deleted_items` (`itemId` TEXT NOT NULL, `itemType` TEXT NOT NULL, `userId` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, PRIMARY KEY(`itemId`))")
+    }
+}
+
+@Database(entities = [NoteEntity::class, TaskItem::class, DeletedItemEntity::class], version = 6, exportSchema = false)
 @TypeConverters(NoteConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun taskDao(): TaskDao
+    abstract fun deletedItemDao(): DeletedItemDao
 }
