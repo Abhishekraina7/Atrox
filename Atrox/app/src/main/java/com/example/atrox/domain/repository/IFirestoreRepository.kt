@@ -9,4 +9,7 @@ interface IFirestoreRepository {
     
     suspend fun syncTasks(userId: String, tasks: List<TaskItem>): Result<Unit>
     suspend fun fetchTasks(userId: String): Result<List<TaskItem>>
+
+    suspend fun deleteNote(userId: String, noteId: String): Result<Unit>
+    suspend fun deleteTask(userId: String, taskId: String): Result<Unit>
 }

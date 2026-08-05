@@ -16,10 +16,13 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.atrox.domain.sync.CloudSyncManager
 import com.example.atrox.worker.SyncWorker
+import com.example.atrox.data.local.db.DeletedItemDao
+import com.example.atrox.data.local.db.DeletedItemEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 class NoteRepository @Inject constructor(
     private val noteDao: NoteDao,
+    private val deletedItemDao: DeletedItemDao,
     private val firebaseAuth: Lazy<FirebaseAuth>,
     @ApplicationContext private val context: Context,
     private val cloudSyncManager: CloudSyncManager
@@ -61,7 +64,12 @@ class NoteRepository @Inject constructor(
     }
 
     override suspend fun permanentlyDeleteNoteById(id: String) {
+        val uid = firebaseAuth.get().currentUser?.uid ?: ""
         noteDao.permanentlyDeleteNoteById(id)
+        if (uid.isNotEmpty()) {
+            deletedItemDao.insertTombstone(DeletedItemEntity(id, "NOTE", uid))
+            triggerSync()
+        }
     }
 
     override suspend fun deleteExpiredNotes(expirationTimestamp: Long) {

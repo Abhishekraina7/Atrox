@@ -17,11 +17,14 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.atrox.domain.sync.CloudSyncManager
 import com.example.atrox.worker.SyncWorker
+import com.example.atrox.data.local.db.DeletedItemDao
+import com.example.atrox.data.local.db.DeletedItemEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Singleton
 class TaskRepository @Inject constructor(
     private val taskDao: TaskDao,
+    private val deletedItemDao: DeletedItemDao,
     private val firebaseAuth: Lazy<FirebaseAuth>,
     @ApplicationContext private val context: Context,
     private val cloudSyncManager: CloudSyncManager
@@ -71,8 +74,11 @@ class TaskRepository @Inject constructor(
     }
     
     override suspend fun deleteTaskById(taskId: String) {
-        // Hard deletes won't sync offline well without a tombstone,
-        // but for now we execute the local delete.
+        val uid = firebaseAuth.get().currentUser?.uid ?: ""
         taskDao.deleteTaskById(taskId)
+        if (uid.isNotEmpty()) {
+            deletedItemDao.insertTombstone(DeletedItemEntity(taskId, "TASK", uid))
+            triggerSync()
+        }
     }
 }

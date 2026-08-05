@@ -1,5 +1,6 @@
 package com.example.atrox.domain.sync
 
+import com.example.atrox.data.local.db.DeletedItemDao
 import com.example.atrox.data.local.db.NoteDao
 import com.example.atrox.data.local.db.TaskDao
 import com.example.atrox.domain.repository.IFirestoreRepository
@@ -19,6 +20,7 @@ class CloudSyncManager @Inject constructor(
     private val firestoreRepository: IFirestoreRepository,
     private val noteDao: NoteDao,
     private val taskDao: TaskDao,
+    private val deletedItemDao: DeletedItemDao,
     private val firebaseAuth: Lazy<FirebaseAuth>
 ) {
     private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -40,6 +42,7 @@ class CloudSyncManager @Inject constructor(
             // 2. PUSH LOCAL CHANGES
             pushNotes(userId)
             pushTasks(userId)
+            pushDeletions(userId)
             
             Log.d("CloudSyncManager", "sync: Finished sync for user $userId")
         }
@@ -56,6 +59,7 @@ class CloudSyncManager @Inject constructor(
         
         pushNotes(userId)
         pushTasks(userId)
+        pushDeletions(userId)
         
         Log.d("CloudSyncManager", "syncPushOnly: Finished guaranteed background push for user $userId")
     }
@@ -156,6 +160,28 @@ class CloudSyncManager @Inject constructor(
             }
         }.onFailure {
             Log.e("CloudSyncManager", "pushTasks: Failed to push tasks to Firestore", it)
+        }
+    }
+
+    private suspend fun pushDeletions(userId: String) {
+        Log.d("CloudSyncManager", "pushDeletions: Checking for deleted item tombstones...")
+        val tombstones = deletedItemDao.getTombstonesForUser(userId)
+        if (tombstones.isEmpty()) return
+        
+        Log.d("CloudSyncManager", "pushDeletions: Found ${tombstones.size} tombstones. Pushing deletions...")
+        tombstones.forEach { tombstone ->
+            val result = if (tombstone.itemType == "NOTE") {
+                firestoreRepository.deleteNote(userId, tombstone.itemId)
+            } else {
+                firestoreRepository.deleteTask(userId, tombstone.itemId)
+            }
+            
+            result.onSuccess {
+                deletedItemDao.deleteTombstone(tombstone.itemId)
+                Log.d("CloudSyncManager", "pushDeletions: Successfully deleted ${tombstone.itemType} ${tombstone.itemId} from cloud.")
+            }.onFailure {
+                Log.e("CloudSyncManager", "pushDeletions: Failed to delete ${tombstone.itemType} ${tombstone.itemId} from cloud", it)
+            }
         }
     }
 }
