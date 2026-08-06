@@ -1,6 +1,7 @@
 package com.example.atrox.data.remote.firestore
 
 import com.example.atrox.data.local.db.NoteEntity
+import com.example.atrox.data.local.db.PreferenceEntity
 import com.example.atrox.data.local.db.TaskItem
 import com.example.atrox.domain.repository.IFirestoreRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -78,6 +79,30 @@ class FirestoreRepositoryImpl @Inject constructor(
                 .delete()
                 .await()
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun syncPreferences(userId: String, preferences: List<PreferenceEntity>): Result<Unit> {
+        return try {
+            val batch = firestore.batch()
+            preferences.forEach { pref ->
+                val docRef = firestore.collection("users").document(userId).collection("preferences").document(pref.key)
+                batch.set(docRef, pref)
+            }
+            batch.commit().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun fetchPreferences(userId: String): Result<List<PreferenceEntity>> {
+        return try {
+            val snapshot = firestore.collection("users").document(userId).collection("preferences").get().await()
+            val preferences = snapshot.toObjects(PreferenceEntity::class.java)
+            Result.success(preferences)
         } catch (e: Exception) {
             Result.failure(e)
         }

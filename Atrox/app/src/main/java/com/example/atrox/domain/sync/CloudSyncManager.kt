@@ -3,6 +3,7 @@ package com.example.atrox.domain.sync
 import com.example.atrox.data.local.db.DeletedItemDao
 import com.example.atrox.data.local.db.NoteDao
 import com.example.atrox.data.local.db.TaskDao
+import com.example.atrox.data.local.db.PreferenceDao
 import com.example.atrox.domain.repository.IFirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 import android.util.Log
@@ -21,6 +22,7 @@ class CloudSyncManager @Inject constructor(
     private val noteDao: NoteDao,
     private val taskDao: TaskDao,
     private val deletedItemDao: DeletedItemDao,
+    private val preferenceDao: PreferenceDao,
     private val firebaseAuth: Lazy<FirebaseAuth>
 ) {
     private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -38,10 +40,12 @@ class CloudSyncManager @Inject constructor(
             // 1. PULL REMOTE CHANGES
             pullNotes(userId)
             pullTasks(userId)
+            pullPreferences(userId)
 
             // 2. PUSH LOCAL CHANGES
             pushNotes(userId)
             pushTasks(userId)
+            pushPreferences(userId)
             pushDeletions(userId)
             
             Log.d("CloudSyncManager", "sync: Finished sync for user $userId")
@@ -59,6 +63,7 @@ class CloudSyncManager @Inject constructor(
         
         pushNotes(userId)
         pushTasks(userId)
+        pushPreferences(userId)
         pushDeletions(userId)
         
         Log.d("CloudSyncManager", "syncPushOnly: Finished guaranteed background push for user $userId")
@@ -182,6 +187,43 @@ class CloudSyncManager @Inject constructor(
             }.onFailure {
                 Log.e("CloudSyncManager", "pushDeletions: Failed to delete ${tombstone.itemType} ${tombstone.itemId} from cloud", it)
             }
+        }
+    }
+
+    private suspend fun pullPreferences(userId: String) {
+        Log.d("CloudSyncManager", "pullPreferences: Fetching remote preferences...")
+        firestoreRepository.fetchPreferences(userId).onSuccess { remotePrefs ->
+            if (remotePrefs.isEmpty()) return@onSuccess
+            
+            val localPrefs = preferenceDao.getAllPreferencesForUser(userId).associateBy { it.key }
+            val prefsToInsert = mutableListOf<com.example.atrox.data.local.db.PreferenceEntity>()
+
+            for (remotePref in remotePrefs) {
+                val localPref = localPrefs[remotePref.key]
+                if (localPref == null || remotePref.updatedAt > localPref.updatedAt) {
+                    prefsToInsert.add(remotePref.copy(isSynced = true))
+                }
+            }
+
+            if (prefsToInsert.isNotEmpty()) {
+                preferenceDao.insertPreferences(prefsToInsert)
+            }
+        }.onFailure {
+            Log.e("CloudSyncManager", "pullPreferences: Failed to fetch remote preferences", it)
+        }
+    }
+
+    private suspend fun pushPreferences(userId: String) {
+        val unsyncedPrefs = preferenceDao.getUnsyncedPreferences(userId)
+        if (unsyncedPrefs.isEmpty()) return
+
+        Log.d("CloudSyncManager", "pushPreferences: Pushing ${unsyncedPrefs.size} preferences to Firestore...")
+        firestoreRepository.syncPreferences(userId, unsyncedPrefs).onSuccess {
+            unsyncedPrefs.forEach { pref ->
+                preferenceDao.markPreferenceAsSynced(pref.key, pref.updatedAt)
+            }
+        }.onFailure {
+            Log.e("CloudSyncManager", "pushPreferences: Failed to push preferences", it)
         }
     }
 }

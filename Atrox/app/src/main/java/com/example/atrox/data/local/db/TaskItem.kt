@@ -12,14 +12,20 @@ data class TaskItem(
     val title: String = "",
     val category: String = "",
     val durationMin: Int = 0,
-    val isCompleted: Boolean = false,
+    @get:com.google.firebase.firestore.PropertyName("isCompleted")
+    @set:com.google.firebase.firestore.PropertyName("isCompleted")
+    var isCompleted: Boolean = false,
     val dateString: String = "",
     
     // Cloud Sync fields
     @androidx.room.ColumnInfo(defaultValue = "0")
     val updatedAt: Long = System.currentTimeMillis(),
+    
+    @get:com.google.firebase.firestore.PropertyName("isSynced")
+    @set:com.google.firebase.firestore.PropertyName("isSynced")
     @androidx.room.ColumnInfo(defaultValue = "0")
-    val isSynced: Boolean = false,
+    var isSynced: Boolean = false,
+    
     @androidx.room.ColumnInfo(defaultValue = "''")
     val userId: String = ""
 )

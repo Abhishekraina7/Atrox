@@ -7,9 +7,11 @@ import com.example.atrox.data.local.db.MIGRATION_2_3
 import com.example.atrox.data.local.db.MIGRATION_3_4
 import com.example.atrox.data.local.db.MIGRATION_4_5
 import com.example.atrox.data.local.db.MIGRATION_5_6
+import com.example.atrox.data.local.db.MIGRATION_6_7
 import com.example.atrox.data.local.db.NoteDao
 import com.example.atrox.data.local.db.TaskDao
 import com.example.atrox.data.local.db.DeletedItemDao
+import com.example.atrox.data.local.db.PreferenceDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,7 +30,7 @@ object DatabaseModule {
                 context,
                 AppDatabase::class.java,
                 "atrox_db"
-            ).addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+            ).addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
             .fallbackToDestructiveMigration(false)
             .build()
     }
@@ -49,5 +51,11 @@ object DatabaseModule {
     @Singleton
     fun provideDeletedItemDao(database: AppDatabase): DeletedItemDao {
         return database.deletedItemDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePreferenceDao(database: AppDatabase): PreferenceDao {
+        return database.preferenceDao()
     }
 }
