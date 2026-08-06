@@ -16,15 +16,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.atrox.data.local.preferences.UserPreferencesRepository
 import kotlinx.coroutines.flow.first
 
-import com.example.atrox.data.local.preferences.DataStoreMigrator
 import com.example.atrox.domain.sync.CloudSyncManager
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val preferences: UserPreferencesRepository,
     private val firebaseAuth: Lazy<FirebaseAuth>,
-    private val cloudSyncManager: CloudSyncManager,
-    private val dataStoreMigrator: DataStoreMigrator
+    private val cloudSyncManager: CloudSyncManager
 ) : ViewModel() {
 
     // MutableSharedFlow is used over StateFlow because navigation is a "one-shot" event.
@@ -41,9 +39,6 @@ class SplashViewModel @Inject constructor(
 
     private fun startCalibration() {
         viewModelScope.launch {
-            // 0. Migrate DataStore to Room if necessary
-            dataStoreMigrator.migrateIfNeeded()
-
             // 1. Initialize checks
             _progress.value = 0.2f
             
