@@ -14,21 +14,18 @@ data class NoteEntity(
     val timestamp: Long = 0L,
     val hasAudio: Boolean = false,
     @get:com.google.firebase.firestore.PropertyName("isSpanning")
-    @set:com.google.firebase.firestore.PropertyName("isSpanning")
-    var isSpanning: Boolean = false,
+    val isSpanning: Boolean = false,
     
     val category: NoteCategory = NoteCategory.PERSONAL,
     val attachedImages: String = "", // comma separated list of internal paths
     
     @get:com.google.firebase.firestore.PropertyName("isPinned")
-    @set:com.google.firebase.firestore.PropertyName("isPinned")
     @ColumnInfo(defaultValue = "0")
-    var isPinned: Boolean = false,
+    val isPinned: Boolean = false,
     
     @get:com.google.firebase.firestore.PropertyName("isDeleted")
-    @set:com.google.firebase.firestore.PropertyName("isDeleted")
     @ColumnInfo(defaultValue = "0")
-    var isDeleted: Boolean = false,
+    val isDeleted: Boolean = false,
     
     val deletedTimestamp: Long? = null,
     
@@ -37,9 +34,8 @@ data class NoteEntity(
     val updatedAt: Long = 0,
     
     @get:com.google.firebase.firestore.PropertyName("isSynced")
-    @set:com.google.firebase.firestore.PropertyName("isSynced")
     @ColumnInfo(defaultValue = "0")
-    var isSynced: Boolean = false,
+    val isSynced: Boolean = false,
     
     @ColumnInfo(defaultValue = "''")
     val userId: String = ""

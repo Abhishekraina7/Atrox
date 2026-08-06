@@ -13,6 +13,5 @@ data class PreferenceEntity(
     val updatedAt: Long = 0L,
     
     @get:com.google.firebase.firestore.PropertyName("isSynced")
-    @set:com.google.firebase.firestore.PropertyName("isSynced")
-    var isSynced: Boolean = false
+    val isSynced: Boolean = false
 )
