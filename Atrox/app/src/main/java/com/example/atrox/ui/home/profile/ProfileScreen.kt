@@ -272,7 +272,7 @@ fun ProfileScreen(
                         item = item,
                         onClick = {
                             when (item.title) {
-                                "My Regulator" -> onNavigateToRegulator()
+                                "My Guardian" -> onNavigateToRegulator()
                                 "Streak History" -> onNavigateToStreakHistory()
                             }
                         }

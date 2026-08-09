@@ -68,48 +68,38 @@ fun RegulatorScreen(
     var showCountryDialog by remember { mutableStateOf(false) }
 
     val contactPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickContact(),
+        contract = object : androidx.activity.result.contract.ActivityResultContract<Void?, android.net.Uri?>() {
+            override fun createIntent(context: android.content.Context, input: Void?): android.content.Intent {
+                return android.content.Intent(android.content.Intent.ACTION_PICK).apply {
+                    type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE
+                }
+            }
+            override fun parseResult(resultCode: Int, intent: android.content.Intent?): android.net.Uri? {
+                return if (resultCode == android.app.Activity.RESULT_OK) intent?.data else null
+            }
+        },
         onResult = { uri ->
             if (uri != null) {
-                var phoneNumber = ""
-                val cursor = context.contentResolver.query(uri, null, null, null, null)
-                cursor?.use {
-                    if (it.moveToFirst()) {
-                        val hasPhoneIndex = it.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
-                        val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
-                        val nameIndex = it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                val projection = arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                )
+                context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                        val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                         
                         if (nameIndex >= 0) {
-                            nameInput = it.getString(nameIndex) ?: ""
+                            nameInput = cursor.getString(nameIndex) ?: ""
                         }
-
-                        if (hasPhoneIndex >= 0 && idIndex >= 0) {
-                            val hasPhone = it.getInt(hasPhoneIndex) > 0
-                            val id = it.getString(idIndex)
-                            
-                            if (hasPhone) {
-                                val phonesCursor = context.contentResolver.query(
-                                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                                    null,
-                                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                                    arrayOf(id),
-                                    null
-                                )
-                                phonesCursor?.use { pCursor ->
-                                    if (pCursor.moveToFirst()) {
-                                        val numberIndex = pCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                                        if (numberIndex >= 0) {
-                                            phoneNumber = pCursor.getString(numberIndex)
-                                        }
-                                    }
-                                }
+                        if (numberIndex >= 0) {
+                            val phoneNumber = cursor.getString(numberIndex) ?: ""
+                            val cleanedNumber = phoneNumber.filter { it.isDigit() }
+                            if (cleanedNumber.isNotEmpty()) {
+                                phoneInput = cleanedNumber.takeLast(10)
                             }
                         }
                     }
-                }
-                val cleanedNumber = phoneNumber.filter { it.isDigit() }
-                if (cleanedNumber.isNotEmpty()) {
-                    phoneInput = cleanedNumber.take(10)
                 }
             }
         }
