@@ -109,7 +109,7 @@ class LoginViewModel @Inject constructor(
                 result.onSuccess {
                     cloudSyncManager.sync()
                     userPreferencesRepository.setLoggedIn(true)
-                    _events.emit(LoginEvent.NavigateToOnboarding)
+                    _events.emit(LoginEvent.NavigateToHome)
                 }.onFailure { exception ->
                     _errorMessage.value = exception.message ?: "Sign in failed"
                 }
@@ -139,7 +139,11 @@ class LoginViewModel @Inject constructor(
                 // Save session local state
                 cloudSyncManager.sync()
                 userPreferencesRepository.setLoggedIn(true)
-                _events.emit(LoginEvent.NavigateToOnboarding)
+                if (authResult.additionalUserInfo?.isNewUser == true) {
+                    _events.emit(LoginEvent.NavigateToOnboarding)
+                } else {
+                    _events.emit(LoginEvent.NavigateToHome)
+                }
             }.onFailure { exception ->
                 _errorMessage.value = exception.message ?: "Google Sign-in failed"
             }

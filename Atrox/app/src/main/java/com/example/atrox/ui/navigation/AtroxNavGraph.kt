@@ -150,11 +150,15 @@ fun AtroxNavHost(
                 }
             )
         }
-        // --- Login Screen ---
         composable(route = LoginDestination.route) {
             LoginScreen(
                 onNavigateToOnboarding = {
                     navController.navigate(OnboardingDestination.route) {
+                        popUpTo(LoginDestination.route) { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate(HomeDestination.route) {
                         popUpTo(LoginDestination.route) { inclusive = true }
                     }
                 },

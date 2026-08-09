@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     onNavigateToOnboarding: () -> Unit,
+    onNavigateToHome: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
 ) {
     val username by viewModel.username.collectAsState()
@@ -64,6 +65,7 @@ fun LoginScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is LoginEvent.NavigateToOnboarding -> onNavigateToOnboarding()
+                is LoginEvent.NavigateToHome -> onNavigateToHome()
                 is LoginEvent.NavigateToForgotPassword -> onNavigateToForgotPassword()
             }
         }
