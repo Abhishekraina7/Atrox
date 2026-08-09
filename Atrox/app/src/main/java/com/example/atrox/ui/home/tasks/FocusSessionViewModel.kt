@@ -36,7 +36,8 @@ data class FocusSessionUiState(
     val approvalMessage: String = "",
     val requireApproval: Boolean = false,
     val navigateToDashboard: Boolean = false,
-    val hapticFeedbackEnabled: Boolean = true
+    val hapticFeedbackEnabled: Boolean = true,
+    val isRequestRejected: Boolean = false
 )
 
 @HiltViewModel
@@ -81,14 +82,26 @@ class FocusSessionViewModel @Inject constructor(
 
     private fun observeApprovals() {
         viewModelScope.launch {
-            regulatorManager.approvalEvents.collect {
-                if (_uiState.value.isWaitingForApproval) {
-                    _uiState.value = _uiState.value.copy(
-                        isWaitingForApproval = false,
-                        isFinished = true,
-                        approvalMessage = "Regulator approved! Session ended."
-                    )
-                    restoreDnd()
+            launch {
+                regulatorManager.approvalEvents.collect {
+                    if (_uiState.value.isWaitingForApproval) {
+                        _uiState.value = _uiState.value.copy(
+                            isWaitingForApproval = false,
+                            isFinished = true,
+                            approvalMessage = "Regulator approved! Session ended."
+                        )
+                        restoreDnd()
+                    }
+                }
+            }
+            launch {
+                regulatorManager.rejectionEvents.collect {
+                    if (_uiState.value.isWaitingForApproval) {
+                        _uiState.value = _uiState.value.copy(
+                            isWaitingForApproval = false,
+                            isRequestRejected = true
+                        )
+                    }
                 }
             }
         }
@@ -238,7 +251,17 @@ class FocusSessionViewModel @Inject constructor(
                 .build()
 
             WorkManager.getInstance(context).enqueue(workRequest)
+
+            // Simulate rejection for testing purposes if the task name contains "reject"
+            if (_uiState.value.taskName.contains("reject", ignoreCase = true)) {
+                delay(2000)
+                regulatorManager.triggerRejection()
+            }
         }
+    }
+
+    fun clearRejection() {
+        _uiState.value = _uiState.value.copy(isRequestRejected = false)
     }
 
     override fun onCleared() {
