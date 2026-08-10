@@ -83,21 +83,6 @@ fun FocusSessionScreen(
         topBar = {
             TopAppBar(
                 title = { },
-                actions = {
-                    IconButton(
-                        onClick = onNavigateToFocusBreak,
-                        modifier = Modifier
-                            .padding(end = 16.dp)
-                            .size(40.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                    ){
-                        Icon(
-                            imageVector = Icons.Rounded.GraphicEq, // Waveform placeholder
-                            contentDescription = "Waveform",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
                 windowInsets = WindowInsets(0,0,0,0),
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
@@ -181,16 +166,6 @@ fun FocusSessionScreen(
             )
 
             Spacer(modifier = Modifier.height(32.dp))
-
-            // Dots
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
-                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape))
-                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape))
-                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape))
-            }
 
             Spacer(modifier = Modifier.weight(1f))
 

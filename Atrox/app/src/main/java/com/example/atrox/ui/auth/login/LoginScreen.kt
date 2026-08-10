@@ -343,18 +343,14 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // --- 7. Social Login ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                SocialButton(
-                    text = stringResource(R.string.login_social_google),
-                    iconText = "G",
-                    isLoading = isGoogleLoading,
-                    onClick = {
-                        if (viewModel.onGoogleSignInClicked()) {
-                            coroutineScope.launch {
-                                try {
+            SocialButton(
+                text = stringResource(R.string.login_social_google),
+                iconText = "G",
+                isLoading = isGoogleLoading,
+                onClick = {
+                    if (viewModel.onGoogleSignInClicked()) {
+                        coroutineScope.launch {
+                            try {
                                 viewModel.setGoogleLoading(true)
 
                                 // Uses the WEB_CLIENT_ID from BuildConfig which is pulled from local.properties
@@ -403,17 +399,10 @@ fun LoginScreen(
                                 viewModel.setGoogleLoading(false)
                             }
                         }
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-                SocialButton(
-                    text = stringResource(R.string.login_social_apple),
-                    iconText = "",
-                    onClick = { viewModel.onAppleSignInClicked() },
-                    modifier = Modifier.weight(1f)
-                )
-            }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.weight(1f, fill = false))
             Spacer(modifier = Modifier.height(40.dp))
