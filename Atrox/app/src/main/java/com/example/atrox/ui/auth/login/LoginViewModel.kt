@@ -159,16 +159,6 @@ class LoginViewModel @Inject constructor(
         return true
     }
 
-    fun onAppleSignInClicked() {
-        if(!networkHelper.isNetworkConnected()){
-            showTemporaryError("No Internet Connection. Please check your settings.")
-            return
-        }
-        viewModelScope.launch {
-            _events.emit(LoginEvent.NavigateToOnboarding)
-        }
-    }
-
     fun onForgotPasswordClicked() {
         viewModelScope.launch {
             _events.emit(LoginEvent.NavigateToForgotPassword)
