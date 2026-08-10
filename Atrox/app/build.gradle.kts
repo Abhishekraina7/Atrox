@@ -105,10 +105,13 @@ dependencies {
     // --- Kotlin Serialization ---
     implementation(libs.kotlinx.serialization.json)
 
-    // --- Room ---
+    // --- Room & SQLCipher ---
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.sqlcipher.android)
+    implementation(libs.androidx.sqlite.ktx)
+    implementation(libs.androidx.security.crypto)
 
     // --- DataStore ---
     implementation(libs.androidx.datastore.preferences)
