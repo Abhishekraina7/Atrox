@@ -24,6 +24,7 @@ class SendSmsWorker(
             val smsManager = SmsManager.getDefault()
             val parts = smsManager.divideMessage(message)
             smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null)
+            
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()

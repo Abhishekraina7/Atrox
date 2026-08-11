@@ -105,6 +105,36 @@ fun RegulatorScreen(
         }
     )
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                contactPickerLauncher.launch(null)
+            } else {
+                Toast.makeText(context, "Contact permission is required for Regulator features", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    val savePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                if (nameInput.isNotBlank() && phoneInput.isNotBlank()) {
+                    viewModel.addRegulator(
+                        name = nameInput,
+                        phone = "$countryCode $phoneInput"
+                    )
+                    showAddDialog = false
+                } else {
+                    Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Contact permission is required to save Regulator", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
     Scaffold(
         containerColor = colors.background,
         topBar = {
@@ -456,7 +486,7 @@ fun RegulatorScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     TextButton(
-                        onClick = { contactPickerLauncher.launch(null) },
+                        onClick = { permissionLauncher.launch(android.Manifest.permission.READ_CONTACTS) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Choose from Contacts", color = colors.primary)
@@ -474,14 +504,18 @@ fun RegulatorScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
                             onClick = {
-                                if (nameInput.isNotBlank() && phoneInput.isNotBlank()) {
-                                    viewModel.addRegulator(
-                                        name = nameInput,
-                                        phone = "$countryCode $phoneInput"
-                                    )
-                                    showAddDialog = false
+                                if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_CONTACTS) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                                    if (nameInput.isNotBlank() && phoneInput.isNotBlank()) {
+                                        viewModel.addRegulator(
+                                            name = nameInput,
+                                            phone = "$countryCode $phoneInput"
+                                        )
+                                        showAddDialog = false
+                                    } else {
+                                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                                    }
                                 } else {
-                                    Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                                    savePermissionLauncher.launch(android.Manifest.permission.READ_CONTACTS)
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = colors.primary)

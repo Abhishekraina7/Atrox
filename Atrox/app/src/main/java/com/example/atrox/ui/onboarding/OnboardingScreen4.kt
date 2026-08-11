@@ -122,6 +122,17 @@ fun OnboardingScreen4(
         }
     )
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                contactPickerLauncher.launch(null)
+            } else {
+                android.widget.Toast.makeText(context, "Contact permission is required for Regulator features", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
@@ -266,7 +277,7 @@ fun OnboardingScreen4(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            FilterChip(stringResource(R.string.onboarding_contacts_filter), onClick = { contactPickerLauncher.launch(null) })
+            FilterChip(stringResource(R.string.onboarding_contacts_filter), onClick = { permissionLauncher.launch(android.Manifest.permission.READ_CONTACTS) })
         }
 
         Spacer(modifier = Modifier.weight(1f, fill = false))
@@ -274,8 +285,25 @@ fun OnboardingScreen4(
 
         val isPhoneValid = searchQuery.replace(Regex("[^0-9]"), "").length >= 10
         val isFormValid = isPhoneValid && regulatorName.isNotBlank()
+        val savePermissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = { isGranted ->
+                if (isGranted) {
+                    viewModel.onContinueClicked()
+                } else {
+                    android.widget.Toast.makeText(context, "Contact permission is required to save Regulator", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+
         Button(
-            onClick = { viewModel.onContinueClicked() },
+            onClick = {
+                if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_CONTACTS) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    viewModel.onContinueClicked()
+                } else {
+                    savePermissionLauncher.launch(android.Manifest.permission.READ_CONTACTS)
+                }
+            },
             enabled = isFormValid,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,

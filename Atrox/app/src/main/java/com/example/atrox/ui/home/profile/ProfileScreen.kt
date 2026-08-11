@@ -19,6 +19,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.*
 import androidx.compose.ui.window.Dialog
@@ -36,9 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.items
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atrox.domain.model.FocusGoalCatalogue
-import com.example.atrox.domain.model.Avatar
 import com.example.atrox.domain.model.AvatarCatalogue
 import com.example.atrox.ui.theme.atroxColors
 
@@ -241,14 +242,14 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                uiState.badges.forEach { badge ->
-                    BadgeCard(
-                        badge = badge,
-                        modifier = Modifier.weight(1f)
+                items(uiState.allBadges) { badgeState ->
+                    CatalogueBadgeCard(
+                        badgeState = badgeState,
+                        modifier = Modifier.width(140.dp)
                     )
                 }
             }
@@ -446,41 +447,6 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
     }
 }
 
-@Composable
-private fun BadgeCard(badge: Badge, modifier: Modifier = Modifier) {
-    val colors = MaterialTheme.colorScheme
-
-    Column(
-        modifier = modifier
-            .background(colors.surfaceVariant, RoundedCornerShape(16.dp))
-            .padding(vertical = 20.dp, horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .background(badge.color.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(badge.emoji, fontSize = 20.sp)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = badge.title,
-            color = colors.onBackground,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = badge.timeAgo,
-            color = colors.onSurfaceVariant,
-            fontSize = 10.sp,
-            fontFamily = FontFamily.Monospace
-        )
-    }
-}
 
 @Composable
 private fun SettingsRow(item: SettingsItem, onClick: () -> Unit) {
@@ -593,7 +559,7 @@ fun AllBadgesDialog(
 }
 
 @Composable
-fun CatalogueBadgeCard(badgeState: BadgeState) {
+fun CatalogueBadgeCard(badgeState: BadgeState, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
     var isFlipped by remember { mutableStateOf(false) }
 
@@ -603,7 +569,7 @@ fun CatalogueBadgeCard(badgeState: BadgeState) {
         label = "flipAnimation"
     )
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(140.dp)
             .graphicsLayer {

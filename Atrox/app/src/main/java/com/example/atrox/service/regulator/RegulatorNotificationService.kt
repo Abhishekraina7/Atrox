@@ -1,6 +1,8 @@
 package com.example.atrox.service.regulator
 
 import android.app.Notification
+import android.database.Cursor
+import android.provider.ContactsContract
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.example.atrox.data.repository.RegulatorRepository
@@ -50,13 +52,37 @@ class RegulatorNotificationService : NotificationListenerService() {
             val cleanSavedPhone = savedPhone.replace(Regex("[^0-9]"), "")
             val cleanTitle = title.replace(Regex("[^0-9]"), "")
 
-            val isMatch = if (cleanTitle.isNotEmpty() && cleanSavedPhone.isNotEmpty()) {
-                cleanSavedPhone.contains(cleanTitle) || cleanTitle.contains(cleanSavedPhone)
+            var isMatch = false
+
+            if (cleanTitle.isNotEmpty() && cleanSavedPhone.isNotEmpty()) {
+                isMatch = cleanSavedPhone.contains(cleanTitle) || cleanTitle.contains(cleanSavedPhone)
             } else {
-                // If the title is just a name (no digits), we would normally need to map it.
-                // For simplicity here, we assume it's a match if we get an APPROVE from a messaging app
-                // while a sprint is actively waiting for approval.
-                true 
+                // The title is just a name (no digits). We must resolve this name to phone numbers
+                // via ContactsContract and strictly match against cleanSavedPhone.
+                try {
+                    val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+                    val projection = arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                    val selection = "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} = ?"
+                    val selectionArgs = arrayOf(title)
+                    
+                    contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
+                        val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                        while (cursor.moveToNext() && !isMatch) {
+                            val contactNumber = cursor.getString(numberIndex)
+                            if (contactNumber != null) {
+                                val cleanContactNumber = contactNumber.replace(Regex("[^0-9]"), "")
+                                if (cleanContactNumber.isNotEmpty() && (cleanSavedPhone.contains(cleanContactNumber) || cleanContactNumber.contains(cleanSavedPhone))) {
+                                    isMatch = true
+                                }
+                            }
+                        }
+                    }
+                } catch (e: SecurityException) {
+                    // READ_CONTACTS permission not granted
+                    e.printStackTrace()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
 
             if (isMatch) {
