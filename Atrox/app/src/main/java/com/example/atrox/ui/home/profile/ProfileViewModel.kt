@@ -19,13 +19,6 @@ import com.example.atrox.domain.model.FocusGoal
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-data class Badge(
-    val title: String,
-    val emoji: String,
-    val color: Color,
-    val timeAgo: String
-)
-
 data class BadgeState(
     val badge: AppBadge,
     val isUnlocked: Boolean
@@ -53,11 +46,6 @@ data class ProfileUiState(
         FocusGoal("Coding", "⚙️"),
         FocusGoal("Reading", "📖"),
         FocusGoal("Design", "🎨")
-    ),
-    val badges: List<Badge> = listOf(
-        Badge("Early Riser", "🏆", Color(0xFFFF9800), "3d ago"),
-        Badge("Century Club", "⚡", Color(0xFF6C63FF), "1w ago"),
-        Badge("Deep Diver", "✨", Color(0xFF42A5F5), "2w ago")
     ),
     val allBadges: List<BadgeState> = emptyList(),
     val settingsItems: List<SettingsItem> = listOf(
